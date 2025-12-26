@@ -1,69 +1,62 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="card">
-  <h2>QR 로케이션 재고 조회</h2>
+  <h2>로케이션 QR 재고 보기</h2>
+  <p class="small">QR 내용 형식: <b>LOC|창고|로케이션</b></p>
 
-  <div class="form">
-    <label>창고 <input id="창고" placeholder="예: A동" /></label>
-    <label>로케이션 <input id="로케이션" placeholder="QR 스캔 또는 직접 입력" /></label>
-    <button id="조회">조회</button>
-  </div>
-
-  <div id="reader" style="width: 320px; max-width: 100%;"></div>
-  <p class="hint">QR 내용은 로케이션 코드(예: A01-01)만 들어있다고 가정합니다.</p>
-
-  <div class="table-wrap">
-    <table id="tbl">
-      <thead>
-        <tr>
-          <th>창고</th><th>로케이션</th><th>품번</th><th>품명</th><th>LOT</th><th>규격</th><th>수량</th><th>비고</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+  <div class="grid">
+    <div class="card">
+      <h3>카메라 스캔</h3>
+      <div id="reader" style="width:100%;"></div>
+      <p class="small" id="scanText"></p>
+    </div>
+    <div class="card">
+      <h3>재고</h3>
+      <div id="result"></div>
+    </div>
   </div>
 </div>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script>
-const $ = (id) => document.getElementById(id);
-
-async function 조회() {
-  const 창고 = $("창고").value.trim();
-  const 로케이션 = $("로케이션").value.trim();
-  if (!창고 || !로케이션) {
-    alert("창고/로케이션을 입력하세요.");
-    return;
+let last = "";
+function parseLoc(text){
+  const parts = text.split("|");
+  if(parts.length>=3 && parts[0]==="LOC"){
+    return {warehouse: parts[1], location: parts[2]};
   }
-  const res = await fetch(`/api/재고/로케이션?창고=${encodeURIComponent(창고)}&로케이션=${encodeURIComponent(로케이션)}`);
-  const rows = await res.json();
-  const tbody = document.querySelector("#tbl tbody");
-  tbody.innerHTML = "";
-  for (const r of rows) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${r.창고}</td><td>${r.로케이션}</td><td>${r.품번}</td><td>${r.품명}</td>
-      <td>${r.LOT}</td><td>${r.규격}</td><td class="num">${r.수량}</td><td>${r.비고 ?? ""}</td>
-    `;
-    tbody.appendChild(tr);
+  return null;
+}
+async function showInv(wh, loc){
+  const res = await fetch(`/api/재고?창고=${encodeURIComponent(wh)}&로케이션=${encodeURIComponent(loc)}`);
+  const data = await res.json();
+  let html = `<div class="badge">${wh} / ${loc}</div>`;
+  html += `<p class="small">총 ${data.count}건</p>`;
+  html += `<table class="table"><thead><tr><th>품번</th><th>품명</th><th>LOT</th><th>규격</th><th>수량</th></tr></thead><tbody>`;
+  for(const it of data.items){
+    html += `<tr><td>${it.품번}</td><td>${it.품명}</td><td>${it.LOT}</td><td>${it.규격}</td><td>${it.수량}</td></tr>`;
   }
+  html += `</tbody></table>`;
+  document.getElementById('result').innerHTML = html;
 }
 
-$("조회").addEventListener("click", 조회);
-
-// QR 스캔: 결과를 로케이션 입력칸에 넣고 자동 조회
 const qr = new Html5Qrcode("reader");
-Html5Qrcode.getCameras().then(cams => {
-  if (!cams || cams.length === 0) return;
+Html5Qrcode.getCameras().then(cameras=>{
+  if(!cameras || cameras.length===0){ document.getElementById('scanText').innerText="카메라 없음"; return; }
   qr.start(
-    cams[0].id,
+    { facingMode: "environment" },
     { fps: 10, qrbox: 250 },
-    (decodedText) => {
-      $("로케이션").value = decodedText.trim();
-      조회();
+    (decodedText)=>{
+      if(decodedText===last) return;
+      last = decodedText;
+      document.getElementById('scanText').innerText = decodedText;
+      const p = parseLoc(decodedText);
+      if(p) showInv(p.warehouse, p.location);
     },
-    () => {}
+    ()=>{}
   );
-}).catch(() => {});
+}).catch(err=>{
+  document.getElementById('scanText').innerText = "스캔 시작 실패: " + err;
+});
 </script>
 {% endblock %}

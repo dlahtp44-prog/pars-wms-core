@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="card">
-  <h2>이동</h2>
-  <form class="form" method="post" action="/api/이동">
-    <label>창고 <input name="창고" required></label>
-    <label>출발로케이션 <input name="출발로케이션" required></label>
-    <label>도착로케이션 <input name="도착로케이션" required></label>
-    <label>품번 <input name="품번" required></label>
-    <label>품명 <input name="품명" required></label>
-    <label>LOT <input name="LOT" required></label>
-    <label>규격 <input name="규격" required></label>
-    <label>수량 <input name="수량" type="number" min="1" required></label>
-    <label>비고 <input name="비고"></label>
-    <button type="submit">이동 처리</button>
-  </form>
-  <p class="hint"><a href="/">← 메인</a></p>
+<h2>이동</h2>
+<form method="post" action="/api/이동">
+  <label>창고<input class="input" name="창고" required></label>
+  <label>출발로케이션<input class="input" name="출발로케이션" required></label>
+  <label>도착로케이션<input class="input" name="도착로케이션" required></label>
+  <label>품번<input class="input" name="품번" required></label>
+  <label>품명<input class="input" name="품명" required></label>
+  <label>LOT<input class="input" name="LOT" required></label>
+  <label>규격<input class="input" name="규격" required></label>
+  <label>수량<input class="input" type="number" min="1" name="수량" required></label>
+  <label>비고<input class="input" name="비고"></label>
+  <button class="btn" type="submit">이동 처리</button>
+</form>
+<p class="small">QR로 이동하려면 <a href="/QR-이동">QR 이동</a> 사용</p>
 </div>
 {% endblock %}

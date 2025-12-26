@@ -1,6 +1,1 @@
-{
-  "build": {
-    "builder": "railpack",
-    "runtime": "python@3.11"
-  }
-}
+{ "build": { "builder": "DOCKERFILE" } }

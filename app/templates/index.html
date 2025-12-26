@@ -1,21 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="card">
-  <h2>PARS WMS CORE <span class="badge">Online</span></h2>
-
-  <div class="menu">
-    <a href="/입고">📥 입고 (단건)</a>
-    <a href="/출고">📤 출고 (단건)</a>
-    <a href="/이동">🔁 이동 (단건)</a>
-    <a href="/재고">📦 재고 조회</a>
-    <a href="/이력">🧾 이력 조회</a>
-
-    <a href="/엑셀-입고">📊 엑셀 입고 (관리자)</a>
-    <a href="/엑셀-출고">📤 엑셀 출고 (관리자)</a>
-    <a href="/엑셀-이동">🔁 엑셀 이동 (관리자)</a>
+  <h2>메뉴</h2>
+  <div class="grid">
+    <a class="btn" href="/QR-이동">📷 QR 이동 (출발→선택→도착)</a>
+    <a class="btn" href="/QR-로케이션">📦 로케이션 QR 재고 보기</a>
+    <a class="btn" href="/출력">🖨️ 라벨/재고/이력 출력</a>
+    <a class="btn" href="/재고">📦 재고 조회</a>
   </div>
-
-  <p class="hint">API 문서: <a href="/docs">/docs</a></p>
-  <p class="hint">엑셀 업로드는 HTTP Basic 관리자 인증이 필요합니다. (ENV: ADMIN_USER / ADMIN_PASS)</p>
+  <p class="small" style="margin-top:10px;">Swagger: <a href="/docs">/docs</a></p>
 </div>
 {% endblock %}

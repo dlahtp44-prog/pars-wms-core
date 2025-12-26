@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>출력</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>제품 라벨</h3>
+      <p class="small">재고 최신순으로 라벨 생성</p>
+      <a class="btn" href="/print/제품라벨.pdf?template=LS-3108&limit=14" target="_blank">LS-3108 (14칸)</a>
+      <a class="btn" href="/print/제품라벨.pdf?template=LS-3118&limit=4" target="_blank" style="margin-top:8px;">LS-3118 (4칸)</a>
+    </div>
+    <div class="card">
+      <h3>로케이션 QR 라벨</h3>
+      <p class="small">재고에 존재하는 로케이션 기준 전체 출력</p>
+      <a class="btn" href="/print/로케이션QR.pdf?template=LS-3108&전체=1" target="_blank">LS-3108 전체</a>
+      <a class="btn" href="/print/로케이션QR.pdf?template=LS-3118&전체=1" target="_blank" style="margin-top:8px;">LS-3118 전체</a>
+    </div>
+    <div class="card">
+      <h3>재고 / 이력</h3>
+      <a class="btn" href="/print/재고.pdf" target="_blank">현재고 출력(PDF)</a>
+      <a class="btn" href="/print/이력.pdf" target="_blank" style="margin-top:8px;">이력 출력(PDF)</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -2,7 +2,29 @@
 {% block content %}
 <div class="card">
   <h2>이력 조회</h2>
-  <p class="hint">API로 확인: <a href="/api/이력?limit=200">/api/이력</a></p>
-  <p class="hint"><a href="/">← 메인</a></p>
+  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+    <a class="btn" href="/print/이력.pdf" target="_blank">🖨️ 이력 출력(PDF)</a>
+    <a class="btn" href="/print/이력.pdf?구분=출고" target="_blank">출고만</a>
+    <a class="btn" href="/print/이력.pdf?구분=이동" target="_blank">이동만</a>
+  </div>
+  <div id="hist"></div>
 </div>
+
+<script>
+async function loadHist(){
+  const res = await fetch('/api/이력?limit=200');
+  const data = await res.json();
+  let html = `<p class="small">최근 ${data.count}건</p>`;
+  html += `<table class="table"><thead><tr>
+    <th>구분</th><th>창고</th><th>품번</th><th>품명</th><th>LOT</th><th>규격</th><th>출발</th><th>도착</th><th>수량</th><th>시간</th>
+  </tr></thead><tbody>`;
+  for(const it of data.items){
+    html += `<tr><td>${it['구분']}</td><td>${it['창고']}</td><td>${it['품번']}</td><td>${it['품명']}</td><td>${it['LOT']}</td><td>${it['규격']}</td>
+      <td>${it['출발로케이션']||''}</td><td>${it['도착로케이션']||''}</td><td>${it['수량']}</td><td>${it['created_at']}</td></tr>`;
+  }
+  html += `</tbody></table>`;
+  document.getElementById('hist').innerHTML = html;
+}
+loadHist();
+</script>
 {% endblock %}

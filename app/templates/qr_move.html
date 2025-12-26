@@ -1,82 +1,123 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="card">
-  <h2>QR 이동</h2>
+  <h2>QR 이동 (출발 → 상품선택 → 도착)</h2>
+  <p class="small">QR 형식: <b>LOC|창고|로케이션</b></p>
 
-  <div class="form">
-    <label>창고 <input id="창고" placeholder="예: A동" /></label>
-    <label>출발로케이션 <input id="출발로케이션" placeholder="QR 스캔" /></label>
-    <label>도착로케이션 <input id="도착로케이션" placeholder="QR 스캔" /></label>
-    <label>품번 <input id="품번" placeholder="QR 스캔 또는 입력" /></label>
-    <label>LOT <input id="LOT" placeholder="QR 스캔 또는 입력" /></label>
-    <label>수량 <input id="수량" type="number" min="1" /></label>
-    <label>비고 <input id="비고" /></label>
-
-    <button id="이동">이동 처리</button>
-  </div>
-
-  <div class="grid2">
-    <div>
-      <h3>스캔(출발/도착/품번/LOT)</h3>
-      <div id="reader" style="width: 320px; max-width: 100%;"></div>
-      <p class="hint">
-        스캔 순서 예시: <br/>
-        1) 출발로케이션 QR → 2) 품번 QR → 3) LOT QR → 4) 수량 입력 → 5) 도착로케이션 QR
-      </p>
-      <div class="form">
-        <label>현재 스캔 입력 대상
-          <select id="target">
-            <option value="출발로케이션">출발로케이션</option>
-            <option value="품번">품번</option>
-            <option value="LOT">LOT</option>
-            <option value="도착로케이션">도착로케이션</option>
-          </select>
-        </label>
-      </div>
+  <div class="grid">
+    <div class="card">
+      <h3>1) 출발 로케이션 스캔</h3>
+      <div id="reader1" style="width:100%;"></div>
+      <p class="small" id="fromText"></p>
+      <div id="fromInv"></div>
     </div>
 
-    <div>
-      <h3>결과</h3>
-      <pre id="result" class="pre"></pre>
+    <div class="card">
+      <h3>2) 도착 로케이션 스캔</h3>
+      <div id="reader2" style="width:100%;"></div>
+      <p class="small" id="toText"></p>
+      <button class="btn" id="doMove" disabled>이동 처리</button>
+      <div id="msg" class="small" style="margin-top:10px;"></div>
     </div>
   </div>
 </div>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script>
-const $ = (id) => document.getElementById(id);
+let from=null, to=null;
+let selectedItems = [];
 
-async function 이동처리() {
-  const payload = new URLSearchParams();
-  const fields = ["창고","출발로케이션","도착로케이션","품번","LOT","수량","비고"];
-  for (const f of fields) payload.append(f, $(f).value.trim());
-
-  const res = await fetch("/api/이동", { method:"POST", body: payload });
-  const txt = await res.text();
-  if (!res.ok) {
-    $("result").textContent = `ERROR ${res.status}\n${txt}`;
-    alert("이동 실패: 화면 오른쪽 결과 확인");
-    return;
+function parseLoc(text){
+  const parts = text.split("|");
+  if(parts.length>=3 && parts[0]==="LOC"){
+    return {warehouse: parts[1], location: parts[2]};
   }
-  $("result").textContent = `OK\n${txt}`;
-  alert("이동 완료");
+  return null;
 }
 
-$("이동").addEventListener("click", 이동처리);
+function updateButton(){
+  const anyChecked = [...document.querySelectorAll('.chk')].some(x=>x.checked);
+  document.getElementById('doMove').disabled = !(from && to && anyChecked);
+}
 
-// QR 스캔
-const qr = new Html5Qrcode("reader");
-Html5Qrcode.getCameras().then(cams => {
-  if (!cams || cams.length === 0) return;
-  qr.start(
-    cams[0].id,
-    { fps: 10, qrbox: 250 },
-    (decodedText) => {
-      const t = $("target").value;
-      $(t).value = decodedText.trim();
-    },
-    () => {}
-  );
-}).catch(() => {});
+function renderSelect(items){
+  selectedItems = items;
+  let html = `<p class="small"><b>${from.warehouse}</b> / <b>${from.location}</b> 재고</p>`;
+  html += `<table class="table"><thead><tr><th>선택</th><th>품번</th><th>품명</th><th>LOT</th><th>규격</th><th>재고</th><th>이동수량</th></tr></thead><tbody>`;
+  items.forEach((it, idx)=>{
+    html += `<tr>
+      <td><input type="checkbox" data-idx="${idx}" class="chk"></td>
+      <td>${it.품번}</td><td>${it.품명}</td><td>${it.LOT}</td><td>${it.규격}</td><td>${it.수량}</td>
+      <td><input class="input qty" style="width:92px;" type="number" min="1" max="${it.수량}" value="1" data-idx="${idx}"></td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  document.getElementById('fromInv').innerHTML = html;
+
+  document.querySelectorAll('.chk').forEach(el=> el.addEventListener('change', updateButton));
+  updateButton();
+}
+
+async function loadFromInv(){
+  const res = await fetch(`/api/재고?창고=${encodeURIComponent(from.warehouse)}&로케이션=${encodeURIComponent(from.location)}`);
+  const data = await res.json();
+  renderSelect(data.items);
+}
+
+async function doMove(){
+  const btn = document.getElementById('doMove');
+  btn.disabled = true;
+  const msgs=[];
+  const checks = [...document.querySelectorAll('.chk')];
+  for(const ch of checks){
+    if(!ch.checked) continue;
+    const idx = parseInt(ch.dataset.idx);
+    const row = selectedItems[idx];
+    const qtyInput = document.querySelector(`.qty[data-idx="${idx}"]`);
+    const qty = parseInt(qtyInput.value || "0");
+    const form = new FormData();
+    form.append("창고", from.warehouse);
+    form.append("출발로케이션", from.location);
+    form.append("도착로케이션", to.location);
+    form.append("품번", row.품번);
+    form.append("품명", row.품명);
+    form.append("LOT", row.LOT);
+    form.append("규격", row.규격);
+    form.append("수량", String(qty));
+    form.append("비고", "QR이동");
+    const r = await fetch("/api/이동", {method:"POST", body: form});
+    const j = await r.json();
+    if(r.ok) msgs.push(`✅ ${row.품번}/${row.LOT} ${qty} 이동 완료`);
+    else msgs.push(`❌ ${row.품번}/${row.LOT} 실패: ${j.detail || 'error'}`);
+  }
+  document.getElementById('msg').innerHTML = msgs.map(m=>`<div>${m}</div>`).join("");
+  await loadFromInv();
+  btn.disabled = false;
+}
+
+document.getElementById('doMove').addEventListener('click', doMove);
+
+const qr1 = new Html5Qrcode("reader1");
+const qr2 = new Html5Qrcode("reader2");
+let last1="", last2="";
+
+Html5Qrcode.getCameras().then(()=>{
+  qr1.start({facingMode:"environment"}, {fps:10, qrbox:220},
+    (txt)=>{
+      if(txt===last1) return; last1=txt;
+      document.getElementById('fromText').innerText = txt;
+      const p=parseLoc(txt);
+      if(p){ from=p; loadFromInv(); updateButton(); }
+    }, ()=>{});
+  qr2.start({facingMode:"environment"}, {fps:10, qrbox:220},
+    (txt)=>{
+      if(txt===last2) return; last2=txt;
+      document.getElementById('toText').innerText = txt;
+      const p=parseLoc(txt);
+      if(p){ to=p; updateButton(); }
+    }, ()=>{});
+}).catch(err=>{
+  document.getElementById('msg').innerText = "카메라 시작 실패: " + err;
+});
 </script>
 {% endblock %}

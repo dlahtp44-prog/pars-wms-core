@@ -1,26 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.db import init_db
 
-# API routers
-from app.routers import inbound, outbound, move, inventory, history
+from app.pages import home, inbound, outbound, move, inventory, history, qr, prints, calendar
+from app.routers import api_inbound, api_outbound, api_move, api_inventory, api_history
 
-# UI/page routers
-from app.pages import (
-    index,
-    inbound as inbound_page,
-    outbound as outbound_page,
-    move as move_page,
-    inventory as inventory_page,
-    history as history_page,
-    excel_inbound,
-    excel_outbound,
-    excel_move,
-    download,
-)
-
-app = FastAPI(title="PARS WMS CORE", version="2.0.0")
+app = FastAPI(title="PARS WMS CORE V3", version="3.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -30,29 +17,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 @app.on_event("startup")
-def on_startup():
+def startup():
     init_db()
 
-# UI
-app.include_router(index.router)
-app.include_router(inbound_page.router)
-app.include_router(outbound_page.router)
-app.include_router(move_page.router)
-app.include_router(inventory_page.router)
-app.include_router(history_page.router)
+for r in [home, inbound, outbound, move, inventory, history, qr, prints, calendar]:
+    app.include_router(r.router)
 
-# Excel UI (Admin-only via HTTP Basic)
-app.include_router(excel_inbound.router)
-app.include_router(excel_outbound.router)
-app.include_router(excel_move.router)
-
-# Failed rows download
-app.include_router(download.router)
-
-# API
-app.include_router(inbound.router)
-app.include_router(outbound.router)
-app.include_router(move.router)
-app.include_router(inventory.router)
-app.include_router(history.router)
+for r in [api_inbound, api_outbound, api_move, api_inventory, api_history]:
+    app.include_router(r.router)

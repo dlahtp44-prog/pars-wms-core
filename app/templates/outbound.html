@@ -1,16 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="card">
-  <h2>출고</h2>
-  <form class="form" method="post" action="/api/출고">
-    <label>창고 <input name="창고" required></label>
-    <label>로케이션 <input name="로케이션" required></label>
-    <label>품번 <input name="품번" required></label>
-    <label>LOT <input name="LOT" required></label>
-    <label>수량 <input name="수량" type="number" min="1" required></label>
-    <label>비고 <input name="비고"></label>
-    <button type="submit">출고 처리</button>
-  </form>
-  <p class="hint"><a href="/">← 메인</a></p>
+<h2>출고</h2>
+<form method="post" action="/api/출고">
+  <label>창고<input class="input" name="창고" required></label>
+  <label>로케이션<input class="input" name="로케이션" required></label>
+  <label>품번<input class="input" name="품번" required></label>
+  <label>품명<input class="input" name="품명" required></label>
+  <label>LOT<input class="input" name="LOT" required></label>
+  <label>규격<input class="input" name="규격" required></label>
+  <label>수량<input class="input" type="number" min="1" name="수량" required></label>
+  <label>비고<input class="input" name="비고"></label>
+  <button class="btn" type="submit">출고 처리</button>
+</form>
 </div>
 {% endblock %}
