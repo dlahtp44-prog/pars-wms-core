@@ -3,27 +3,59 @@
 <head>
   <meta charset="UTF-8">
   <title>엑셀 업로드 결과</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 24px; }
+    h2 { margin-bottom: 10px; }
+    h3 { margin-top: 20px; }
+    ul { padding-left: 20px; }
+    li { margin: 4px 0; }
+    .ok { color: #2ecc71; }
+    .fail { color: #e74c3c; }
+    .actions { margin-top: 30px; }
+    .actions a {
+      display: inline-block;
+      margin-right: 12px;
+      text-decoration: none;
+      padding: 8px 14px;
+      background: #2c3e50;
+      color: white;
+      border-radius: 4px;
+    }
+    .actions a:hover { background: #34495e; }
+  </style>
 </head>
 <body>
 
-<h2>업로드 결과</h2>
+<h2>엑셀 업로드 결과</h2>
 
 <h3>성공</h3>
+{% if success %}
 <ul>
   {% for s in success %}
-    <li>{{ s }}</li>
+    <li class="ok">{{ s }}</li>
   {% endfor %}
 </ul>
+{% else %}
+<p>성공한 항목이 없습니다.</p>
+{% endif %}
 
 <h3>실패</h3>
+{% if errors %}
 <ul>
   {% for e in errors %}
-    <li style="color:red">{{ e }}</li>
+    <li class="fail">{{ e }}</li>
   {% endfor %}
 </ul>
+{% else %}
+<p>실패한 항목이 없습니다.</p>
+{% endif %}
 
-<p><a href="/엑셀-입고">다시 업로드</a></p>
-<p><a href="/">메인으로</a></p>
+<div class="actions">
+  {% if retry_url %}
+    <a href="{{ retry_url }}">다시 업로드</a>
+  {% endif %}
+  <a href="/">메인으로</a>
+</div>
 
 </body>
 </html>
