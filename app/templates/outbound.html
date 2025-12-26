@@ -2,17 +2,15 @@
 {% block content %}
 <div class="card">
   <h2>출고</h2>
-
   <form class="form" method="post" action="/api/출고">
-    <label>창고 <input name="창고" required /></label>
-    <label>로케이션 <input name="로케이션" required /></label>
-    <label>품번 <input name="품번" required /></label>
-    <label>LOT <input name="LOT" required /></label>
-    <label>수량 <input name="수량" type="number" required min="1" /></label>
-    <label>비고 <input name="비고" /></label>
+    <label>창고 <input name="창고" required></label>
+    <label>로케이션 <input name="로케이션" required></label>
+    <label>품번 <input name="품번" required></label>
+    <label>LOT <input name="LOT" required></label>
+    <label>수량 <input name="수량" type="number" min="1" required></label>
+    <label>비고 <input name="비고"></label>
     <button type="submit">출고 처리</button>
   </form>
-
-  <p class="hint">※ 재고보다 큰 수량은 차감되지 않으며 오류로 막습니다.</p>
+  <p class="hint"><a href="/">← 메인</a></p>
 </div>
 {% endblock %}

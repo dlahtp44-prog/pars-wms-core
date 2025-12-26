@@ -1,43 +1,21 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <title>PARS WMS CORE</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 30px; background:#f5f6fa; }
-    h1 { margin-bottom: 10px; }
-    .status { color:#2ecc71; margin-bottom:20px; }
-    .menu a{
-      display:block; max-width:360px;
-      padding:12px 14px; margin:10px 0;
-      background:#2c3e50; color:#fff; text-decoration:none;
-      border-radius:6px;
-      font-size:15px;
-    }
-    .menu a:hover{ background:#34495e; }
-    .note{ color:#666; margin-top:25px; font-size:14px; }
-  </style>
-</head>
-<body>
-
-  <h1>PARS WMS CORE</h1>
-  <div class="status">상태: Online</div>
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>PARS WMS CORE <span class="badge">Online</span></h2>
 
   <div class="menu">
     <a href="/입고">📥 입고 (단건)</a>
-    <a href="/엑셀-입고">📊 엑셀 입고 (일괄)</a>
-
-    <a href="/출고">📤 출고</a>
-    <a href="/이동">🔁 이동</a>
-
+    <a href="/출고">📤 출고 (단건)</a>
+    <a href="/이동">🔁 이동 (단건)</a>
     <a href="/재고">📦 재고 조회</a>
     <a href="/이력">🧾 이력 조회</a>
+
+    <a href="/엑셀-입고">📊 엑셀 입고 (관리자)</a>
+    <a href="/엑셀-출고">📤 엑셀 출고 (관리자)</a>
+    <a href="/엑셀-이동">🔁 엑셀 이동 (관리자)</a>
   </div>
 
-  <div class="note">
-    🔗 API 문서: <a href="/docs">/docs</a><br>
-    📌 권장 순서: 엑셀 입고 → 출고/이동 → 재고/이력 확인
-  </div>
-
-</body>
-</html>
+  <p class="hint">API 문서: <a href="/docs">/docs</a></p>
+  <p class="hint">엑셀 업로드는 HTTP Basic 관리자 인증이 필요합니다. (ENV: ADMIN_USER / ADMIN_PASS)</p>
+</div>
+{% endblock %}

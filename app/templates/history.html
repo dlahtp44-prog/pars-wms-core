@@ -1,45 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="card">
-  <h2>이력 (최신 500건)</h2>
-  <button id="reload">새로고침</button>
-
-  <div class="table-wrap">
-    <table id="tbl">
-      <thead>
-        <tr>
-          <th>일시</th><th>구분</th><th>창고</th><th>품번</th><th>LOT</th>
-          <th>출발</th><th>도착</th><th>수량</th><th>비고</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+  <h2>이력 조회</h2>
+  <p class="hint">API로 확인: <a href="/api/이력?limit=200">/api/이력</a></p>
+  <p class="hint"><a href="/">← 메인</a></p>
 </div>
-
-<script>
-async function load() {
-  const res = await fetch("/api/이력");
-  const rows = await res.json();
-  const tbody = document.querySelector("#tbl tbody");
-  tbody.innerHTML = "";
-  for (const r of rows) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${r.일시}</td>
-      <td>${r.구분}</td>
-      <td>${r.창고}</td>
-      <td>${r.품번}</td>
-      <td>${r.LOT}</td>
-      <td>${r.출발로케이션 ?? ""}</td>
-      <td>${r.도착로케이션 ?? ""}</td>
-      <td class="num">${r.수량}</td>
-      <td>${r.비고 ?? ""}</td>
-    `;
-    tbody.appendChild(tr);
-  }
-}
-document.querySelector("#reload").addEventListener("click", load);
-load();
-</script>
 {% endblock %}

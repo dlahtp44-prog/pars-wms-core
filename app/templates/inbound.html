@@ -1,27 +1,18 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>입고 등록</title>
-</head>
-<body>
-
-<h2>입고 등록</h2>
-
-<form method="post" action="/api/입고">
-  <input name="창고" placeholder="창고" required><br><br>
-  <input name="로케이션" placeholder="로케이션" required><br><br>
-  <input name="품번" placeholder="품번" required><br><br>
-  <input name="품명" placeholder="품명" required><br><br>
-  <input name="LOT" placeholder="LOT" required><br><br>
-  <input name="규격" placeholder="규격" required><br><br>
-  <input type="number" name="수량" min="1" placeholder="수량" required><br><br>
-  <input name="비고" placeholder="비고"><br><br>
-
-  <button type="submit">입고 등록</button>
-</form>
-
-<p><a href="/">← 메인으로</a></p>
-
-</body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>입고</h2>
+  <form class="form" method="post" action="/api/입고">
+    <label>창고 <input name="창고" required></label>
+    <label>로케이션 <input name="로케이션" required></label>
+    <label>품번 <input name="품번" required></label>
+    <label>품명 <input name="품명" required></label>
+    <label>LOT <input name="LOT" required></label>
+    <label>규격 <input name="규격" required></label>
+    <label>수량 <input name="수량" type="number" min="1" required></label>
+    <label>비고 <input name="비고"></label>
+    <button type="submit">입고 등록</button>
+  </form>
+  <p class="hint"><a href="/">← 메인</a></p>
+</div>
+{% endblock %}

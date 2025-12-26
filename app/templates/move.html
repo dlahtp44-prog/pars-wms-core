@@ -2,26 +2,18 @@
 {% block content %}
 <div class="card">
   <h2>이동</h2>
-
   <form class="form" method="post" action="/api/이동">
-    <label>창고 <input name="창고" required /></label>
-
-    <label>출발로케이션 <input name="출발로케이션" required /></label>
-    <label>도착로케이션 <input name="도착로케이션" required /></label>
-
-    <label>품번 <input name="품번" required /></label>
-    <label>품명 <input name="품명" required /></label>
-    <label>LOT <input name="LOT" required /></label>
-    <label>규격 <input name="규격" required /></label>
-
-    <label>수량 <input name="수량" type="number" required min="1" /></label>
-    <label>비고 <input name="비고" /></label>
-
+    <label>창고 <input name="창고" required></label>
+    <label>출발로케이션 <input name="출발로케이션" required></label>
+    <label>도착로케이션 <input name="도착로케이션" required></label>
+    <label>품번 <input name="품번" required></label>
+    <label>품명 <input name="품명" required></label>
+    <label>LOT <input name="LOT" required></label>
+    <label>규격 <input name="규격" required></label>
+    <label>수량 <input name="수량" type="number" min="1" required></label>
+    <label>비고 <input name="비고"></label>
     <button type="submit">이동 처리</button>
   </form>
-
-  <p class="hint">
-    ※ 이동은 출발지 차감 + 도착지 합산(UPSERT) 처리됩니다.
-  </p>
+  <p class="hint"><a href="/">← 메인</a></p>
 </div>
 {% endblock %}
