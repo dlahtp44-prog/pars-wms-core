@@ -1,7 +1,11 @@
 
 # app/main.py 에 추가
 
-from app.pages import excel_outbound, excel_move
+from starlette.middleware.sessions import SessionMiddleware
+from app.routers import auth
+from app.pages import login
 
-app.include_router(excel_outbound.router)
-app.include_router(excel_move.router)
+app.add_middleware(SessionMiddleware, secret_key="pars-wms-secret")
+
+app.include_router(auth.router)
+app.include_router(login.router)
