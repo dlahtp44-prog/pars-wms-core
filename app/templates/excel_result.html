@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>엑셀 업로드 결과</title>
+</head>
+<body>
+
+<h2>업로드 결과</h2>
+
+<h3>성공</h3>
+<ul>
+  {% for s in success %}
+    <li>{{ s }}</li>
+  {% endfor %}
+</ul>
+
+<h3>실패</h3>
+<ul>
+  {% for e in errors %}
+    <li style="color:red">{{ e }}</li>
+  {% endfor %}
+</ul>
+
+<p><a href="/엑셀-입고">다시 업로드</a></p>
+<p><a href="/">메인으로</a></p>
+
+</body>
+</html>
