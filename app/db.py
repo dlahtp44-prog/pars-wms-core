@@ -18,7 +18,7 @@ SessionLocal = sessionmaker(
 Base = declarative_base()
 
 
-# ✅ 이 함수가 반드시 있어야 함
+# ✅ 이 함수가 반드시 필요
 def get_db():
     db = SessionLocal()
     try:
