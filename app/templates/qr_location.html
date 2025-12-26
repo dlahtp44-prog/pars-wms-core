@@ -1,62 +1,9 @@
+
 {% extends "base.html" %}
 {% block content %}
-<div class="card">
-  <h2>로케이션 QR 재고 보기</h2>
-  <p class="small">QR 내용 형식: <b>LOC|창고|로케이션</b></p>
-
-  <div class="grid">
-    <div class="card">
-      <h3>카메라 스캔</h3>
-      <div id="reader" style="width:100%;"></div>
-      <p class="small" id="scanText"></p>
-    </div>
-    <div class="card">
-      <h3>재고</h3>
-      <div id="result"></div>
-    </div>
-  </div>
-</div>
-
-<script src="https://unpkg.com/html5-qrcode"></script>
-<script>
-let last = "";
-function parseLoc(text){
-  const parts = text.split("|");
-  if(parts.length>=3 && parts[0]==="LOC"){
-    return {warehouse: parts[1], location: parts[2]};
-  }
-  return null;
-}
-async function showInv(wh, loc){
-  const res = await fetch(`/api/재고?창고=${encodeURIComponent(wh)}&로케이션=${encodeURIComponent(loc)}`);
-  const data = await res.json();
-  let html = `<div class="badge">${wh} / ${loc}</div>`;
-  html += `<p class="small">총 ${data.count}건</p>`;
-  html += `<table class="table"><thead><tr><th>품번</th><th>품명</th><th>LOT</th><th>규격</th><th>수량</th></tr></thead><tbody>`;
-  for(const it of data.items){
-    html += `<tr><td>${it.품번}</td><td>${it.품명}</td><td>${it.LOT}</td><td>${it.규격}</td><td>${it.수량}</td></tr>`;
-  }
-  html += `</tbody></table>`;
-  document.getElementById('result').innerHTML = html;
-}
-
-const qr = new Html5Qrcode("reader");
-Html5Qrcode.getCameras().then(cameras=>{
-  if(!cameras || cameras.length===0){ document.getElementById('scanText').innerText="카메라 없음"; return; }
-  qr.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 250 },
-    (decodedText)=>{
-      if(decodedText===last) return;
-      last = decodedText;
-      document.getElementById('scanText').innerText = decodedText;
-      const p = parseLoc(decodedText);
-      if(p) showInv(p.warehouse, p.location);
-    },
-    ()=>{}
-  );
-}).catch(err=>{
-  document.getElementById('scanText').innerText = "스캔 시작 실패: " + err;
-});
-</script>
+<h2>로케이션 QR 재고 조회</h2>
+<form method="get" action="/api/재고">
+  <input name="로케이션" placeholder="로케이션(QR)" required>
+  <button type="submit">조회</button>
+</form>
 {% endblock %}
