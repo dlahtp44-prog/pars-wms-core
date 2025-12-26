@@ -8,13 +8,14 @@
     h1 { margin-bottom: 10px; }
     .status { color:#2ecc71; margin-bottom:20px; }
     .menu a{
-      display:block; max-width:320px;
+      display:block; max-width:360px;
       padding:12px 14px; margin:10px 0;
       background:#2c3e50; color:#fff; text-decoration:none;
       border-radius:6px;
+      font-size:15px;
     }
     .menu a:hover{ background:#34495e; }
-    .note{ color:#666; margin-top:20px; }
+    .note{ color:#666; margin-top:25px; font-size:14px; }
   </style>
 </head>
 <body>
@@ -23,17 +24,19 @@
   <div class="status">상태: Online</div>
 
   <div class="menu">
-    <a href="/입고">📥 입고</a>
+    <a href="/입고">📥 입고 (단건)</a>
+    <a href="/엑셀-입고">📊 엑셀 입고 (일괄)</a>
+
     <a href="/출고">📤 출고</a>
     <a href="/이동">🔁 이동</a>
+
     <a href="/재고">📦 재고 조회</a>
     <a href="/이력">🧾 이력 조회</a>
-    <!-- 다음 단계에서 활성화 -->
-    <!-- <a href="/엑셀-입고">📊 엑셀 업로드</a> -->
   </div>
 
   <div class="note">
-    API 확인: <a href="/docs">/docs</a>
+    🔗 API 문서: <a href="/docs">/docs</a><br>
+    📌 권장 순서: 엑셀 입고 → 출고/이동 → 재고/이력 확인
   </div>
 
 </body>
