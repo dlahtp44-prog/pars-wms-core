@@ -2,30 +2,28 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PARS WMS CORE</title>
-  <link rel="stylesheet" href="/static/css/app.css" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PARS WMS</title>
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
-  <div class="container">
-    <h1 class="brand">PARS WMS</h1>
+  <header class="top">
+    <div class="brand">PARS WMS</div>
     <nav class="nav">
-      <a href="/dashboard">대시보드</a>
-      <a href="/inbound">입고</a>
-      <a href="/outbound">출고</a>
-      <a href="/move">이동</a>
-      <a href="/inventory">재고</a>
-      <a href="/history">내역</a>
-      <a href="/report">리포트</a>
-      <span class="sep">|</span>
-      <a class="qr" href="/qr/move">QR 이동</a>
-      <a class="qr" href="/qr/outbound">QR 출고</a>
-      <a class="qr" href="/qr/location">QR 로케이션조회</a>
+      <a href="/">홈</a>
+      <a href="/입고">입고</a>
+      <a href="/출고">출고</a>
+      <a href="/이동">이동</a>
+      <a href="/재고">재고</a>
+      <a href="/이력">이력</a>
+      <a href="/qr/로케이션">QR 로케이션</a>
+      <a href="/qr/이동">QR 이동</a>
+      <a href="/qr/출고">QR 출고</a>
     </nav>
-    <hr/>
-    {% block content %}{% endblock %}
-  </div>
+  </header>
 
-  {% block scripts %}{% endblock %}
+  <main class="wrap">
+    {% block content %}{% endblock %}
+  </main>
 </body>
 </html>
