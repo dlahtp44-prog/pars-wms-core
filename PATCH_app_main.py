@@ -1,9 +1,9 @@
 
 # app/main.py 에 추가
 
-from app.pages import label_product, label_location
-from app.routers import label
+from app.pages import print_inventory, print_history
+from app.routers import print as print_router
 
-app.include_router(label_product.router)
-app.include_router(label_location.router)
-app.include_router(label.router)
+app.include_router(print_inventory.router)
+app.include_router(print_history.router)
+app.include_router(print_router.router)
