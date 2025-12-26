@@ -1,4 +1,2 @@
 
-reportlab
-qrcode[pil]
-pillow
+openpyxl
