@@ -5,40 +5,22 @@ from fastapi.templating import Jinja2Templates
 
 from app.db import init_db
 
-# =====================================================
-# ▶ API 라우터
-# =====================================================
+# ================= API 라우터 =================
 from app.routers import inbound, outbound, move, inventory, history
 
-# =====================================================
-# ▶ 페이지(UI) 라우터
-# =====================================================
+# ================= PAGE 라우터 =================
 from app.pages import (
-    index,
     inbound as inbound_page,
     outbound as outbound_page,
     move as move_page,
     inventory as inventory_page,
     history as history_page,
-    excel_inbound
 )
 
-# =====================================================
-# ▶ FastAPI 앱 생성
-# =====================================================
-app = FastAPI(
-    title="PARS WMS CORE",
-    version="1.0.0"
-)
+app = FastAPI(title="PARS WMS CORE", version="1.0.0")
 
-# =====================================================
-# ▶ 템플릿 설정
-# =====================================================
 templates = Jinja2Templates(directory="app/templates")
 
-# =====================================================
-# ▶ CORS
-# =====================================================
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -47,31 +29,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# =====================================================
-# ▶ 서버 시작 시 DB 초기화
-# =====================================================
 @app.on_event("startup")
 def on_startup():
     init_db()
 
-# =====================================================
-# 🏠 메인 허브
-# =====================================================
-app.include_router(index.router)
+# 🏠 메인
+@app.get("/", response_class=HTMLResponse)
+def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
-# =====================================================
-# 📄 페이지 라우터
-# =====================================================
-app.include_router(inbound_page.router)     # /입고
-app.include_router(outbound_page.router)    # /출고
-app.include_router(move_page.router)        # /이동
-app.include_router(inventory_page.router)   # /재고
-app.include_router(history_page.router)     # /이력
-app.include_router(excel_inbound.router)    # /엑셀-입고
+# ================= PAGE 등록 =================
+app.include_router(inbound_page.router)
+app.include_router(outbound_page.router)
+app.include_router(move_page.router)
+app.include_router(inventory_page.router)
+app.include_router(history_page.router)
 
-# =====================================================
-# ✅ API 라우터
-# =====================================================
+# ================= API 등록 =================
 app.include_router(inbound.router)
 app.include_router(outbound.router)
 app.include_router(move.router)
