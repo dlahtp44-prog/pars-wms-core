@@ -1,60 +1,82 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>QR 이동 (로케이션→제품→도착지)</h2>
+<div class="card">
+  <h2>QR 이동</h2>
 
-<div class="qrwrap">
-  <div class="box">
-    <h3>1) 출발지 로케이션 QR</h3>
-    <div id="readerFrom" class="reader"></div>
-    <div class="row">
-      <button onclick="startFrom()">스캔 시작</button>
-      <button onclick="stopAll()">중지</button>
-    </div>
-    <div class="row">
-      <input id="from_location" placeholder="출발지 로케이션 수동입력" />
-    </div>
+  <div class="form">
+    <label>창고 <input id="창고" placeholder="예: A동" /></label>
+    <label>출발로케이션 <input id="출발로케이션" placeholder="QR 스캔" /></label>
+    <label>도착로케이션 <input id="도착로케이션" placeholder="QR 스캔" /></label>
+    <label>품번 <input id="품번" placeholder="QR 스캔 또는 입력" /></label>
+    <label>LOT <input id="LOT" placeholder="QR 스캔 또는 입력" /></label>
+    <label>수량 <input id="수량" type="number" min="1" /></label>
+    <label>비고 <input id="비고" /></label>
+
+    <button id="이동">이동 처리</button>
   </div>
 
-  <div class="box">
-    <h3>2) 제품 QR (JSON 또는 key:value)</h3>
-    <div id="readerItem" class="reader"></div>
-    <div class="row">
-      <button onclick="startItem()">스캔 시작</button>
-      <button onclick="stopAll()">중지</button>
+  <div class="grid2">
+    <div>
+      <h3>스캔(출발/도착/품번/LOT)</h3>
+      <div id="reader" style="width: 320px; max-width: 100%;"></div>
+      <p class="hint">
+        스캔 순서 예시: <br/>
+        1) 출발로케이션 QR → 2) 품번 QR → 3) LOT QR → 4) 수량 입력 → 5) 도착로케이션 QR
+      </p>
+      <div class="form">
+        <label>현재 스캔 입력 대상
+          <select id="target">
+            <option value="출발로케이션">출발로케이션</option>
+            <option value="품번">품번</option>
+            <option value="LOT">LOT</option>
+            <option value="도착로케이션">도착로케이션</option>
+          </select>
+        </label>
+      </div>
     </div>
-    <div class="row">
-      <input id="item_code" placeholder="품목코드" />
-      <input id="item_name" placeholder="품명(선택)" />
-    </div>
-    <div class="row">
-      <input id="lot" placeholder="LOT" />
-      <input id="quantity" type="number" value="1" />
-    </div>
-  </div>
 
-  <div class="box">
-    <h3>3) 도착지 로케이션 QR</h3>
-    <div id="readerTo" class="reader"></div>
-    <div class="row">
-      <button onclick="startTo()">스캔 시작</button>
-      <button onclick="stopAll()">중지</button>
+    <div>
+      <h3>결과</h3>
+      <pre id="result" class="pre"></pre>
     </div>
-    <div class="row">
-      <input id="to_location" placeholder="도착지 로케이션 수동입력" />
-      <button onclick="submitMove()">이동 처리</button>
-    </div>
-    <pre id="result"></pre>
   </div>
 </div>
 
-<p class="hint">
-제품 QR은 일단 테스트용으로 아래 중 아무 형식이나 읽으면 됩니다.<br/>
-- JSON: {"item_code":"728750","item_name":"ASTEST","lot":"H01"}<br/>
-- 텍스트: item_code=728750;lot=H01
-</p>
-{% endblock %}
-
-{% block scripts %}
 <script src="https://unpkg.com/html5-qrcode"></script>
-<script type="module" src="/static/js/qr_move.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+
+async function 이동처리() {
+  const payload = new URLSearchParams();
+  const fields = ["창고","출발로케이션","도착로케이션","품번","LOT","수량","비고"];
+  for (const f of fields) payload.append(f, $(f).value.trim());
+
+  const res = await fetch("/api/이동", { method:"POST", body: payload });
+  const txt = await res.text();
+  if (!res.ok) {
+    $("result").textContent = `ERROR ${res.status}\n${txt}`;
+    alert("이동 실패: 화면 오른쪽 결과 확인");
+    return;
+  }
+  $("result").textContent = `OK\n${txt}`;
+  alert("이동 완료");
+}
+
+$("이동").addEventListener("click", 이동처리);
+
+// QR 스캔
+const qr = new Html5Qrcode("reader");
+Html5Qrcode.getCameras().then(cams => {
+  if (!cams || cams.length === 0) return;
+  qr.start(
+    cams[0].id,
+    { fps: 10, qrbox: 250 },
+    (decodedText) => {
+      const t = $("target").value;
+      $(t).value = decodedText.trim();
+    },
+    () => {}
+  );
+}).catch(() => {});
+</script>
 {% endblock %}
