@@ -13,8 +13,15 @@ from app.routers import inbound, outbound, move, inventory, history
 # =====================================================
 # ▶ 페이지(UI) 라우터
 # =====================================================
-from app.pages import excel_inbound
-from app.pages import inbound as inbound_page   # ★ 입고 페이지 추가
+from app.pages import (
+    index,
+    inbound as inbound_page,
+    outbound as outbound_page,
+    move as move_page,
+    inventory as inventory_page,
+    history as history_page,
+    excel_inbound
+)
 
 # =====================================================
 # ▶ FastAPI 앱 생성
@@ -30,7 +37,7 @@ app = FastAPI(
 templates = Jinja2Templates(directory="app/templates")
 
 # =====================================================
-# ▶ CORS (현재는 전체 허용)
+# ▶ CORS
 # =====================================================
 app.add_middleware(
     CORSMiddleware,
@@ -48,27 +55,22 @@ def on_startup():
     init_db()
 
 # =====================================================
-# 🏠 메인 허브 화면
+# 🏠 메인 허브
 # =====================================================
-@app.get("/", response_class=HTMLResponse)
-def home(request: Request):
-    return templates.TemplateResponse(
-        "index.html",
-        {"request": request}
-    )
+app.include_router(index.router)
 
 # =====================================================
-# 📊 엑셀 입고 화면 / 업로드
+# 📄 페이지 라우터
 # =====================================================
-app.include_router(excel_inbound.router)
+app.include_router(inbound_page.router)     # /입고
+app.include_router(outbound_page.router)    # /출고
+app.include_router(move_page.router)        # /이동
+app.include_router(inventory_page.router)   # /재고
+app.include_router(history_page.router)     # /이력
+app.include_router(excel_inbound.router)    # /엑셀-입고
 
 # =====================================================
-# 📥 입고 화면 (웹 페이지)
-# =====================================================
-app.include_router(inbound_page.router)
-
-# =====================================================
-# ✅ CORE API 라우터
+# ✅ API 라우터
 # =====================================================
 app.include_router(inbound.router)
 app.include_router(outbound.router)
