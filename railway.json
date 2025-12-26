@@ -1,5 +1,6 @@
 {
   "build": {
-    "builder": "railpack"
+    "builder": "railpack",
+    "runtime": "python@3.11"
   }
 }
