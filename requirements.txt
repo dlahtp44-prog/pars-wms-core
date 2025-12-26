@@ -3,3 +3,4 @@ uvicorn
 sqlalchemy==2.0.29
 jinja2
 python-multipart
+openpyxl
