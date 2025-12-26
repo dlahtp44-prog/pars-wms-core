@@ -1,13 +1,40 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="card">
-  <h1>시작</h1>
-  <p>엑셀 한글 표준(창고/로케이션/품번/품명/LOT/규격/수량/비고) 기준으로 통일된 안정형 WMS 입니다.</p>
-  <ul>
-    <li>입고: 재고 합산(UPSERT)</li>
-    <li>출고/이동: 음수 방지</li>
-    <li>QR: 로케이션 조회 / 이동 / 출고</li>
-    <li>이력: 500건 최신 표시</li>
-  </ul>
-</div>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>PARS WMS CORE</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 30px; background:#f5f6fa; }
+    h1 { margin-bottom: 10px; }
+    .status { color:#2ecc71; margin-bottom:20px; }
+    .menu a{
+      display:block; max-width:320px;
+      padding:12px 14px; margin:10px 0;
+      background:#2c3e50; color:#fff; text-decoration:none;
+      border-radius:6px;
+    }
+    .menu a:hover{ background:#34495e; }
+    .note{ color:#666; margin-top:20px; }
+  </style>
+</head>
+<body>
+
+  <h1>PARS WMS CORE</h1>
+  <div class="status">상태: Online</div>
+
+  <div class="menu">
+    <a href="/입고">📥 입고</a>
+    <a href="/출고">📤 출고</a>
+    <a href="/이동">🔁 이동</a>
+    <a href="/재고">📦 재고 조회</a>
+    <a href="/이력">🧾 이력 조회</a>
+    <!-- 다음 단계에서 활성화 -->
+    <!-- <a href="/엑셀-입고">📊 엑셀 업로드</a> -->
+  </div>
+
+  <div class="note">
+    API 확인: <a href="/docs">/docs</a>
+  </div>
+
+</body>
+</html>
