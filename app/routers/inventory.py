@@ -1,27 +1,34 @@
-from fastapi import APIRouter
-from app.db import get_conn
+from fastapi import APIRouter, Query
+from app.db import get_db
 
-router = APIRouter(prefix="/api", tags=["inventory"])
+router = APIRouter(prefix="/api/재고", tags=["재고"])
 
-@router.get("/inventory")
-def api_inventory():
-    with get_conn() as conn:
-        rows = conn.execute(
-            """SELECT item_code, item_name, brand, spec, location, lot, quantity
-            FROM inventory
-            WHERE quantity > 0
-            ORDER BY location, item_code"""
-        ).fetchall()
+
+@router.get("")
+def 재고_전체():
+    conn = get_db()
+    cur = conn.cursor()
+    rows = cur.execute("""
+    SELECT 창고, 로케이션, 품번, 품명, LOT, 규격, 수량, 비고
+    FROM 재고
+    ORDER BY 창고, 로케이션, 품번, LOT
+    """).fetchall()
+    conn.close()
     return [dict(r) for r in rows]
 
-@router.get("/inventory/by-location/{location}")
-def api_inventory_by_location(location: str):
-    with get_conn() as conn:
-        rows = conn.execute(
-            """SELECT item_code, item_name, brand, spec, lot, quantity
-            FROM inventory
-            WHERE location=? AND quantity>0
-            ORDER BY item_code, lot""",
-            (location,)
-        ).fetchall()
+
+@router.get("/로케이션")
+def 재고_로케이션(
+    창고: str = Query(...),
+    로케이션: str = Query(...)
+):
+    conn = get_db()
+    cur = conn.cursor()
+    rows = cur.execute("""
+    SELECT 창고, 로케이션, 품번, 품명, LOT, 규격, 수량, 비고
+    FROM 재고
+    WHERE 창고=? AND 로케이션=?
+    ORDER BY 품번, LOT
+    """, (창고.strip(), 로케이션.strip())).fetchall()
+    conn.close()
     return [dict(r) for r in rows]
