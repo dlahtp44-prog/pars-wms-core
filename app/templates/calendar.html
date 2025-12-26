@@ -1,21 +1,18 @@
+
 {% extends "base.html" %}
 {% block content %}
-<div class="card">
-  <h2>캘린더 (공유)</h2>
-  <form method="post" action="/캘린더">
-    <label>날짜<input class="input" type="date" name="날짜" required></label>
-    <label>제목<input class="input" name="제목" required></label>
-    <label>내용<textarea class="input" name="내용" rows="3" required></textarea></label>
-    <button class="btn" type="submit">등록</button>
-  </form>
-  <hr style="margin:14px 0; border:0; border-top:1px solid #eee;">
-  <table class="table">
-    <thead><tr><th>날짜</th><th>제목</th><th>내용</th></tr></thead>
-    <tbody>
-    {% for r in rows %}
-      <tr><td>{{ r["날짜"] }}</td><td>{{ r["제목"] }}</td><td>{{ r["내용"] }}</td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</div>
+<h2>공용 캘린더</h2>
+
+<form method="post" action="/calendar/add">
+  <input type="date" name="date" required>
+  <input name="content" placeholder="내용" required>
+  <button type="submit">추가</button>
+</form>
+
+<hr>
+<ul>
+{% for d,c in rows %}
+  <li><b>{{d}}</b> - {{c}}</li>
+{% endfor %}
+</ul>
 {% endblock %}

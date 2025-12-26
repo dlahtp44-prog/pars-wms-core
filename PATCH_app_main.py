@@ -1,11 +1,8 @@
 
 # app/main.py 에 추가
 
-from starlette.middleware.sessions import SessionMiddleware
-from app.routers import auth
-from app.pages import login
+from app.routers import calendar as calendar_router
+from app.pages import calendar as calendar_page
 
-app.add_middleware(SessionMiddleware, secret_key="pars-wms-secret")
-
-app.include_router(auth.router)
-app.include_router(login.router)
+app.include_router(calendar_router.router)
+app.include_router(calendar_page.router)
