@@ -5,10 +5,6 @@ from fastapi.templating import Jinja2Templates
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
-
 @router.get("/입고", response_class=HTMLResponse)
-def inbound_page(request: Request):
-    return templates.TemplateResponse(
-        "inbound.html",
-        {"request": request}
-    )
+def page(request: Request):
+    return templates.TemplateResponse("inbound.html", {"request": request})
