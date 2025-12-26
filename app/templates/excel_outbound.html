@@ -1,12 +1,10 @@
+
 {% extends "base.html" %}
 {% block content %}
-<div class="card">
-  <h2>엑셀 출고 업로드</h2>
-  <p class="hint">헤더: 창고, 로케이션, 품번, LOT, 수량, 비고</p>
-  <form class="form" method="post" enctype="multipart/form-data">
-    <input type="file" name="file" accept=".xlsx" required>
-    <button type="submit">업로드</button>
-  </form>
-  <p class="hint"><a href="/">← 메인</a></p>
-</div>
+<h2>엑셀 출고 업로드</h2>
+<form method="post" enctype="multipart/form-data">
+  <input type="file" name="file" required>
+  <button type="submit">업로드</button>
+</form>
+<p>컬럼: 창고 / 로케이션 / 품번 / 품명 / LOT / 규격 / 수량</p>
 {% endblock %}
