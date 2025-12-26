@@ -1,18 +1,19 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>재고 이동</h2>
-<table class="form">
-<tr><th>품목코드</th><td><input id="item_code" /></td></tr>
-<tr><th>제품명</th><td><input id="item_name" /></td></tr>
-<tr><th>LOT</th><td><input id="lot" /></td></tr>
-<tr><th>수량</th><td><input id="quantity" type="number" value="1" /></td></tr>
-<tr><th>출발지</th><td><input id="from_location" /></td></tr>
-<tr><th>도착지</th><td><input id="to_location" /></td></tr>
-<tr><th>비고</th><td><input id="remark" /></td></tr>
-</table>
-<button onclick="submitMove()">이동 처리</button>
-<pre id="result"></pre>
-{% endblock %}
-{% block scripts %}
-<script type="module" src="/static/js/move.js"></script>
+<div class="card">
+  <h2>이동</h2>
+
+  <form class="form" method="post" action="/api/이동">
+    <label>창고 <input name="창고" required /></label>
+    <label>출발로케이션 <input name="출발로케이션" required /></label>
+    <label>도착로케이션 <input name="도착로케이션" required /></label>
+    <label>품번 <input name="품번" required /></label>
+    <label>LOT <input name="LOT" required /></label>
+    <label>수량 <input name="수량" type="number" required min="1" /></label>
+    <label>비고 <input name="비고" /></label>
+    <button type="submit">이동 처리</button>
+  </form>
+
+  <p class="hint">※ 이동은 출발지 차감 + 도착지 합산(UPSERT) 처리됩니다.</p>
+</div>
 {% endblock %}
