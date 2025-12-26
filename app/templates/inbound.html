@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>입고</h2>
+<table class="form">
+<tr><th>품목코드</th><td><input id="item_code" /></td></tr>
+<tr><th>제품명</th><td><input id="item_name" /></td></tr>
+<tr><th>브랜드</th><td><input id="brand" /></td></tr>
+<tr><th>규격</th><td><input id="spec" /></td></tr>
+<tr><th>로케이션</th><td><input id="location" /></td></tr>
+<tr><th>LOT</th><td><input id="lot" /></td></tr>
+<tr><th>수량</th><td><input id="quantity" type="number" value="1" /></td></tr>
+</table>
+<button onclick="submitInbound()">입고 처리</button>
+<pre id="result"></pre>
+{% endblock %}
+{% block scripts %}
+<script type="module" src="/static/js/inbound.js"></script>
+{% endblock %}

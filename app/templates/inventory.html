@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>재고 목록</h2>
+<table class="grid" id="inv">
+  <thead>
+    <tr>
+      <th>품번</th><th>품명</th><th>브랜드</th><th>규격</th><th>로케이션</th><th>LOT</th><th>수량</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+{% endblock %}
+{% block scripts %}
+<script type="module" src="/static/js/inventory.js"></script>
+{% endblock %}

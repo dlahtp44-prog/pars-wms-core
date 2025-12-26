@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>출고</h2>
+<table class="form">
+<tr><th>품목코드</th><td><input id="item_code" /></td></tr>
+<tr><th>제품명</th><td><input id="item_name" /></td></tr>
+<tr><th>LOT</th><td><input id="lot" /></td></tr>
+<tr><th>수량</th><td><input id="quantity" type="number" value="1" /></td></tr>
+<tr><th>로케이션(선택)</th><td><input id="location" placeholder="비우면 전체 로케이션 합산 차감" /></td></tr>
+<tr><th>비고</th><td><input id="remark" /></td></tr>
+</table>
+<button onclick="submitOutbound()">출고 처리</button>
+<pre id="result"></pre>
+{% endblock %}
+{% block scripts %}
+<script type="module" src="/static/js/outbound.js"></script>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>로케이션 QR 재고 조회</h2>
+<div class="qrwrap">
+  <div class="box">
+    <div id="reader" class="reader"></div>
+    <div class="row">
+      <button onclick="startScan()">스캔 시작</button>
+      <button onclick="stopScan()">중지</button>
+    </div>
+    <div class="row">
+      <input id="location_input" placeholder="로케이션 코드 수동 입력" />
+      <button onclick="lookup()">조회</button>
+    </div>
+  </div>
+
+  <div class="box">
+    <h3>선택 로케이션</h3>
+    <div id="selected">-</div>
+  </div>
+
+  <div class="box">
+    <h3>재고 목록</h3>
+    <table class="grid" id="locInv">
+      <thead>
+        <tr><th>품번</th><th>품명</th><th>브랜드</th><th>규격</th><th>LOT</th><th>수량</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+<p class="hint">PC에서 카메라가 안 되면, 수동 입력 후 조회만 사용해도 됩니다.</p>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="/static/js/qr_location.js"></script>
+{% endblock %}

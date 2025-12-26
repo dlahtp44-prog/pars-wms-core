@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>QR 이동 (로케이션→제품→도착지)</h2>
+
+<div class="qrwrap">
+  <div class="box">
+    <h3>1) 출발지 로케이션 QR</h3>
+    <div id="readerFrom" class="reader"></div>
+    <div class="row">
+      <button onclick="startFrom()">스캔 시작</button>
+      <button onclick="stopAll()">중지</button>
+    </div>
+    <div class="row">
+      <input id="from_location" placeholder="출발지 로케이션 수동입력" />
+    </div>
+  </div>
+
+  <div class="box">
+    <h3>2) 제품 QR (JSON 또는 key:value)</h3>
+    <div id="readerItem" class="reader"></div>
+    <div class="row">
+      <button onclick="startItem()">스캔 시작</button>
+      <button onclick="stopAll()">중지</button>
+    </div>
+    <div class="row">
+      <input id="item_code" placeholder="품목코드" />
+      <input id="item_name" placeholder="품명(선택)" />
+    </div>
+    <div class="row">
+      <input id="lot" placeholder="LOT" />
+      <input id="quantity" type="number" value="1" />
+    </div>
+  </div>
+
+  <div class="box">
+    <h3>3) 도착지 로케이션 QR</h3>
+    <div id="readerTo" class="reader"></div>
+    <div class="row">
+      <button onclick="startTo()">스캔 시작</button>
+      <button onclick="stopAll()">중지</button>
+    </div>
+    <div class="row">
+      <input id="to_location" placeholder="도착지 로케이션 수동입력" />
+      <button onclick="submitMove()">이동 처리</button>
+    </div>
+    <pre id="result"></pre>
+  </div>
+</div>
+
+<p class="hint">
+제품 QR은 일단 테스트용으로 아래 중 아무 형식이나 읽으면 됩니다.<br/>
+- JSON: {"item_code":"728750","item_name":"ASTEST","lot":"H01"}<br/>
+- 텍스트: item_code=728750;lot=H01
+</p>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script type="module" src="/static/js/qr_move.js"></script>
+{% endblock %}
