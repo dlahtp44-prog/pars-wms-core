@@ -1,28 +1,19 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>{{ title or "PARS WMS CORE" }}</title>
-  <link rel="stylesheet" href="/static/app.css">
+  <meta charset="UTF-8">
+  <title>PARS WMS CORE</title>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand"><a href="/">PARS WMS CORE</a></div>
-    <nav class="nav">
-      <a href="/입고">입고</a>
-      <a href="/출고">출고</a>
-      <a href="/이동">이동</a>
-      <a href="/재고">재고</a>
-      <a href="/이력">이력</a>
-      <a href="/QR-이동">QR이동</a>
-      <a href="/QR-로케이션">QR재고</a>
-      <a href="/출력">출력</a>
-      <a href="/캘린더">캘린더</a>
-    </nav>
-  </header>
-  <main class="container">
-    {% block content %}{% endblock %}
-  </main>
+  <h1>PARS WMS CORE</h1>
+  <nav>
+    <a href="/">홈</a> |
+    <a href="/입고">입고</a> |
+    <a href="/출고">출고</a> |
+    <a href="/이동">이동</a>
+  </nav>
+  <hr>
+  {% block content %}{% endblock %}
 </body>
 </html>
