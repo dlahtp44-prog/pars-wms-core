@@ -1,5 +1,5 @@
 fastapi
 uvicorn
-sqlalchemy<2.0.30
+sqlalchemy==2.0.29
 jinja2
 python-multipart
