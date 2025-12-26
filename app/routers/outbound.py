@@ -1,31 +1,54 @@
-from fastapi import APIRouter, HTTPException
-from app.routers._models import OutboundReq
-from app import db
+from fastapi import APIRouter, Form, HTTPException
+from app.db import get_db
 
-router = APIRouter(prefix="/api", tags=["outbound"])
+router = APIRouter(prefix="/api/출고", tags=["출고"])
 
-@router.post("/outbound")
-def api_outbound(req: OutboundReq):
-    try:
-        taken = db.subtract_inventory_any_location(
-            item_code=req.item_code,
-            lot=req.lot,
-            quantity=req.quantity,
-            prefer_location=req.location,
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
 
-    # history: 여러 로케이션에서 차감될 수 있으니 분할 기록
-    for loc, qty in taken:
-        db.insert_history(
-            action="OUTBOUND",
-            item_code=req.item_code,
-            item_name=req.item_name,
-            lot=req.lot,
-            quantity=qty,
-            location_from=loc,
-            location_to=None,
-            remark=req.remark,
-        )
-    return {"result": "ok", "taken": taken}
+@router.post("")
+def 출고(
+    창고: str = Form(...),
+    로케이션: str = Form(...),
+    품번: str = Form(...),
+    LOT: str = Form(...),
+    수량: int = Form(...),
+    비고: str = Form("")
+):
+    if 수량 <= 0:
+        raise HTTPException(status_code=400, detail="수량은 1 이상이어야 합니다.")
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    row = cur.execute("""
+    SELECT 수량 FROM 재고
+    WHERE 창고=? AND 로케이션=? AND 품번=? AND LOT=?
+    """, (창고.strip(), 로케이션.strip(), 품번.strip(), LOT.strip())).fetchone()
+
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="재고가 없습니다. (키: 창고/로케이션/품번/LOT)")
+
+    현재수량 = int(row["수량"])
+    if 현재수량 < int(수량):
+        conn.close()
+        raise HTTPException(status_code=400, detail=f"출고 수량이 재고보다 큽니다. (현재 {현재수량})")
+
+    cur.execute("""
+    UPDATE 재고 SET 수량 = 수량 - ?
+    WHERE 창고=? AND 로케이션=? AND 품번=? AND LOT=?
+    """, (int(수량), 창고.strip(), 로케이션.strip(), 품번.strip(), LOT.strip()))
+
+    # 수량 0이면 레코드 삭제(깨끗하게)
+    cur.execute("""
+    DELETE FROM 재고
+    WHERE 창고=? AND 로케이션=? AND 품번=? AND LOT=? AND 수량 <= 0
+    """, (창고.strip(), 로케이션.strip(), 품번.strip(), LOT.strip()))
+
+    cur.execute("""
+    INSERT INTO 이력(구분, 창고, 품번, LOT, 출발로케이션, 도착로케이션, 수량, 비고)
+    VALUES ('출고', ?, ?, ?, ?, '', ?, ?)
+    """, (창고.strip(), 품번.strip(), LOT.strip(), 로케이션.strip(), int(수량), 비고.strip()))
+
+    conn.commit()
+    conn.close()
+    return {"result": "ok"}
