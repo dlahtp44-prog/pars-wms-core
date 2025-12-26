@@ -1,0 +1,16 @@
+
+{% extends "mobile_base.html" %}
+{% block content %}
+<h2>QR 스캔</h2>
+
+<input id="qrInput" placeholder="QR 결과" />
+<div>
+  <button onclick="startScan('qrInput')">카메라 스캔 시작</button>
+  <button onclick="stopScan()">중지</button>
+</div>
+
+<video id="video" style="width:100%;margin-top:10px;"></video>
+
+<script src="https://unpkg.com/@zxing/library@latest"></script>
+<script src="/static/js/qr_scan.js"></script>
+{% endblock %}

@@ -1,8 +1,8 @@
 
-# app/main.py 에 추가
+# app/main.py 에 static + router 추가
 
-from app.routers import backup as backup_router
-from app.pages import backup as backup_page
+from fastapi.staticfiles import StaticFiles
+from app.pages import mobile_qr
 
-app.include_router(backup_router.router)
-app.include_router(backup_page.router)
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.include_router(mobile_qr.router)
