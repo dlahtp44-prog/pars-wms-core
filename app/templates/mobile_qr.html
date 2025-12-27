@@ -1,16 +1,23 @@
 
-{% extends "mobile_base.html" %}
-{% block content %}
-<h2>QR 스캔</h2>
-
-<input id="qrInput" placeholder="QR 결과" />
-<div>
-  <button onclick="startScan('qrInput')">카메라 스캔 시작</button>
-  <button onclick="stopScan()">중지</button>
-</div>
-
-<video id="video" style="width:100%;margin-top:10px;"></video>
-
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://unpkg.com/@zxing/library@latest"></script>
-<script src="/static/js/qr_scan.js"></script>
-{% endblock %}
+</head>
+<body>
+<h3>QR 스캔</h3>
+<input id="out" placeholder="결과">
+<button onclick="start()">스캔</button>
+<video id="video" style="width:100%"></video>
+<script>
+let codeReader;
+function start(){
+  codeReader = new ZXing.BrowserQRCodeReader();
+  codeReader.decodeFromVideoDevice(null, 'video', (res, err)=>{
+    if(res){document.getElementById('out').value=res.text; codeReader.reset();}
+  });
+}
+</script>
+</body>
+</html>

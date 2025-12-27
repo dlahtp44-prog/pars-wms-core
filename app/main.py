@@ -1,24 +1,22 @@
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from app.db import init_db
-from app.pages.home import router as home_router
-from app.routers.inbound import router as inbound_router
-from app.routers.inventory import router as inventory_router
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 
-app = FastAPI(title="PARS WMS CORE STABLE")
+app = FastAPI(title="PARS WMS CORE UI")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+templates = Jinja2Templates(directory="app/templates")
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-@app.on_event("startup")
-def startup():
-    init_db()
+@app.get("/", response_class=HTMLResponse)
+def root(request: Request):
+    return templates.TemplateResponse("mobile_home.html", {"request": request})
 
-app.include_router(home_router)
-app.include_router(inbound_router)
-app.include_router(inventory_router)
+@app.get("/m/calendar", response_class=HTMLResponse)
+def calendar(request: Request):
+    return templates.TemplateResponse("mobile_calendar.html", {"request": request})
+
+@app.get("/m/qr", response_class=HTMLResponse)
+def qr(request: Request):
+    return templates.TemplateResponse("mobile_qr.html", {"request": request})
