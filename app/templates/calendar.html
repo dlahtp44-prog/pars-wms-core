@@ -1,18 +1,20 @@
 
-{% extends "base.html" %}
-{% block content %}
-<h2>공용 캘린더</h2>
-
-<form method="post" action="/calendar/add">
-  <input type="date" name="date" required>
-  <input name="content" placeholder="내용" required>
-  <button type="submit">추가</button>
+<!DOCTYPE html>
+<html>
+<head><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body>
+<h2>달력 메모</h2>
+<form method="post">
+<input type="date" name="date" required>
+<input name="memo" placeholder="메모" required>
+<button type="submit">저장</button>
 </form>
-
 <hr>
 <ul>
-{% for d,c in rows %}
-  <li><b>{{d}}</b> - {{c}}</li>
+{% for d,m in rows %}
+<li>{{d}} - {{m}}</li>
 {% endfor %}
 </ul>
-{% endblock %}
+<a href="/">← 홈</a>
+</body>
+</html>
