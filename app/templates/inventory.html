@@ -1,28 +1,42 @@
-{% extends "base.html" %}
+
+{% extends "_base.html" %}
+{% set title = "재고 조회" %}
 {% block content %}
 <div class="card">
-  <h2>재고 조회</h2>
-  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
-    <a class="btn" href="/print/재고.pdf" target="_blank">🖨️ 현재고 출력(PDF)</a>
-    <a class="btn" href="/print/제품라벨.pdf?template=LS-3108&limit=14" target="_blank">🏷️ 제품라벨(LS-3108)</a>
-  </div>
-  <div id="inv"></div>
+  <h3>재고 조회</h3>
+  <form method="get" action="/재고">
+    <div class="row">
+      <div>
+        <label>창고</label>
+        <input name="창고" value="{{ filters.창고 }}">
+      </div>
+      <div>
+        <label>로케이션</label>
+        <input name="로케이션" value="{{ filters.로케이션 }}">
+      </div>
+    </div>
+    <label>품번</label>
+    <input name="품번" value="{{ filters.품번 }}">
+    <button type="submit">조회</button>
+  </form>
 </div>
 
-<script>
-async function loadInv(){
-  const res = await fetch('/api/재고');
-  const data = await res.json();
-  let html = `<p class="small">총 ${data.count}건</p>`;
-  html += `<table class="table"><thead><tr>
-    <th>창고</th><th>로케이션</th><th>품번</th><th>품명</th><th>LOT</th><th>규격</th><th>수량</th>
-  </tr></thead><tbody>`;
-  for(const it of data.items){
-    html += `<tr><td>${it['창고']}</td><td>${it['로케이션']}</td><td>${it['품번']}</td><td>${it['품명']}</td><td>${it['LOT']}</td><td>${it['규격']}</td><td>${it['수량']}</td></tr>`;
-  }
-  html += `</tbody></table>`;
-  document.getElementById('inv').innerHTML = html;
-}
-loadInv();
-</script>
+<table>
+  <thead>
+    <tr><th>창고</th><th>로케이션</th><th>품번</th><th>LOT</th><th>수량</th><th>품명</th><th>규격</th></tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r['창고'] }}</td>
+      <td>{{ r['로케이션'] }}</td>
+      <td>{{ r['품번'] }}</td>
+      <td>{{ r['LOT'] }}</td>
+      <td>{{ r['수량'] }}</td>
+      <td>{{ r['품명'] }}</td>
+      <td>{{ r['규격'] }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 {% endblock %}
