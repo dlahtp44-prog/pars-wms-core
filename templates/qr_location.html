@@ -1,0 +1,9 @@
+
+{% extends "base.html" %}
+{% block content %}
+<h2>로케이션 QR 재고 조회</h2>
+<form method="get" action="/api/재고">
+  <input name="로케이션" placeholder="로케이션(QR)" required>
+  <button type="submit">조회</button>
+</form>
+{% endblock %}

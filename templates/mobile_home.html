@@ -1,0 +1,36 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PARS WMS Mobile</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body{font-family:Arial;padding:16px;background:#f5f6fa}
+    h2{margin:6px 0 14px 0}
+    .btn{display:flex;align-items:center;gap:10px;margin:10px 0;padding:16px;border-radius:10px;
+         background:#2c3e50;color:#fff;text-decoration:none;font-size:18px}
+    .grid{display:grid;grid-template-columns:1fr;gap:10px;max-width:520px}
+    .hint{color:#666;margin-top:14px}
+  </style>
+</head>
+<body>
+  <h2>PARS WMS (모바일)</h2>
+
+  <div class="grid">
+    <a class="btn" href="/m/입고">📥 입고</a>
+    <a class="btn" href="/m/출고">📤 출고</a>
+    <a class="btn" href="/m/이동">🔁 이동</a>
+    <a class="btn" href="/m/qr">📷 QR 스캔</a>
+    <a class="btn" href="/m/재고">📦 재고 조회</a>
+    <a class="btn" href="/m/이력">🧾 이력 조회</a>
+    <a class="btn" href="/m/calendar">📅 달력</a>
+    <a class="btn" href="/admin">👮 관리자</a>
+  </div>
+
+  <div class="hint">
+    PC 화면: <a href="/" style="color:#2c3e50">메인</a> / API: <a href="/docs" style="color:#2c3e50">Swagger</a>
+  </div>
+</body>
+</html>

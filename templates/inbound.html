@@ -1,0 +1,15 @@
+
+{% extends "base.html" %}
+{% block content %}
+<h2>입고</h2>
+<form method="post" action="/api/입고">
+  <input name="창고" placeholder="창고" required><br><br>
+  <input name="로케이션" placeholder="로케이션" required><br><br>
+  <input name="품번" placeholder="품번" required><br><br>
+  <input name="품명" placeholder="품명" required><br><br>
+  <input name="LOT" placeholder="LOT" required><br><br>
+  <input name="규격" placeholder="규격" required><br><br>
+  <input type="number" name="수량" min="1" placeholder="수량" required><br><br>
+  <button type="submit">입고 등록</button>
+</form>
+{% endblock %}
