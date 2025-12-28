@@ -6,6 +6,6 @@ from fastapi.templating import Jinja2Templates
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
-@router.get("/출고", response_class=HTMLResponse)
-def page(request: Request):
-    return templates.TemplateResponse("outbound.html", {"request": request})
+@router.get("/m/qr", response_class=HTMLResponse)
+def mobile_qr(request: Request):
+    return templates.TemplateResponse("mobile_qr.html", {"request": request})

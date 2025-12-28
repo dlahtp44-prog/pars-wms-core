@@ -7,9 +7,9 @@ from app.services.auth import require_admin
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
-@router.get("/admin/backup", response_class=HTMLResponse)
-def backup_page(request: Request):
+@router.get("/admin", response_class=HTMLResponse)
+def admin_page(request: Request):
     r = require_admin(request)
     if r:
         return r
-    return templates.TemplateResponse("backup.html", {"request": request})
+    return templates.TemplateResponse("admin_menu.html", {"request": request})
