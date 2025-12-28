@@ -1,15 +1,20 @@
 
-from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
-from app.services.auth import require_admin
+from fastapi import APIRouter, UploadFile, File
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+import os, shutil
 
-router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
+router = APIRouter(prefix="/backup")
 
-@router.get("/admin/backup", response_class=HTMLResponse)
-def backup_page(request: Request):
-    r = require_admin(request)
-    if r:
-        return r
-    return templates.TemplateResponse("backup.html", {"request": request})
+DB_PATH = "app/wms.db"
+BACKUP_PATH = "app/wms_backup.db"
+
+@router.get("/download")
+def download_db():
+    return FileResponse(DB_PATH, filename="wms_backup.db")
+
+@router.post("/restore")
+def restore_db(file: UploadFile = File(...)):
+    with open(BACKUP_PATH, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+    os.replace(BACKUP_PATH, DB_PATH)
+    return RedirectResponse("/admin", status_code=302)
