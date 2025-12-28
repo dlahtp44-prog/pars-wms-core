@@ -1,31 +1,14 @@
 
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>달력</title>
-  <style>
-    body{font-family:Arial;padding:16px;background:#f5f6fa}
-    .card{background:#fff;border-radius:10px;padding:14px;margin:10px 0}
-    .date{font-weight:bold}
-    a{color:#2c3e50}
-  </style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-  <h3>📅 공용 달력</h3>
-  {% if rows and rows|length > 0 %}
-    {% for r in rows %}
-      <div class="card">
-        <div class="date">{{ r['date'] }}</div>
-        <div>{{ r['content'] }}</div>
-      </div>
-    {% endfor %}
-  {% else %}
-    <p>등록된 일정이 없습니다.</p>
-  {% endif %}
-
-  <p><a href="/calendar">PC에서 입력/수정</a></p>
-  <p><a href="/m">← 모바일 메뉴</a></p>
+<h3>공용 달력</h3>
+<ul>
+<li>2025-01-01 : 신년 휴무</li>
+<li>2025-01-05 : 재고 점검</li>
+</ul>
 </body>
 </html>

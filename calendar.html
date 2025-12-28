@@ -1,25 +1,53 @@
 
-{% extends "base.html" %}
+{% extends "_base.html" %}
+{% set title = "달력" %}
 {% block content %}
 <div class="card">
-  <h2>📅 공용 달력</h2>
-
-  <form class="form" method="post" action="/calendar">
-    <label>날짜 <input type="date" name="date" required /></label>
-    <label>내용 <input name="content" required placeholder="예: 재고실사 / 출고마감 / 차량점검" /></label>
-    <button type="submit">저장</button>
+  <h3>공용 달력</h3>
+  <form method="post" action="/api/달력/추가">
+    <label>날짜</label>
+    <input type="date" name="날짜" required>
+    <label>제목</label>
+    <input name="제목" required>
+    <label>내용</label>
+    <textarea name="내용" rows="3" required></textarea>
+    <button type="submit">메모 추가</button>
   </form>
+  <p class="hint">※ 누구나 메모 추가 가능. 수정/삭제는 관리자만.</p>
+</div>
 
-  <hr />
+{% for r in rows %}
+<div class="card">
+  <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;">
+    <div>
+      <div><strong>{{ r['날짜'] }}</strong> — {{ r['제목'] }}</div>
+      <div class="hint">{{ r['내용'] }}</div>
+    </div>
+    {% if is_admin %}
+    <div style="min-width:160px;">
+      <form method="post" action="/api/달력/삭제" style="margin:0;">
+        <input type="hidden" name="id" value="{{ r['id'] }}">
+        <button type="submit" class="secondary">삭제</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
 
-  {% if rows and rows|length > 0 %}
-    <ul>
-      {% for r in rows %}
-        <li><b>{{ r['date'] }}</b> - {{ r['content'] }}</li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p class="hint">등록된 일정이 없습니다.</p>
+  {% if is_admin %}
+  <details style="margin-top:10px;">
+    <summary>수정</summary>
+    <form method="post" action="/api/달력/수정">
+      <input type="hidden" name="id" value="{{ r['id'] }}">
+      <label>날짜</label>
+      <input type="date" name="날짜" value="{{ r['날짜'] }}" required>
+      <label>제목</label>
+      <input name="제목" value="{{ r['제목'] }}" required>
+      <label>내용</label>
+      <textarea name="내용" rows="3" required>{{ r['내용'] }}</textarea>
+      <button type="submit">수정 저장</button>
+    </form>
+  </details>
   {% endif %}
 </div>
+{% endfor %}
 {% endblock %}
