@@ -1,0 +1,16 @@
+
+{% extends "base.html" %}
+{% block content %}
+<h2>이동</h2>
+<form method="post" action="/api/이동">
+  <input name="창고" placeholder="창고" required><br><br>
+  <input name="출발로케이션" placeholder="출발로케이션" required><br><br>
+  <input name="도착로케이션" placeholder="도착로케이션" required><br><br>
+  <input name="품번" placeholder="품번" required><br><br>
+  <input name="품명" placeholder="품명" required><br><br>
+  <input name="LOT" placeholder="LOT" required><br><br>
+  <input name="규격" placeholder="규격" required><br><br>
+  <input type="number" name="수량" min="1" placeholder="수량" required><br><br>
+  <button type="submit">이동 처리</button>
+</form>
+{% endblock %}

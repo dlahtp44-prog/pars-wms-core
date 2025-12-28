@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>재고 조회</h2>
+  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+    <a class="btn" href="/print/재고.pdf" target="_blank">🖨️ 현재고 출력(PDF)</a>
+    <a class="btn" href="/print/제품라벨.pdf?template=LS-3108&limit=14" target="_blank">🏷️ 제품라벨(LS-3108)</a>
+  </div>
+  <div id="inv"></div>
+</div>
+
+<script>
+async function loadInv(){
+  const res = await fetch('/api/재고');
+  const data = await res.json();
+  let html = `<p class="small">총 ${data.count}건</p>`;
+  html += `<table class="table"><thead><tr>
+    <th>창고</th><th>로케이션</th><th>품번</th><th>품명</th><th>LOT</th><th>규격</th><th>수량</th>
+  </tr></thead><tbody>`;
+  for(const it of data.items){
+    html += `<tr><td>${it['창고']}</td><td>${it['로케이션']}</td><td>${it['품번']}</td><td>${it['품명']}</td><td>${it['LOT']}</td><td>${it['규격']}</td><td>${it['수량']}</td></tr>`;
+  }
+  html += `</tbody></table>`;
+  document.getElementById('inv').innerHTML = html;
+}
+loadInv();
+</script>
+{% endblock %}

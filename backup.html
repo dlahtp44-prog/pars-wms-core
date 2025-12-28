@@ -1,0 +1,20 @@
+
+{% extends "base.html" %}
+{% block content %}
+<h2>데이터 백업 / 복원</h2>
+
+<h3>백업</h3>
+<a href="/backup/download">DB 다운로드</a>
+
+<hr>
+
+<h3>복원</h3>
+<form method="post" action="/backup/restore" enctype="multipart/form-data">
+  <input type="file" name="file" required>
+  <button type="submit">복원 실행</button>
+</form>
+
+<p style="color:red">
+※ 복원 시 현재 데이터는 덮어씌워집니다.
+</p>
+{% endblock %}

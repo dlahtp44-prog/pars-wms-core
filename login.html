@@ -1,0 +1,13 @@
+
+{% extends "base.html" %}
+{% block content %}
+<h2>로그인</h2>
+<form method="post" action="/login">
+  <input name="username" placeholder="ID" required><br><br>
+  <input name="password" type="password" placeholder="PW" required><br><br>
+  <button type="submit">로그인</button>
+</form>
+{% if request.query_params.get("error") %}
+<p style="color:red">로그인 실패</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,25 @@
+
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>📅 공용 달력</h2>
+
+  <form class="form" method="post" action="/calendar">
+    <label>날짜 <input type="date" name="date" required /></label>
+    <label>내용 <input name="content" required placeholder="예: 재고실사 / 출고마감 / 차량점검" /></label>
+    <button type="submit">저장</button>
+  </form>
+
+  <hr />
+
+  {% if rows and rows|length > 0 %}
+    <ul>
+      {% for r in rows %}
+        <li><b>{{ r['date'] }}</b> - {{ r['content'] }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="hint">등록된 일정이 없습니다.</p>
+  {% endif %}
+</div>
+{% endblock %}
