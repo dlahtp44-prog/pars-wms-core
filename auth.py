@@ -1,26 +1,23 @@
+import os
+import secrets
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
-from fastapi import APIRouter, Request, Form
-from fastapi.responses import RedirectResponse
-from app.db import get_db
+security = HTTPBasic()
 
-router = APIRouter()
+def admin_required(credentials: HTTPBasicCredentials = Depends(security)) -> str:
+    """HTTP Basic admin gate for Excel uploads.
+    Set env vars ADMIN_USER / ADMIN_PASS. Defaults: admin / admin.
+    """
+    admin_user = os.getenv("ADMIN_USER", "admin")
+    admin_pass = os.getenv("ADMIN_PASS", "admin")
 
-@router.post("/login")
-def login(request: Request, username: str = Form(...), password: str = Form(...)):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT role FROM users WHERE username=? AND password=?", (username, password))
-    row = cur.fetchone()
-    conn.close()
-
-    if not row:
-        return RedirectResponse("/login?error=1", status_code=302)
-
-    request.session["user"] = username
-    request.session["role"] = row[0]
-    return RedirectResponse("/", status_code=302)
-
-@router.get("/logout")
-def logout(request: Request):
-    request.session.clear()
-    return RedirectResponse("/", status_code=302)
+    user_ok = secrets.compare_digest(credentials.username or "", admin_user)
+    pass_ok = secrets.compare_digest(credentials.password or "", admin_pass)
+    if not (user_ok and pass_ok):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="관리자 인증이 필요합니다.",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
