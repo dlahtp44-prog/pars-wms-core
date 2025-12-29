@@ -5,9 +5,35 @@ from app.db import get_db
 
 router = APIRouter(prefix="/api/inbound", tags=["inbound"])
 
-# ======================
-# 수기 입고
-# ======================
+def apply_inventory_and_history(cur, location, item_code, item_name, lot, spec, qty, memo):
+    # inventory 처리
+    cur.execute("""
+    SELECT qty FROM inventory
+    WHERE location=? AND item_code=? AND lot=? AND spec=?
+    """, (location, item_code, lot, spec))
+    row = cur.fetchone()
+
+    if row:
+        cur.execute("""
+        UPDATE inventory
+        SET qty = qty + ?
+        WHERE location=? AND item_code=? AND lot=? AND spec=?
+        """, (qty, location, item_code, lot, spec))
+    else:
+        cur.execute("""
+        INSERT INTO inventory
+        (location, item_code, item_name, lot, spec, qty)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """, (location, item_code, item_name, lot, spec, qty))
+
+    # history 기록
+    cur.execute("""
+    INSERT INTO history
+    (type, location, item_code, item_name, lot, spec, qty, memo)
+    VALUES ('입고', ?, ?, ?, ?, ?, ?, ?)
+    """, (location, item_code, item_name, lot, spec, qty, memo))
+
+
 @router.post("")
 def inbound_manual(
     location: str = Form(...),
@@ -29,13 +55,12 @@ def inbound_manual(
         location, item_code, item_name, lot, spec, qty, memo
     ))
 
+    apply_inventory_and_history(cur, location, item_code, item_name, lot, spec, qty, memo)
+
     conn.commit()
     return {"result": "ok"}
 
 
-# ======================
-# 엑셀 입고
-# ======================
 @router.post("/excel")
 def inbound_excel(file: UploadFile = File(...)):
     if not file.filename.endswith(".xlsx"):
@@ -53,19 +78,23 @@ def inbound_excel(file: UploadFile = File(...)):
 
     count = 0
     for _, row in df.iterrows():
+        location = row["로케이션"]
+        item_code = row["품번"]
+        item_name = row["품명"]
+        lot = row["LOT"]
+        spec = row["규격"]
+        qty = int(row["수량"])
+        memo = row.get("비고","")
+
         cur.execute("""
         INSERT INTO inbound
         (location, item_code, item_name, lot, spec, qty, memo)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (
-            row["로케이션"],
-            row["품번"],
-            row["품명"],
-            row["LOT"],
-            row["규격"],
-            int(row["수량"]),
-            row.get("비고","")
+            location, item_code, item_name, lot, spec, qty, memo
         ))
+
+        apply_inventory_and_history(cur, location, item_code, item_name, lot, spec, qty, memo)
         count += 1
 
     conn.commit()
