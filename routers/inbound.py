@@ -1,31 +1,63 @@
 
-from fastapi import APIRouter, Form
+from fastapi import APIRouter, Form, UploadFile, File, HTTPException
+import pandas as pd
 from app.db import get_db
-router = APIRouter(prefix="/api/입고")
+
+router = APIRouter(prefix="/api/inbound", tags=["inbound"])
+
+def process(cur, location, item_code, item_name, lot, spec, qty, memo):
+    cur.execute("""
+    INSERT INTO inbound (location,item_code,item_name,lot,spec,qty,memo)
+    VALUES (?,?,?,?,?,?,?)
+    """, (location,item_code,item_name,lot,spec,qty,memo))
+
+    cur.execute("""
+    INSERT INTO inventory (location,item_code,item_name,lot,spec,qty)
+    VALUES (?,?,?,?,?,?)
+    ON CONFLICT(location,item_code,lot,spec)
+    DO UPDATE SET qty = qty + excluded.qty
+    """, (location,item_code,item_name,lot,spec,qty))
+
+    cur.execute("""
+    INSERT INTO history (type,location,item_code,item_name,lot,spec,qty,memo)
+    VALUES ('입고',?,?,?,?,?,?,?)
+    """, (location,item_code,item_name,lot,spec,qty,memo))
+
 
 @router.post("")
-def inbound(
-    창고: str = Form(...),
-    로케이션: str = Form(...),
-    품번: str = Form(...),
-    품명: str = Form(...),
-    LOT: str = Form(...),
-    규격: str = Form(...),
-    수량: int = Form(...)
+def inbound_form(
+    location: str = Form(...),
+    item_code: str = Form(...),
+    item_name: str = Form(...),
+    lot: str = Form(...),
+    spec: str = Form(...),
+    qty: int = Form(...),
+    memo: str = Form("")
 ):
     conn = get_db()
     cur = conn.cursor()
-    cur.execute(
-        """INSERT INTO 재고 VALUES(?,?,?,?,?,?,?)
-        ON CONFLICT(창고,로케이션,품번,LOT)
-        DO UPDATE SET 수량=수량+excluded.수량""",
-        (창고,로케이션,품번,품명,LOT,규격,수량)
-    )
-    cur.execute(
-        """INSERT INTO 이력
-        (구분,창고,품번,품명,LOT,규격,출발로케이션,도착로케이션,수량)
-        VALUES('입고',?,?,?,?,?,?,?,?)""",
-        (창고,품번,품명,LOT,규격,"",로케이션,수량)
-    )
-    conn.commit(); conn.close()
+    process(cur, location, item_code, item_name, lot, spec, qty, memo)
+    conn.commit()
     return {"result":"ok"}
+
+
+@router.post("/excel")
+def inbound_excel(file: UploadFile = File(...)):
+    df = pd.read_excel(file.file)
+    conn = get_db()
+    cur = conn.cursor()
+
+    for _, r in df.iterrows():
+        process(
+            cur,
+            r["로케이션"],
+            r["품번"],
+            r["품명"],
+            r["LOT"],
+            r["규격"],
+            int(r["수량"]),
+            r.get("비고","")
+        )
+
+    conn.commit()
+    return {"result":"ok","count":len(df)}
