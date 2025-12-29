@@ -38,3 +38,4 @@ def calendar_month(
             "next_year": year + 1 if month == 12 else year,
             "next_month": 1 if month == 12 else month + 1,
         }
+    )
