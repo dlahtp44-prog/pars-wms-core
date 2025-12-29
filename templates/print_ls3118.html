@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LS-3118 라벨 출력</title>
+  <style>
+    @page { size: A4; margin: 6mm 6mm 6mm 6mm; }
+    body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    .sheet {
+      display: grid;
+      grid-template-columns: 99.1mm 99.1mm;
+      grid-template-rows: 140mm 140mm;
+      gap: 0mm 0mm;
+      width: calc(99.1mm * 2);
+    }
+    .label {
+      box-sizing: border-box;
+      padding: 6mm 5mm;
+      overflow: hidden;
+      border: 0;
+    }
+    .line { font-size: 14pt; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .code { font-weight: 800; font-size: 16pt; }
+    .toolbar { position: fixed; top: 8px; right: 8px; background: #fff; padding: 6px 8px; border: 1px solid #ddd; border-radius: 8px; }
+    .toolbar button { font-size: 12px; padding: 6px 10px; }
+    @media print { .toolbar { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button onclick="window.print()">인쇄</button>
+  </div>
+
+  <div class="sheet">
+    {% set total = 4 %}
+    {% for i in range(total) %}
+      {% set show = (mode == 'all') or (i == 0) %}
+      <div class="label">
+        {% if show %}
+          <div class="line code">품번: {{ row["product_code"] }}</div>
+          <div class="line">품명: {{ row["product_name"] }}</div>
+          <div class="line">LOT: {{ row["lot"] }}</div>
+          <div class="line">규격: {{ row["spec"] }}</div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</body>
+</html>

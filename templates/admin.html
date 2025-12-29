@@ -1,16 +1,23 @@
-{% extends "base.html" %}
-{% block content %}
+
+{% extends "_layout.html" %}
+{% block body %}
+<div class="header">관리자</div>
 <div class="card">
-  <h2>관리자</h2>
-  <div class="menu" style="border:1px solid var(--line);border-radius:10px;overflow:hidden">
-    <a href="/관리자/라벨/제품?size=3108">🏷️ 제품 라벨 (LS-3108)</a>
-    <a href="/관리자/라벨/제품?size=3118">🏷️ 제품 라벨 (LS-3118)</a>
-    <a href="/관리자/로케이션">📍 로케이션 관리</a>
-    <a href="/관리자/라벨/로케이션">🧾 로케이션 라벨 전체 출력</a>
-  </div>
-  <form method="post" action="/관리자/로그아웃" class="noprint" style="margin-top:12px">
-    <button class="btn2" type="submit">로그아웃</button>
-  </form>
-  <p class="noprint"><a href="/">← 홈</a></p>
+  {% if authed %}
+    <div class="badge">ADMIN</div>
+    <p class="small">관리자 전용 진입 완료</p>
+    <div class="top-actions">
+      <a href="/page/history">이력 보기</a>
+      <a href="/page/inventory">재고 보기</a>
+      <a href="/api/inventory">재고 API</a>
+    </div>
+  {% else %}
+    <p class="small">관리자 PIN을 입력하세요.</p>
+    <form class="form" method="get" action="/page/admin">
+      <input name="pin" placeholder="PIN (기본 0000)" />
+      <button type="submit">진입</button>
+    </form>
+  {% endif %}
+  <div class="top-actions"><a href="/">← 홈</a></div>
 </div>
 {% endblock %}

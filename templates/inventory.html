@@ -1,21 +1,24 @@
-{% extends "base.html" %}
+{% extends "_base.html" %}
 {% block content %}
-<div class="card">
-  <h2>재고 조회</h2>
-  <form method="get" class="noprint">
-    <div class="row">
-      <div><label>창고</label><input name="창고" value="{{ warehouse }}"></div>
-      <div><label>로케이션</label><input name="로케이션" value="{{ location }}"></div>
-    </div>
-    <button type="submit">조회</button>
-  </form>
-  <div class="printbar noprint" style="margin-top:10px">
-    <button type="button" onclick="window.print()">프린트</button>
-    <button class="btn2" type="button" onclick="location.href='/'">홈</button>
-  </div>
-  <table class="table" style="margin-top:12px">
-    <thead><tr><th>창고</th><th>로케이션</th><th>품번</th><th>품명</th><th>LOT</th><th>규격</th><th>수량</th></tr></thead>
-    <tbody>{% for r in rows %}<tr><td>{{ r.warehouse }}</td><td>{{ r.location }}</td><td>{{ r.item_code }}</td><td>{{ r.item_name }}</td><td>{{ r.lot }}</td><td>{{ r.spec }}</td><td>{{ r.qty }}</td></tr>{% endfor %}</tbody>
-  </table>
-</div>
+<h2>재고조회</h2>
+
+<table border="1" cellpadding="6" cellspacing="0" width="100%">
+  <tr>
+    <th>로케이션</th><th>품번</th><th>LOT</th><th>규격</th><th>브랜드</th><th>수량</th><th>업데이트</th><th>비고</th>
+  </tr>
+  {% for r in rows %}
+  <tr>
+    <td>{{ r["location"] }}</td>
+    <td>{{ r["item"] }}</td>
+    <td>{{ r["lot"] }}</td>
+    <td>{{ r["spec"] }}</td>
+    <td>{{ r["brand"] }}</td>
+    <td>{{ r["qty"] }}</td>
+    <td>{{ r["updated_at"] }}</td>
+    <td>{{ r["memo"] }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<p style="margin-top:10px"><a href="/api/inventory/excel">엑셀 다운로드</a></p>
 {% endblock %}
