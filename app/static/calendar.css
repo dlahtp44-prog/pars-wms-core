@@ -1,0 +1,8 @@
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.dow{text-align:center;font-weight:700}
+.cell{border:1px solid #ddd;min-height:100px;padding:6px;position:relative}
+.today{outline:2px solid #2563eb}
+.weekend{background:#fafafa}
+.memo{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.more{font-size:11px;color:#666}
+.cover{position:absolute;inset:0}
