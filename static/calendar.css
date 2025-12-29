@@ -1,17 +1,10 @@
-.calendar-grid{
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:4px;
+body { font-family: sans-serif; }
+.calendar { border-collapse: collapse; }
+.calendar td, .calendar th {
+  border: 1px solid #ccc;
+  width: 80px;
+  height: 60px;
+  vertical-align: top;
 }
-.cell{
-  border:1px solid #ddd;
-  min-height:100px;
-  padding:4px;
-  position:relative;
-}
-.cell .date{font-weight:bold;}
-.cell .memo{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cell .more{font-size:11px;color:#666;}
-.weekend{background:#f9f9f9;}
-.today{border:2px solid #2563eb;}
-.cover{position:absolute;top:0;left:0;right:0;bottom:0;}
+.other { color: #aaa; }
+.calendar-header { margin-bottom: 10px; }

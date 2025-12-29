@@ -1,18 +1,27 @@
 {% extends "_layout_calendar.html" %}
 {% block body %}
+
 <div class="calendar-header">
   <a href="/page/calendar/month?year={{ prev_year }}&month={{ prev_month }}">◀</a>
   <strong>{{ year }}년 {{ month }}월</strong>
   <a href="/page/calendar/month?year={{ next_year }}&month={{ next_month }}">▶</a>
 </div>
 
-<div class="calendar-grid">
-  <div class="dow">일</div><div class="dow">월</div><div class="dow">화</div>
-  <div class="dow">수</div><div class="dow">목</div><div class="dow">금</div><div class="dow">토</div>
-  {% for week in weeks %}
-    {% for day in week %}
-      <div class="cell">{{ day if day != 0 else "" }}</div>
+<table class="calendar">
+  <thead>
+    <tr>
+      <th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for week in weeks %}
+    <tr>
+      {% for day in week %}
+      <td class="{{ 'other' if day.month != month else '' }}">{{ day.day }}</td>
+      {% endfor %}
+    </tr>
     {% endfor %}
-  {% endfor %}
-</div>
+  </tbody>
+</table>
+
 {% endblock %}
