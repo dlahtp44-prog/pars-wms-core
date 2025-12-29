@@ -1,14 +1,16 @@
-의존성 보완 수정 ZIP
+CLEAN FIX ZIP
 
-문제 원인
-- inbound.py 에서 pandas 사용
-- requirements.txt 에 pandas 누락
-- 앱 로딩 단계에서 ModuleNotFoundError 발생
+이 ZIP에는 중복 ZIP 파일이 없습니다.
+오직 실제로 교체해야 할 파일만 포함되어 있습니다.
 
-해결
-- pandas + openpyxl 추가
-- 기능 변경 없음
+포함:
+- app/main.py
 
-적용 방법
-1. requirements.txt 교체
-2. Railway Redeploy
+해결:
+- GET / 404 문제
+- 잘못된 pages import 제거
+- 단일 엔트리 포인트 정리
+
+적용:
+- app/main.py 교체
+- Railway 재배포
