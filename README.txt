@@ -1,18 +1,18 @@
-[달력 월간보기 간단 추가: 2번 + 4번]
-- 기존 기능/페이지 수정 없음(달력 월간보기 파일만 교체)
-- 2) 오늘 상세 버튼 추가: /page/calendar?date=YYYY-MM-DD
-- 4) 오늘 자동 이동/포커스:
-   - /page/calendar/month (쿼리 없이 접속) -> 오늘 월로 자동 이동
-   - 오늘이 포함된 월에서는 자동으로 오늘 칸으로 스크롤
+[홈 메뉴 '달력' → 월간 달력 연결 (최소 패치)]
+- 기존 기능/페이지 수정 없음
+- 링크(href) 1줄만 변경
 
-적용:
-1) ZIP 풀어서 아래 파일 2개를 '그대로 덮어쓰기'
-   - app/routers/calendar_month.py
-   - app/templates/calendar_month.html
-2) (이미 해두셨다면 생략) main.py 라우터 include 유지
-   from app.routers import calendar_month
-   app.include_router(calendar_month.router)
+적용 방법(택1):
+1) 홈/모바일 메뉴 템플릿에서
+   <a href="/page/calendar">달력</a>
+   를 찾아
+   <a href="/page/calendar/month">달력</a>
+   로 변경
 
-테스트:
-- /page/calendar/month             (오늘 월로 자동 이동)
-- /page/calendar/month?year=2025&month=12
+2) 프로젝트 구조가 복잡한 경우:
+   이 ZIP의 app/templates/menu_calendar_month_link.html 를 열어
+   AFTER 블록의 한 줄만 그대로 복사해 붙여넣기
+
+이유:
+- /page/calendar/month 는 쿼리 없이 접속 시 오늘 월로 자동 이동
+- 월간 달력 → 날짜 클릭 → 기존 상세(/page/calendar) 흐름 유지
