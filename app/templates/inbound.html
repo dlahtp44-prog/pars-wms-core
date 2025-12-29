@@ -1,31 +1,33 @@
 
-<h2>입고 등록</h2>
+<h2>입고등록</h2>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+<table border="1" cellpadding="6" cellspacing="0">
+<tr><th colspan="2">수기입고</th></tr>
+<tr><td>로케이션</td><td><input name="location" form="manualForm" value="A01-01"></td></tr>
+<tr><td>품번</td><td><input name="item_code" form="manualForm"></td></tr>
+<tr><td>품명</td><td><input name="item_name" form="manualForm"></td></tr>
+<tr><td>LOT</td><td><input name="lot" form="manualForm"></td></tr>
+<tr><td>규격</td><td><input name="spec" form="manualForm"></td></tr>
+<tr><td>브랜드</td><td><input name="brand" form="manualForm"></td></tr>
+<tr><td>수량</td><td><input type="number" name="qty" form="manualForm"></td></tr>
+<tr><td>비고</td><td><input name="memo" form="manualForm"></td></tr>
+</table>
 
-  <div style="border:1px solid #ccc;padding:15px">
-    <h3>📝 수기 입고 (Manual)</h3>
-    <form action="/api/inbound" method="post">
-      <input name="location" placeholder="로케이션" required><br>
-      <input name="item_code" placeholder="품번" required><br>
-      <input name="item_name" placeholder="품명"><br>
-      <input name="lot" placeholder="LOT"><br>
-      <input name="spec" placeholder="규격"><br>
-      <input type="number" name="qty" placeholder="수량" required><br>
-      <input name="memo" placeholder="비고"><br>
-      <button type="submit">수기 입고 저장</button>
-    </form>
-  </div>
+<form id="manualForm" action="/api/inbound" method="post">
+  <button type="submit">수기 입고 저장</button>
+</form>
 
-  <div style="border:1px solid #ccc;padding:15px">
-    <h3>📊 엑셀 입고 (XLSX)</h3>
-    <form action="/api/inbound/excel" method="post" enctype="multipart/form-data">
-      <input type="file" name="file" accept=".xlsx" required>
-      <button type="submit">엑셀 업로드</button>
-    </form>
-    <p style="font-size:12px;color:#666">
-      필수 컬럼: 로케이션 / 품번 / 품명 / LOT / 규격 / 수량
-    </p>
-  </div>
+<br>
 
-</div>
+<table border="1" cellpadding="6" cellspacing="0">
+<tr><th colspan="2">엑셀 입고</th></tr>
+<tr>
+<td colspan="2">
+<form action="/api/inbound/excel" method="post" enctype="multipart/form-data">
+<input type="file" name="file" accept=".xlsx">
+<button type="submit">엑셀 업로드</button>
+</form>
+</td>
+</tr>
+<tr><td colspan="2">필수컬럼: 로케이션 / 품번 / 품명 / LOT / 규격 / 수량</td></tr>
+</table>

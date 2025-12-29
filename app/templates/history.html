@@ -1,26 +1,29 @@
 
-{% extends "_layout.html" %}
-{% block body %}
-<div class="header">이력 조회</div>
-<div class="card">
-  <div class="top-actions">
-    <a href="/">← 홈</a>
-    <a href="/api/history?limit={{ limit }}">API 보기</a>
-  </div>
-  <table class="table">
-    <thead><tr><th>시간</th><th>구분</th><th>품번/LOT</th><th>수량</th><th>출발→도착</th><th>비고</th></tr></thead>
-    <tbody>
-      {% for r in rows %}
-      <tr>
-        <td class="small">{{ r['ts'] }}</td>
-        <td><span class="badge">{{ r['type'] }}</span></td>
-        <td><b>{{ r['item'] }}</b><div class="small">{{ r['lot'] }}</div></td>
-        <td>{{ r['qty'] }}</td>
-        <td class="small">{{ r['src'] }} → {{ r['dst'] }}</td>
-        <td class="small">{{ r['memo'] }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% endblock %}
+<h2>이력조회</h2>
+
+<table border="1" cellpadding="6" cellspacing="0" width="100%">
+<tr>
+<th>로케이션</th>
+<th>품번</th>
+<th>LOT</th>
+<th>규격</th>
+<th>브랜드</th>
+<th>수량</th>
+<th>업데이트</th>
+<th>비고</th>
+<th>시간</th>
+</tr>
+{% for r in rows %}
+<tr>
+<td>{{r.location}}</td>
+<td>{{r.item_code}}</td>
+<td>{{r.lot}}</td>
+<td>{{r.spec}}</td>
+<td>{{r.brand}}</td>
+<td>{{r.qty}}</td>
+<td>{{r.updated_at}}</td>
+<td>{{r.memo}}</td>
+<td>{{r.created_at}}</td>
+</tr>
+{% endfor %}
+</table>
