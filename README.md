@@ -1,14 +1,26 @@
 
-422 오류 원인
-- 기존 /api/inbound 는 JSON body(item)를 요구
-- 화면(form)에서는 application/x-www-form-urlencoded 전송
-- 필수 필드 mismatch로 422 발생
+FINAL FIX 설명
 
-수정 내용
-- /api/inbound 를 Form 기반으로 통일
-- inbound / inventory / history 필드명 완전 통일
-- 엑셀/수기 동일 로직 적용
+현재 로그
+- POST /api/inbound -> 422
+- POST /api/inbound/excel -> 404
 
-적용
-- app/routers/inbound.py 교체
-- 서버 재시작
+원인
+1) /api/inbound
+   - 화면은 FORM 전송
+   - API가 JSON/다른 필드 기대 -> 422
+
+2) /api/inbound/excel
+   - router에 endpoint 미등록 or 다른 파일 사용 -> 404
+
+해결
+- inbound.py 하나에
+  * FORM 기반 수기 입고
+  * /excel 엔드포인트
+  * inventory/history 동시 반영
+  모두 통합
+
+적용 방법
+1. app/routers/inbound.py 교체
+2. main.py 에서 inbound router include 확인
+3. 서버 재시작

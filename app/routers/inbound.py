@@ -5,37 +5,33 @@ from app.db import get_db
 
 router = APIRouter(prefix="/api/inbound", tags=["inbound"])
 
-def apply_all(cur, data):
-    location = data["location"]
-    item_code = data["item_code"]
-    item_name = data["item_name"]
-    lot = data["lot"]
-    spec = data["spec"]
-    qty = int(data["qty"])
-    memo = data.get("memo","")
-
-    cur.execute("""INSERT INTO inbound
-    (location,item_code,item_name,lot,spec,qty,memo)
-    VALUES (?,?,?,?,?,?,?)""", 
-    (location,item_code,item_name,lot,spec,qty,memo))
-
+def process(cur, location, item_code, item_name, lot, spec, qty, memo):
+    # inbound
     cur.execute("""
-    INSERT INTO history
-    (type,location,item_code,item_name,lot,spec,qty,memo)
-    VALUES ('입고',?,?,?,?,?,?,?)""", 
-    (location,item_code,item_name,lot,spec,qty,memo))
+    INSERT INTO inbound (location,item_code,item_name,lot,spec,qty,memo)
+    VALUES (?,?,?,?,?,?,?)
+    """, (location,item_code,item_name,lot,spec,qty,memo))
 
+    # inventory (upsert)
     cur.execute("""
-    INSERT INTO inventory
-    (location,item_code,item_name,lot,spec,qty)
+    INSERT INTO inventory (location,item_code,item_name,lot,spec,qty)
     VALUES (?,?,?,?,?,?)
     ON CONFLICT(location,item_code,lot,spec)
     DO UPDATE SET qty = qty + excluded.qty
     """, (location,item_code,item_name,lot,spec,qty))
 
+    # history
+    cur.execute("""
+    INSERT INTO history (type,location,item_code,item_name,lot,spec,qty,memo)
+    VALUES ('입고',?,?,?,?,?,?,?)
+    """, (location,item_code,item_name,lot,spec,qty,memo))
 
+
+# =========================
+# 수기 입고 (FORM 전용)
+# =========================
 @router.post("")
-def inbound_form(
+def inbound_manual(
     location: str = Form(...),
     item_code: str = Form(...),
     item_name: str = Form(...),
@@ -46,28 +42,39 @@ def inbound_form(
 ):
     conn = get_db()
     cur = conn.cursor()
-
-    apply_all(cur, locals())
+    process(cur, location, item_code, item_name, lot, spec, qty, memo)
     conn.commit()
-    return {"result":"ok"}
+    return {"result": "ok"}
 
 
+# =========================
+# 엑셀 입고
+# =========================
 @router.post("/excel")
 def inbound_excel(file: UploadFile = File(...)):
+    if not file.filename.endswith(".xlsx"):
+        raise HTTPException(status_code=400, detail="xlsx only")
+
     df = pd.read_excel(file.file)
     conn = get_db()
     cur = conn.cursor()
 
+    required = ["로케이션","품번","품명","LOT","규격","수량"]
+    for c in required:
+        if c not in df.columns:
+            raise HTTPException(status_code=400, detail=f"{c} 컬럼 누락")
+
     for _, r in df.iterrows():
-        apply_all(cur, {
-            "location": r["로케이션"],
-            "item_code": r["품번"],
-            "item_name": r["품명"],
-            "lot": r["LOT"],
-            "spec": r["규격"],
-            "qty": r["수량"],
-            "memo": r.get("비고","")
-        })
+        process(
+            cur,
+            r["로케이션"],
+            r["품번"],
+            r["품명"],
+            r["LOT"],
+            r["규격"],
+            int(r["수량"]),
+            r.get("비고","")
+        )
 
     conn.commit()
-    return {"result":"ok","count":len(df)}
+    return {"result": "ok", "count": len(df)}
