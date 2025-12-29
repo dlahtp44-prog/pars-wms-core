@@ -1,9 +1,31 @@
 
-<!doctype html>
-<html><head>
-<link rel="stylesheet" href="/static/app.css">
-</head><body>
-<h3>이동</h3>
-<p>QR 출발 → 재고 → QR 도착 단계</p>
-<a href="/">← 홈</a>
-</body></html>
+{% extends "_layout.html" %}
+{% block body %}
+<div class="header">이동</div>
+<div class="card">
+  <div class="top-actions">
+    <a href="/m/qr?mode=mv_src">📷 출발 QR</a>
+    <a href="/m/qr?mode=mv_item">📷 품번 QR</a>
+    <a href="/m/qr?mode=mv_dst">📷 도착 QR</a>
+    <a href="/">← 홈</a>
+  </div>
+  <form class="form" method="post" action="/api/move">
+    <div class="row2">
+      <div><label>출발 로케이션</label><input name="src" value="{{ src }}" required /></div>
+      <div><label>도착 로케이션</label><input name="dst" value="{{ dst }}" required /></div>
+    </div>
+    <div class="row2">
+      <div><label>품번</label><input name="item" value="{{ item }}" required /></div>
+      <div><label>수량</label><input name="qty" type="number" min="1" required /></div>
+    </div>
+    <div class="row2">
+      <div><label>품명</label><input name="item_name" /></div>
+      <div><label>LOT</label><input name="lot" /></div>
+    </div>
+    <label>규격</label><input name="spec" />
+    <label>비고</label><input name="memo" />
+    <button type="submit">이동 처리</button>
+    <div class="small">흐름: QR(출발) → 품번 선택(또는 QR) → 수량 → QR(도착).</div>
+  </form>
+</div>
+{% endblock %}

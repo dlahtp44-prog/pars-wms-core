@@ -1,16 +1,35 @@
 
-<!doctype html>
-<html><head>
-<link rel="stylesheet" href="/static/app.css">
-</head>
-<body>
-<h3>입고 등록</h3>
-<form method="post" action="/inbound/save">
-  <input name="item_code" placeholder="품번" required><br>
-  <input name="item_name" placeholder="품명" required><br>
-  <input name="lot" placeholder="LOT" required><br>
-  <input name="spec" placeholder="규격" required><br>
-  <input type="number" name="qty" placeholder="수량" required><br>
-  <button type="submit">입고 저장</button>
-</form>
-</body></html>
+{% extends "_layout.html" %}
+{% block body %}
+<div class="header">입고</div>
+<div class="card">
+  <div class="top-actions">
+    <a href="/m/qr?mode=in_loc">📷 로케이션 QR</a>
+    <a href="/m/qr?mode=in_item">📷 품번 QR</a>
+    <a href="/">← 홈</a>
+  </div>
+  <form class="form" method="post" action="/api/inbound">
+    <div class="row2">
+      <div>
+        <label>로케이션</label>
+        <input name="location" value="{{ qr_loc }}" placeholder="예: B01-01-02-A" required />
+      </div>
+      <div>
+        <label>품번</label>
+        <input name="item" value="{{ qr_item }}" placeholder="예: 766109" required />
+      </div>
+    </div>
+    <div class="row2">
+      <div><label>품명</label><input name="item_name" placeholder="품명" /></div>
+      <div><label>LOT</label><input name="lot" placeholder="LOT" /></div>
+    </div>
+    <div class="row2">
+      <div><label>규격</label><input name="spec" placeholder="규격" /></div>
+      <div><label>수량</label><input name="qty" type="number" min="1" required /></div>
+    </div>
+    <label>비고</label><input name="memo" placeholder="비고" />
+    <button type="submit">입고 저장</button>
+    <div class="small">QR만 찍고 수량만 입력하는 흐름을 지원합니다.</div>
+  </form>
+</div>
+{% endblock %}

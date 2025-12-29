@@ -1,9 +1,29 @@
 
-<!doctype html>
-<html><head>
-<link rel="stylesheet" href="/static/app.css">
-</head><body>
-<h3>출고</h3>
-<p>출고 상세 폼 위치</p>
-<a href="/">← 홈</a>
-</body></html>
+{% extends "_layout.html" %}
+{% block body %}
+<div class="header">출고</div>
+<div class="card">
+  <div class="top-actions">
+    <a href="/m/qr?mode=out_loc">📷 로케이션 QR</a>
+    <a href="/m/qr?mode=out_item">📷 품번 QR</a>
+    <a href="/">← 홈</a>
+  </div>
+  <form class="form" method="post" action="/api/outbound">
+    <div class="row2">
+      <div><label>로케이션</label><input name="location" value="{{ qr_loc }}" required /></div>
+      <div><label>품번</label><input name="item" value="{{ qr_item }}" required /></div>
+    </div>
+    <div class="row2">
+      <div><label>품명</label><input name="item_name" /></div>
+      <div><label>LOT</label><input name="lot" /></div>
+    </div>
+    <div class="row2">
+      <div><label>규격</label><input name="spec" /></div>
+      <div><label>수량</label><input name="qty" type="number" min="1" required /></div>
+    </div>
+    <label>비고</label><input name="memo" />
+    <button type="submit">출고 저장</button>
+    <div class="small">DB 반영 + 이력 저장 됩니다.</div>
+  </form>
+</div>
+{% endblock %}

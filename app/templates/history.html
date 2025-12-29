@@ -1,9 +1,26 @@
 
-<!doctype html>
-<html><head>
-<link rel="stylesheet" href="/static/app.css">
-</head><body>
-<h3>이력</h3>
-<p>입·출고·이동 이력</p>
-<a href="/">← 홈</a>
-</body></html>
+{% extends "_layout.html" %}
+{% block body %}
+<div class="header">이력 조회</div>
+<div class="card">
+  <div class="top-actions">
+    <a href="/">← 홈</a>
+    <a href="/api/history?limit={{ limit }}">API 보기</a>
+  </div>
+  <table class="table">
+    <thead><tr><th>시간</th><th>구분</th><th>품번/LOT</th><th>수량</th><th>출발→도착</th><th>비고</th></tr></thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td class="small">{{ r['ts'] }}</td>
+        <td><span class="badge">{{ r['type'] }}</span></td>
+        <td><b>{{ r['item'] }}</b><div class="small">{{ r['lot'] }}</div></td>
+        <td>{{ r['qty'] }}</td>
+        <td class="small">{{ r['src'] }} → {{ r['dst'] }}</td>
+        <td class="small">{{ r['memo'] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
