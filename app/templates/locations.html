@@ -1,0 +1,12 @@
+
+<!doctype html><html><body>
+<h3>로케이션</h3>
+<form method="post">
+<input name="code" placeholder="B01-01-01-A">
+<button>추가</button>
+</form>
+<ul>
+{% for r in rows %}<li>{{r[0]}}</li>{% endfor %}
+</ul>
+<a href="/print/location">전체 출력</a>
+</body></html>
