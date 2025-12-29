@@ -1,12 +1,16 @@
 
-<!DOCTYPE html>
-<html>
-<head><meta name="viewport" content="width=device-width, initial-scale=1"></head>
-<body>
-<h2>PARS WMS</h2>
-<ul>
-<li><a href="/입고">📥 입고</a></li>
-<li><a href="/달력">📅 달력</a></li>
-</ul>
-</body>
-</html>
+{% extends "_layout.html" %}
+{% block body %}
+<div class="header">PARS WMS (Mobile)</div>
+<div class="menu">
+  <a href="/입고"><span class="ico">📥</span><b>입고</b></a>
+  <a href="/출고"><span class="ico">📤</span><b>출고</b></a>
+  <a href="/이동"><span class="ico">🔁</span><b>이동</b></a>
+  <a href="/m/qr"><span class="ico">📷</span><b>QR 스캔</b></a>
+  <a href="/재고"><span class="ico">📦</span><b>재고 조회</b></a>
+  <a href="/이력"><span class="ico">🧾</span><b>이력 조회</b></a>
+  <a href="/달력"><span class="ico">🗓️</span><b>달력</b></a>
+  <a href="/관리자"><span class="ico">👤</span><b>관리자</b></a>
+</div>
+<div class="small" style="margin-top:10px;">※ 메뉴는 한글 URL로 보이지만 서버에서 영문 page로 자동 연결됩니다(404 해결).</div>
+{% endblock %}

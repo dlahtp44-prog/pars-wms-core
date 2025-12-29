@@ -1,51 +1,35 @@
 
-{% extends "_base.html" %}
-{% set title = "입고" %}
-{% block content %}
+{% extends "_layout.html" %}
+{% block body %}
+<div class="header">입고</div>
 <div class="card">
-  <h3>입고 등록</h3>
-  <form method="post" action="/api/입고">
-    <div class="row">
-      <div>
-        <label>창고</label>
-        <input name="창고" value="{{ request.query_params.get('창고','') }}" required>
-      </div>
+  <div class="top-actions">
+    <a href="/m/qr?mode=in_loc">📷 로케이션 QR</a>
+    <a href="/m/qr?mode=in_item">📷 품번 QR</a>
+    <a href="/">← 홈</a>
+  </div>
+  <form class="form" method="post" action="/api/inbound">
+    <div class="row2">
       <div>
         <label>로케이션</label>
-        <input name="로케이션" value="{{ request.query_params.get('로케이션','') }}" required>
+        <input name="location" value="{{ qr_loc }}" placeholder="예: B01-01-02-A" required />
+      </div>
+      <div>
+        <label>품번</label>
+        <input name="item" value="{{ qr_item }}" placeholder="예: 766109" required />
       </div>
     </div>
-
-    <label>품번</label>
-    <input name="품번" value="{{ request.query_params.get('품번','') }}" required>
-
-    <label>품명</label>
-    <input name="품명" value="{{ request.query_params.get('품명','') }}" required>
-
-    <div class="row">
-      <div>
-        <label>LOT</label>
-        <input name="LOT" value="{{ request.query_params.get('LOT','') }}" required>
-      </div>
-      <div>
-        <label>규격</label>
-        <input name="규격" value="{{ request.query_params.get('규격','') }}" required>
-      </div>
+    <div class="row2">
+      <div><label>품명</label><input name="item_name" placeholder="품명" /></div>
+      <div><label>LOT</label><input name="lot" placeholder="LOT" /></div>
     </div>
-
-    <div class="row">
-      <div>
-        <label>수량</label>
-        <input type="number" name="수량" min="1" value="{{ request.query_params.get('수량','1') }}" required>
-      </div>
-      <div>
-        <label>비고</label>
-        <input name="비고" value="{{ request.query_params.get('비고','') }}">
-      </div>
+    <div class="row2">
+      <div><label>규격</label><input name="spec" placeholder="규격" /></div>
+      <div><label>수량</label><input name="qty" type="number" min="1" required /></div>
     </div>
-
+    <label>비고</label><input name="memo" placeholder="비고" />
     <button type="submit">입고 저장</button>
+    <div class="small">QR만 찍고 수량만 입력하는 흐름을 지원합니다.</div>
   </form>
-  <p class="hint">QR 스캔 후 “입고로” 버튼을 누르면 이 화면이 자동으로 채워집니다.</p>
 </div>
 {% endblock %}

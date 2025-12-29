@@ -1,14 +1,23 @@
 
-{% extends "_base.html" %}
-{% set title = "관리자" %}
-{% block content %}
+{% extends "_layout.html" %}
+{% block body %}
+<div class="header">관리자</div>
 <div class="card">
-  <h3>관리자 메뉴</h3>
-  <p class="hint">필요 기능을 여기에 계속 추가할 수 있습니다.</p>
-  <div class="menu">
-    <a href="/재고">📦 재고 조회</a>
-    <a href="/이력">🧾 이력 조회</a>
-    <a href="/달력">📅 달력 관리</a>
-  </div>
+  {% if authed %}
+    <div class="badge">ADMIN</div>
+    <p class="small">관리자 전용 진입 완료</p>
+    <div class="top-actions">
+      <a href="/page/history">이력 보기</a>
+      <a href="/page/inventory">재고 보기</a>
+      <a href="/api/inventory">재고 API</a>
+    </div>
+  {% else %}
+    <p class="small">관리자 PIN을 입력하세요.</p>
+    <form class="form" method="get" action="/page/admin">
+      <input name="pin" placeholder="PIN (기본 0000)" />
+      <button type="submit">진입</button>
+    </form>
+  {% endif %}
+  <div class="top-actions"><a href="/">← 홈</a></div>
 </div>
 {% endblock %}

@@ -1,23 +1,19 @@
 
-# PARS WMS CORE (Mobile/Tablet)
+# PARS WMS CORE (Mobile/Tablet Functional)
 
-## Run locally
-```bash
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
+## Routes (UI)
+- / (mobile menu)
+- /입고, /출고, /이동, /재고, /이력, /달력, /관리자  (Korean aliases)
+- /page/inbound, /page/outbound, /page/move, /page/inventory, /page/history, /page/calendar, /page/admin
+- /m/qr (camera QR scan page)
 
-## URLs
-- Mobile menu: `/m`
-- Inbound: `/입고`
-- Outbound: `/출고`
-- Move: `/이동`
-- QR scan: `/m/qr`
-- Inventory: `/재고`
-- History: `/이력`
-- Calendar: `/달력`
-- Admin: `/관리자` (login required)
+## Routes (API)
+- /api/inbound
+- /api/outbound
+- /api/move
+- /api/inventory
+- /api/history
+- /api/calendar (create/update/delete via action field)
 
-## Admin login
-- `/login`
-- Default password: `admin123` (set env `ADMIN_PASSWORD` to change)
+## Admin
+- Set env `ADMIN_PIN` (default 0000)
