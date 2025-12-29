@@ -1,33 +1,38 @@
-
+{% extends "_base.html" %}
+{% block content %}
 <h2>입고등록</h2>
 
 <table border="1" cellpadding="6" cellspacing="0">
-<tr><th colspan="2">수기입고</th></tr>
-<tr><td>로케이션</td><td><input name="location" form="manualForm" value="A01-01"></td></tr>
-<tr><td>품번</td><td><input name="item_code" form="manualForm"></td></tr>
-<tr><td>품명</td><td><input name="item_name" form="manualForm"></td></tr>
-<tr><td>LOT</td><td><input name="lot" form="manualForm"></td></tr>
-<tr><td>규격</td><td><input name="spec" form="manualForm"></td></tr>
-<tr><td>브랜드</td><td><input name="brand" form="manualForm"></td></tr>
-<tr><td>수량</td><td><input type="number" name="qty" form="manualForm"></td></tr>
-<tr><td>비고</td><td><input name="memo" form="manualForm"></td></tr>
+  <tr><th colspan="2">수기입고</th></tr>
+  <tr><td>로케이션</td><td><input form="manualForm" name="location" value="{{ request.query_params.get('location','A01-01') }}"></td></tr>
+  <tr><td>품번</td><td><input form="manualForm" name="item_code" placeholder="예: 123456"></td></tr>
+  <tr><td>품명</td><td><input form="manualForm" name="item_name" placeholder="예: ABCDEF"></td></tr>
+  <tr><td>LOT</td><td><input form="manualForm" name="lot" placeholder="예: H123"></td></tr>
+  <tr><td>규격</td><td><input form="manualForm" name="spec" placeholder="예: 600*1200"></td></tr>
+  <tr><td>브랜드</td><td><input form="manualForm" name="brand" placeholder="예: FLOIM"></td></tr>
+  <tr><td>수량</td><td><input form="manualForm" type="number" name="qty" placeholder="예: 10"></td></tr>
+  <tr><td>비고</td><td><input form="manualForm" name="memo" placeholder=""></td></tr>
 </table>
 
-<form id="manualForm" action="/api/inbound" method="post">
+<form id="manualForm" action="/api/inbound" method="post" style="margin-top:8px">
   <button type="submit">수기 입고 저장</button>
 </form>
 
 <br>
 
 <table border="1" cellpadding="6" cellspacing="0">
-<tr><th colspan="2">엑셀 입고</th></tr>
-<tr>
-<td colspan="2">
-<form action="/api/inbound/excel" method="post" enctype="multipart/form-data">
-<input type="file" name="file" accept=".xlsx">
-<button type="submit">엑셀 업로드</button>
-</form>
-</td>
-</tr>
-<tr><td colspan="2">필수컬럼: 로케이션 / 품번 / 품명 / LOT / 규격 / 수량</td></tr>
+  <tr><th colspan="2">엑셀 입고</th></tr>
+  <tr>
+    <td colspan="2">
+      <form action="/api/inbound/excel" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".xlsx" required>
+        <button type="submit">엑셀 업로드</button>
+      </form>
+    </td>
+  </tr>
+  <tr><td colspan="2" style="font-size:12px;color:#666">
+    필수 컬럼: 로케이션 / 품번 / 품명 / LOT / 규격 / 수량<br>
+    선택 컬럼: 브랜드 / 비고
+  </td></tr>
 </table>
+{% endblock %}

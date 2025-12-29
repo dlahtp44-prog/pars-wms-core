@@ -1,10 +1,11 @@
 
 import os
 import sqlite3
+import io
 from typing import Optional
 
 from fastapi import FastAPI, Request, Form, Query, UploadFile, File, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse, Response, JSONResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response, StreamingResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
@@ -59,6 +60,23 @@ def init_db():
         author TEXT NOT NULL DEFAULT '',
         updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
     )""")
+
+# --- MIGRATION: add missing columns (brand/memo/updated_at) ---
+def _col_exists(table: str, col: str) -> bool:
+    cols = [r["name"] for r in c.execute(f"PRAGMA table_info({table})").fetchall()]
+    return col in cols
+
+# stock: brand, memo
+if not _col_exists("stock", "brand"):
+    c.execute("ALTER TABLE stock ADD COLUMN brand TEXT NOT NULL DEFAULT ''")
+if not _col_exists("stock", "memo"):
+    c.execute("ALTER TABLE stock ADD COLUMN memo TEXT NOT NULL DEFAULT ''")
+
+# history: brand, updated_at
+if not _col_exists("history", "brand"):
+    c.execute("ALTER TABLE history ADD COLUMN brand TEXT NOT NULL DEFAULT ''")
+if not _col_exists("history", "updated_at"):
+    c.execute("ALTER TABLE history ADD COLUMN updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))")
     db.commit()
     db.close()
 
@@ -75,6 +93,61 @@ def favicon():
 @app.get("/apple-touch-icon-precomposed.png")
 def apple_icons():
     return Response(status_code=204)
+
+
+@app.get("/api/inventory/excel")
+def api_inventory_excel():
+    try:
+        from openpyxl import Workbook
+    except Exception:
+        raise HTTPException(status_code=500, detail="openpyxl 필요")
+    db = get_db()
+    rows = db.execute("SELECT location,item,lot,spec,brand,qty,updated_at,memo FROM stock ORDER BY location,item,lot").fetchall()
+    db.close()
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "재고"
+    ws.append(["로케이션","품번","LOT","규격","브랜드","수량","업데이트","비고"])
+    for r in rows:
+        ws.append([r["location"], r["item"], r["lot"], r["spec"], r["brand"], r["qty"], r["updated_at"], r["memo"]])
+
+    bio = io.BytesIO()
+    wb.save(bio)
+    bio.seek(0)
+    return StreamingResponse(
+        bio,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition":"attachment; filename=inventory.xlsx"}
+    )
+
+@app.get("/api/history/excel")
+def api_history_excel():
+    try:
+        from openpyxl import Workbook
+    except Exception:
+        raise HTTPException(status_code=500, detail="openpyxl 필요")
+    db = get_db()
+    rows = db.execute("SELECT type,item,lot,spec,brand,qty,updated_at,memo,src,dst,ts FROM history ORDER BY id DESC").fetchall()
+    db.close()
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "이력"
+    ws.append(["구분","로케이션","출발","도착","품번","LOT","규격","브랜드","수량","업데이트","비고","시간"])
+    for r in rows:
+        loc = r["dst"] if r["dst"] else r["src"]
+        ws.append([r["type"], loc, r["src"], r["dst"], r["item"], r["lot"], r["spec"], r["brand"], r["qty"], r["updated_at"], r["memo"], r["ts"]])
+
+    bio = io.BytesIO()
+    wb.save(bio)
+    bio.seek(0)
+    return StreamingResponse(
+        bio,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition":"attachment; filename=history.xlsx"}
+    )
+
 
 # -----------------------
 # Helpers: session QR
@@ -152,7 +225,7 @@ def page_move(request: Request):
 @app.get("/page/inventory", response_class=HTMLResponse)
 def page_inventory(request: Request, location: str = "", item: str = ""):
     db = get_db()
-    q = "SELECT item,item_name,lot,spec,location,qty,updated_at FROM stock WHERE 1=1"
+    q = "SELECT item,lot,spec,location,qty,brand,memo,updated_at FROM stock WHERE 1=1"
     args = []
     if location:
         q += " AND location LIKE ?"
@@ -168,7 +241,7 @@ def page_inventory(request: Request, location: str = "", item: str = ""):
 @app.get("/page/history", response_class=HTMLResponse)
 def page_history(request: Request, limit: int = 200):
     db = get_db()
-    rows = db.execute("SELECT type,item,item_name,lot,spec,qty,src,dst,memo,ts FROM history ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
+    rows = db.execute("SELECT type,item,lot,spec,qty,brand,memo,updated_at,src,dst,ts FROM history ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
     db.close()
     return templates.TemplateResponse("history.html", {"request": request, "rows": rows, "limit": limit})
 
@@ -226,6 +299,7 @@ def api_inbound(
     item_name: str = Form(""),
     lot: str = Form(""),
     spec: str = Form(""),
+    brand: str = Form(\"\"),
     location: str = Form(...),
     qty: int = Form(...),
     memo: str = Form(""),
@@ -238,24 +312,27 @@ def api_inbound(
 
     db = get_db()
 
-    # stock upsert (재고)
-    db.execute(
-        """
-        INSERT INTO stock(item,item_name,lot,spec,location,qty)
-        VALUES(?,?,?,?,?,?)
-        ON CONFLICT(item,lot,location) DO UPDATE SET
-          qty = qty + excluded.qty,
-          item_name = excluded.item_name,
-          spec = excluded.spec,
-          updated_at = datetime('now','localtime')
-        """,
-        (_item, item_name, lot, spec, location, int(qty)),
-    )
+    
+# stock upsert (재고)
+db.execute(
+    """
+    INSERT INTO stock(item,item_name,lot,spec,location,qty,brand,memo)
+    VALUES(?,?,?,?,?,?,?,?)
+    ON CONFLICT(item,lot,location) DO UPDATE SET
+      qty = qty + excluded.qty,
+      item_name = excluded.item_name,
+      spec = excluded.spec,
+      brand = CASE WHEN excluded.brand <> '' THEN excluded.brand ELSE stock.brand END,
+      memo = CASE WHEN excluded.memo <> '' THEN excluded.memo ELSE stock.memo END,
+      updated_at = datetime('now','localtime')
+    """,
+    (_item, item_name, lot, spec, location, int(qty), brand, memo),
+)
 
     # history (이력)
     db.execute(
-        "INSERT INTO history(type,item,item_name,lot,spec,qty,src,dst,memo) VALUES('IN',?,?,?,?,?,?,?,?)",
-        (_item, item_name, lot, spec, int(qty), "", location, memo),
+        "INSERT INTO history(type,item,item_name,lot,spec,qty,src,dst,memo,brand,updated_at) VALUES('IN',?,?,?,?,?,?,?,?,?,datetime('now','localtime'))",
+        (_item, item_name, lot, spec, int(qty), \"\", location, memo, brand),
     )
 
     db.commit()
@@ -306,6 +383,7 @@ def api_inbound_excel(file: UploadFile = File(...)):
     idx_spec = col_idx("규격")
     idx_qty = col_idx("수량")
     idx_memo = col_idx("비고")  # optional
+    idx_brand = col_idx("브랜드")  # optional
 
     db = get_db()
     inserted = 0
@@ -321,6 +399,9 @@ def api_inbound_excel(file: UploadFile = File(...)):
         spec = str(row[idx_spec]).strip() if row[idx_spec] is not None else ""
         qty_val = row[idx_qty]
         memo = ""
+        brand = ""
+        if idx_brand is not None and idx_brand < len(row) and row[idx_brand] is not None:
+            brand = str(row[idx_brand]).strip()
         if idx_memo is not None and idx_memo < len(row) and row[idx_memo] is not None:
             memo = str(row[idx_memo]).strip()
 
@@ -347,13 +428,13 @@ def api_inbound_excel(file: UploadFile = File(...)):
               spec = excluded.spec,
               updated_at = datetime('now','localtime')
             """,
-            (item, item_name, lot, spec, location, qty),
+            (item, item_name, lot, spec, location, qty, brand, memo),
         )
 
         # history
         db.execute(
-            "INSERT INTO history(type,item,item_name,lot,spec,qty,src,dst,memo) VALUES('IN',?,?,?,?,?,?,?,?)",
-            (item, item_name, lot, spec, qty, "", location, memo),
+            "INSERT INTO history(type,item,item_name,lot,spec,qty,src,dst,memo,brand,updated_at) VALUES('IN',?,?,?,?,?,?,?,?,?,datetime('now','localtime'))",
+            (item, item_name, lot, spec, qty, \"\", location, memo, brand),
         )
 
         inserted += 1
@@ -368,6 +449,7 @@ def api_outbound(
     item_name: str = Form(""),
     lot: str = Form(""),
     spec: str = Form(""),
+    brand: str = Form(\"\"),
     location: str = Form(...),
     qty: int = Form(...),
     memo: str = Form(""),

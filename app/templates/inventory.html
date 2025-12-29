@@ -1,29 +1,24 @@
-
+{% extends "_base.html" %}
+{% block content %}
 <h2>재고조회</h2>
 
 <table border="1" cellpadding="6" cellspacing="0" width="100%">
-<tr>
-<th>로케이션</th>
-<th>품번</th>
-<th>LOT</th>
-<th>규격</th>
-<th>브랜드</th>
-<th>수량</th>
-<th>업데이트</th>
-<th>비고</th>
-</tr>
-{% for r in rows %}
-<tr>
-<td>{{r.location}}</td>
-<td>{{r.item_code}}</td>
-<td>{{r.lot}}</td>
-<td>{{r.spec}}</td>
-<td>{{r.brand}}</td>
-<td>{{r.qty}}</td>
-<td>{{r.updated_at}}</td>
-<td>{{r.memo}}</td>
-</tr>
-{% endfor %}
+  <tr>
+    <th>로케이션</th><th>품번</th><th>LOT</th><th>규격</th><th>브랜드</th><th>수량</th><th>업데이트</th><th>비고</th>
+  </tr>
+  {% for r in rows %}
+  <tr>
+    <td>{{ r["location"] }}</td>
+    <td>{{ r["item"] }}</td>
+    <td>{{ r["lot"] }}</td>
+    <td>{{ r["spec"] }}</td>
+    <td>{{ r["brand"] }}</td>
+    <td>{{ r["qty"] }}</td>
+    <td>{{ r["updated_at"] }}</td>
+    <td>{{ r["memo"] }}</td>
+  </tr>
+  {% endfor %}
 </table>
 
-<a href="/api/inventory/excel">엑셀 다운로드</a>
+<p style="margin-top:10px"><a href="/api/inventory/excel">엑셀 다운로드</a></p>
+{% endblock %}
