@@ -1,26 +1,48 @@
-{% extends "_base.html" %}
-{% block content %}
-<h2>이력조회</h2>
+{% extends "_layout.html" %}
+{% block body %}
+<div class="header">이력조회</div>
 
-<table border="1" cellpadding="6" cellspacing="0" width="100%">
-  <tr>
-    <th>구분</th><th>로케이션</th><th>품번</th><th>LOT</th><th>규격</th><th>브랜드</th><th>수량</th><th>업데이트</th><th>비고</th><th>시간</th>
-  </tr>
-  {% for r in rows %}
-  <tr>
-    <td>{{ r["type"] }}</td>
-    <td>{{ r["dst"] if r["dst"] else r["src"] }}</td>
-    <td>{{ r["item"] }}</td>
-    <td>{{ r["lot"] }}</td>
-    <td>{{ r["spec"] }}</td>
-    <td>{{ r["brand"] }}</td>
-    <td>{{ r["qty"] }}</td>
-    <td>{{ r["updated_at"] }}</td>
-    <td>{{ r["memo"] }}</td>
-    <td>{{ r["ts"] }}</td>
-  </tr>
-  {% endfor %}
-</table>
+<div class="card sheet-card">
+  <div class="sheet-actions">
+    <a class="link" href="/">← 홈</a>
+    <a class="link" href="/api/history?limit={{ limit }}">API 보기</a>
+  </div>
 
-<p style="margin-top:10px"><a href="/api/history/excel">엑셀 다운로드</a></p>
+  <table class="grid">
+    <thead>
+      <tr>
+        <th>시간</th>
+        <th>구분</th>
+        <th>로케이션</th>
+        <th>품번</th>
+        <th>LOT</th>
+        <th>규격</th>
+        <th>브랜드</th>
+        <th>수량</th>
+        <th>비고</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td class="small">{{ r['ts'] }}</td>
+        <td><span class="badge">{{ r['type'] }}</span></td>
+        <td class="small">{{ r['src'] }}{% if r['dst'] %} → {{ r['dst'] }}{% endif %}</td>
+        <td>{{ r['item'] }}</td>
+        <td>{{ r['lot'] }}</td>
+        <td>{{ r['spec'] }}</td>
+        <td>{{ r.get('brand','') }}</td>
+        <td>{{ r['qty'] }}</td>
+        <td class="small">{{ r['memo'] }}</td>
+      </tr>
+      {% endfor %}
+      {% if rows|length == 0 %}
+      <tr><td colspan="9" class="small" style="padding:14px;">이력 데이터가 없습니다.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  <div class="hr"></div>
+  <a class="btn-outline full" href="/api/history.xlsx?limit={{ limit }}">엑셀다운로드</a>
+</div>
 {% endblock %}

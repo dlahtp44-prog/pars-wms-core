@@ -1,24 +1,58 @@
-{% extends "_base.html" %}
-{% block content %}
-<h2>재고조회</h2>
+{% extends "_layout.html" %}
+{% block body %}
+<div class="header">재고 조회</div>
 
-<table border="1" cellpadding="6" cellspacing="0" width="100%">
-  <tr>
-    <th>로케이션</th><th>품번</th><th>LOT</th><th>규격</th><th>브랜드</th><th>수량</th><th>업데이트</th><th>비고</th>
-  </tr>
-  {% for r in rows %}
-  <tr>
-    <td>{{ r["location"] }}</td>
-    <td>{{ r["item"] }}</td>
-    <td>{{ r["lot"] }}</td>
-    <td>{{ r["spec"] }}</td>
-    <td>{{ r["brand"] }}</td>
-    <td>{{ r["qty"] }}</td>
-    <td>{{ r["updated_at"] }}</td>
-    <td>{{ r["memo"] }}</td>
-  </tr>
-  {% endfor %}
-</table>
+<div class="card sheet-card">
+  <form method="get" action="/page/inventory">
+    <div class="filter-bar">
+      <div class="filter-item">
+        <label>로케이션</label>
+        <input name="location" value="{{ location }}" placeholder="필터">
+      </div>
+      <div class="filter-item">
+        <label>품번</label>
+        <input name="item" value="{{ item }}" placeholder="필터">
+      </div>
+    </div>
+    <div class="sheet-actions">
+      <button type="submit">조회</button>
+      <a class="link" href="/">← 홈</a>
+    </div>
+  </form>
 
-<p style="margin-top:10px"><a href="/api/inventory/excel">엑셀 다운로드</a></p>
+  <table class="grid" style="margin-top:10px;">
+    <thead>
+      <tr>
+        <th>로케이션</th>
+        <th>품번</th>
+        <th>LOT</th>
+        <th>규격</th>
+        <th>브랜드</th>
+        <th>수량</th>
+        <th>업데이트</th>
+        <th>비고</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>{{ r['location'] }}</td>
+        <td>{{ r['item'] }}</td>
+        <td>{{ r['lot'] }}</td>
+        <td>{{ r['spec'] }}</td>
+        <td>{{ r['brand'] }}</td>
+        <td><span class="badge">{{ r['qty'] }}</span></td>
+        <td class="small">{{ r['updated_at'] }}</td>
+        <td class="small">{{ r['memo'] }}</td>
+      </tr>
+      {% endfor %}
+      {% if rows|length == 0 %}
+      <tr><td colspan="8" class="small" style="padding:14px;">조회 결과가 없습니다.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  <div class="hr"></div>
+  <a class="btn-outline full" href="/api/inventory.xlsx?location={{ location }}&item={{ item }}">엑셀 다운로드</a>
+</div>
 {% endblock %}
