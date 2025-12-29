@@ -1,13 +1,28 @@
-from fastapi import APIRouter, Query
+
+from fastapi import APIRouter
 from app.db import get_db
 
-router = APIRouter(prefix="/api/이력", tags=["이력"])
+router = APIRouter(prefix="/api/history", tags=["history"])
 
 @router.get("")
-def 이력조회(limit: int = Query(200, ge=1, le=5000)):
+def history_list():
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM 이력 ORDER BY id DESC LIMIT ?", (int(limit),))
-    items = [dict(r) for r in cur.fetchall()]
-    conn.close()
-    return {"count": len(items), "items": items}
+
+    cur.execute("""
+    SELECT created_at, type, item_code, lot, qty, memo
+    FROM history
+    ORDER BY created_at DESC
+    """)
+
+    rows = cur.fetchall()
+    return [
+        {
+            "time": r[0],
+            "type": r[1],
+            "item": f"{r[2]} / {r[3]}",
+            "qty": r[4],
+            "memo": r[5]
+        }
+        for r in rows
+    ]
