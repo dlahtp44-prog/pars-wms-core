@@ -1,31 +1,11 @@
-{% extends "_layout_calendar.html" %}
-{% block body %}
-
-<div class="calendar-header">
-  <a href="/page/calendar/month?year={{ prev_year }}&month={{ prev_month }}">◀</a>
-  <strong>{{ year }}년 {{ month }}월</strong>
-  <a href="/page/calendar/month?year={{ next_year }}&month={{ next_month }}">▶</a>
-</div>
-
-<div class="calendar-grid">
-  <div class="calendar-week">
-    <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
-  </div>
-
-  {% for week in weeks %}
-  <div class="calendar-week">
-    {% for day in week %}
-      {% if day %}
-        <a class="calendar-day"
-           href="/page/calendar?date={{ day }}">
-          {{ day.day }}
-        </a>
-      {% else %}
-        <div class="calendar-day empty"></div>
-      {% endif %}
-    {% endfor %}
-  </div>
-  {% endfor %}
-</div>
-
-{% endblock %}
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>월간 달력</title>
+</head>
+<body>
+  <h2>◀ {{ year }}년 {{ month }}월 ▶</h2>
+  <div>월간 달력 영역 (여기에 날짜 그리기)</div>
+</body>
+</html>
