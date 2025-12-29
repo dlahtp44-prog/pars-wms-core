@@ -1,26 +1,31 @@
 
 <h2>입고 등록</h2>
 
-<h3>📝 수기 입고</h3>
-<form action="/api/inbound" method="post">
-  <input name="location" placeholder="로케이션" required><br><br>
-  <input name="item_code" placeholder="품번" required><br><br>
-  <input name="item_name" placeholder="품명" required><br><br>
-  <input name="lot" placeholder="LOT" required><br><br>
-  <input name="spec" placeholder="규격" required><br><br>
-  <input type="number" name="qty" placeholder="수량" required><br><br>
-  <input name="memo" placeholder="비고"><br><br>
-  <button type="submit">수기 입고 저장</button>
-</form>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
 
-<hr>
+  <div style="border:1px solid #ccc;padding:15px">
+    <h3>📝 수기 입고 (Manual)</h3>
+    <form action="/api/inbound" method="post">
+      <input name="location" placeholder="로케이션" required><br>
+      <input name="item_code" placeholder="품번" required><br>
+      <input name="item_name" placeholder="품명"><br>
+      <input name="lot" placeholder="LOT"><br>
+      <input name="spec" placeholder="규격"><br>
+      <input type="number" name="qty" placeholder="수량" required><br>
+      <input name="memo" placeholder="비고"><br>
+      <button type="submit">수기 입고 저장</button>
+    </form>
+  </div>
 
-<h3>📊 엑셀 입고</h3>
-<form action="/api/inbound/excel" method="post" enctype="multipart/form-data">
-  <input type="file" name="file" accept=".xlsx" required>
-  <button type="submit">엑셀 업로드</button>
-</form>
+  <div style="border:1px solid #ccc;padding:15px">
+    <h3>📊 엑셀 입고 (XLSX)</h3>
+    <form action="/api/inbound/excel" method="post" enctype="multipart/form-data">
+      <input type="file" name="file" accept=".xlsx" required>
+      <button type="submit">엑셀 업로드</button>
+    </form>
+    <p style="font-size:12px;color:#666">
+      필수 컬럼: 로케이션 / 품번 / 품명 / LOT / 규격 / 수량
+    </p>
+  </div>
 
-<p style="font-size:12px;">
-필수 컬럼: 로케이션 / 품번 / 품명 / LOT / 규격 / 수량
-</p>
+</div>
