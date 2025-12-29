@@ -3,4 +3,6 @@ fastapi
 uvicorn
 jinja2
 python-multipart
-itsdangerous
+pandas
+openpyxl
+qrcode[pil]
