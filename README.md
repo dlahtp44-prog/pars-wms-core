@@ -1,21 +1,17 @@
 
-엑셀 시트형 UI 개편 ZIP
+재고/이력 필드 누락 + 이력 엑셀 다운로드 FIX
 
-1. 입고등록
-- 수기입고를 엑셀 입력 시트 형태로 변경
-- 브랜드 컬럼 추가
-- 엑셀 입고 구역 분리
+해결 내용
+1. inventory 조회
+- 품번(item_code), 브랜드(brand), 비고(memo) 누락 수정
 
-2. 재고조회
-- 엑셀 시트 형태 테이블
-- 업데이트 날짜 표시
-- 엑셀 다운로드 링크
+2. history 조회
+- 로케이션, 품번, 브랜드, 업데이트(updated_at) 누락 수정
 
-3. 이력조회
-- 입/출/이동 공통 이력 시트
-- 시간 컬럼 포함
+3. history 엑셀 다운로드
+- /api/history/excel 추가
 
 적용
-- app/templates/inbound.html 교체
-- app/templates/inventory.html 교체
-- app/templates/history.html 교체
+- app/routers/inventory.py 교체
+- app/routers/history.py 교체
+- 서버 재시작
