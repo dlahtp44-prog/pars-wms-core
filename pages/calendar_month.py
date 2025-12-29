@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query, Request
-from datetime import date
 from fastapi.templating import Jinja2Templates
+from datetime import date
 import calendar
 
 router = APIRouter()
@@ -12,8 +12,9 @@ def calendar_month(
     year: int = Query(default=date.today().year),
     month: int = Query(default=date.today().month),
 ):
-    cal = calendar.Calendar(calendar.SUNDAY)
-    weeks = cal.monthdatescalendar(year, month)
+    cal = calendar.Calendar()
+    weeks = cal.monthdayscalendar(year, month)
+
     return templates.TemplateResponse(
         "calendar_month.html",
         {
