@@ -1,10 +1,41 @@
 
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 import pandas as pd
 from app.db import get_db
 
 router = APIRouter(prefix="/api/inbound", tags=["inbound"])
 
+# ======================
+# 수기 입고
+# ======================
+@router.post("")
+def inbound_manual(
+    location: str = Form(...),
+    item_code: str = Form(...),
+    item_name: str = Form(...),
+    lot: str = Form(...),
+    spec: str = Form(...),
+    qty: int = Form(...),
+    memo: str = Form("")
+):
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("""
+    INSERT INTO inbound
+    (location, item_code, item_name, lot, spec, qty, memo)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (
+        location, item_code, item_name, lot, spec, qty, memo
+    ))
+
+    conn.commit()
+    return {"result": "ok"}
+
+
+# ======================
+# 엑셀 입고
+# ======================
 @router.post("/excel")
 def inbound_excel(file: UploadFile = File(...)):
     if not file.filename.endswith(".xlsx"):
@@ -15,7 +46,7 @@ def inbound_excel(file: UploadFile = File(...)):
     required = ["로케이션","품번","품명","LOT","규격","수량"]
     for col in required:
         if col not in df.columns:
-            raise HTTPException(status_code=400, detail=f"{col} 컬럼이 없습니다.")
+            raise HTTPException(status_code=400, detail=f"{col} 컬럼 누락")
 
     conn = get_db()
     cur = conn.cursor()
