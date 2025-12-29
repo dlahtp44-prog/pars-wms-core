@@ -3,7 +3,7 @@ import os
 import sqlite3
 from typing import Optional
 
-from fastapi import FastAPI, Request, Form, Query
+from fastapi import FastAPI, Request, Form, Query, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, Response, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -216,9 +216,13 @@ def qr_save(request: Request, mode: str = Form(...), value: str = Form(...)):
 # -----------------------
 # APIs (DB real)
 # -----------------------
+
 @app.post("/api/inbound")
 def api_inbound(
-    item: str = Form(...),
+    # ✅ 화면(inbound.html)에서 넘어오는 필드명(item_code)을 지원하기 위해
+    # item 과 item_code 둘 다 허용합니다.
+    item: str | None = Form(None),
+    item_code: str | None = Form(None),
     item_name: str = Form(""),
     lot: str = Form(""),
     spec: str = Form(""),
@@ -226,21 +230,136 @@ def api_inbound(
     qty: int = Form(...),
     memo: str = Form(""),
 ):
-    item=item.strip(); location=location.strip()
-    db=get_db()
-    # upsert
-    db.execute("""
-    INSERT INTO stock(item,item_name,lot,spec,location,qty)
-    VALUES(?,?,?,?,?,?)
-    ON CONFLICT(item,lot,location) DO UPDATE SET
-      qty = qty + excluded.qty,
-      item_name = excluded.item_name,
-      spec = excluded.spec,
-      updated_at = datetime('now','localtime')
-    """, (item,item_name,lot,spec,location,int(qty)))
-    db.execute("INSERT INTO history(type,item,item_name,lot,spec,qty,src,dst,memo) VALUES('IN',?,?,?,?,?,?,?,?)",
-               (item,item_name,lot,spec,int(qty),"",location,memo))
-    db.commit(); db.close()
+    # item 결정 (둘 중 하나는 필수)
+    _item = (item or item_code or "").strip()
+    if not _item:
+        raise HTTPException(status_code=422, detail="품번(item_code)이 필요합니다.")
+    location = location.strip()
+
+    db = get_db()
+
+    # stock upsert (재고)
+    db.execute(
+        """
+        INSERT INTO stock(item,item_name,lot,spec,location,qty)
+        VALUES(?,?,?,?,?,?)
+        ON CONFLICT(item,lot,location) DO UPDATE SET
+          qty = qty + excluded.qty,
+          item_name = excluded.item_name,
+          spec = excluded.spec,
+          updated_at = datetime('now','localtime')
+        """,
+        (_item, item_name, lot, spec, location, int(qty)),
+    )
+
+    # history (이력)
+    db.execute(
+        "INSERT INTO history(type,item,item_name,lot,spec,qty,src,dst,memo) VALUES('IN',?,?,?,?,?,?,?,?)",
+        (_item, item_name, lot, spec, int(qty), "", location, memo),
+    )
+
+    db.commit()
+    db.close()
+    return RedirectResponse("/page/inbound", status_code=303)
+
+
+@app.post("/api/inbound/excel")
+def api_inbound_excel(file: UploadFile = File(...)):
+    """
+    엑셀 입고 (xlsx)
+    필수 컬럼: 로케이션 / 품번 / 품명 / LOT / 규격 / 수량
+    선택:I
+    비고
+    """
+    if not (file.filename or "").lower().endswith(".xlsx"):
+        raise HTTPException(status_code=400, detail="xlsx 파일만 업로드 가능합니다.")
+
+    try:
+        from openpyxl import load_workbook
+    except Exception:
+        raise HTTPException(status_code=500, detail="openpyxl이 설치되어 있지 않습니다. requirements.txt에 openpyxl 추가 필요")
+
+    wb = load_workbook(file.file, data_only=True)
+    ws = wb.active
+
+    # 헤더 읽기
+    headers = []
+    for cell in ws[1]:
+        headers.append(str(cell.value).strip() if cell.value is not None else "")
+
+    # 컬럼 인덱스 맵
+    def col_idx(name: str):
+        try:
+            return headers.index(name)
+        except ValueError:
+            return None
+
+    required = ["로케이션", "품번", "품명", "LOT", "규격", "수량"]
+    for c in required:
+        if col_idx(c) is None:
+            raise HTTPException(status_code=400, detail=f"엑셀 컬럼 누락: {c}")
+
+    idx_loc = col_idx("로케이션")
+    idx_item = col_idx("품번")
+    idx_name = col_idx("품명")
+    idx_lot = col_idx("LOT")
+    idx_spec = col_idx("규격")
+    idx_qty = col_idx("수량")
+    idx_memo = col_idx("비고")  # optional
+
+    db = get_db()
+    inserted = 0
+
+    # 2행부터 데이터
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if row is None:
+            continue
+        location = str(row[idx_loc]).strip() if row[idx_loc] is not None else ""
+        item = str(row[idx_item]).strip() if row[idx_item] is not None else ""
+        item_name = str(row[idx_name]).strip() if row[idx_name] is not None else ""
+        lot = str(row[idx_lot]).strip() if row[idx_lot] is not None else ""
+        spec = str(row[idx_spec]).strip() if row[idx_spec] is not None else ""
+        qty_val = row[idx_qty]
+        memo = ""
+        if idx_memo is not None and idx_memo < len(row) and row[idx_memo] is not None:
+            memo = str(row[idx_memo]).strip()
+
+        # 빈 줄 스킵
+        if not (location or item or item_name or lot or spec or qty_val):
+            continue
+
+        if not location or not item or qty_val is None:
+            raise HTTPException(status_code=400, detail=f"엑셀 필수값 누락 (로케이션/품번/수량): {row}")
+
+        try:
+            qty = int(qty_val)
+        except Exception:
+            raise HTTPException(status_code=400, detail=f"수량은 숫자여야 합니다: {qty_val}")
+
+        # stock upsert
+        db.execute(
+            """
+            INSERT INTO stock(item,item_name,lot,spec,location,qty)
+            VALUES(?,?,?,?,?,?)
+            ON CONFLICT(item,lot,location) DO UPDATE SET
+              qty = qty + excluded.qty,
+              item_name = excluded.item_name,
+              spec = excluded.spec,
+              updated_at = datetime('now','localtime')
+            """,
+            (item, item_name, lot, spec, location, qty),
+        )
+
+        # history
+        db.execute(
+            "INSERT INTO history(type,item,item_name,lot,spec,qty,src,dst,memo) VALUES('IN',?,?,?,?,?,?,?,?)",
+            (item, item_name, lot, spec, qty, "", location, memo),
+        )
+
+        inserted += 1
+
+    db.commit()
+    db.close()
     return RedirectResponse("/page/inbound", status_code=303)
 
 @app.post("/api/outbound")
