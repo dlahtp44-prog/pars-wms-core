@@ -1,31 +1,50 @@
-
-{% extends "_layout.html" %}
-{% block body %}
-<div class="header">이동</div>
+{% extends "base.html" %}
+{% block content %}
 <div class="card">
-  <div class="top-actions">
-    <a href="/m/qr?mode=mv_src">📷 출발 QR</a>
-    <a href="/m/qr?mode=mv_item">📷 품번 QR</a>
-    <a href="/m/qr?mode=mv_dst">📷 도착 QR</a>
-    <a href="/">← 홈</a>
-  </div>
-  <form class="form" method="post" action="/api/move">
-    <div class="row2">
-      <div><label>출발 로케이션</label><input name="src" value="{{ src }}" required /></div>
-      <div><label>도착 로케이션</label><input name="dst" value="{{ dst }}" required /></div>
-    </div>
-    <div class="row2">
-      <div><label>품번</label><input name="item" value="{{ item }}" required /></div>
-      <div><label>수량</label><input name="qty" type="number" min="1" required /></div>
-    </div>
-    <div class="row2">
-      <div><label>품명</label><input name="item_name" /></div>
-      <div><label>LOT</label><input name="lot" /></div>
-    </div>
-    <label>규격</label><input name="spec" />
-    <label>비고</label><input name="memo" />
-    <button type="submit">이동 처리</button>
-    <div class="small">흐름: QR(출발) → 품번 선택(또는 QR) → 수량 → QR(도착).</div>
+  <h2>이동 (QR 4단계)</h2>
+
+  {% if state.stage == 1 %}
+  <form method="post" action="/이동/출발">
+    <label>창고</label><input name="창고" required>
+    <label>출발 로케이션 QR</label><input name="출발QR" required>
+    <button type="submit">1) 출발 QR 입력</button>
   </form>
+  {% elif state.stage == 2 %}
+  <p><b>출발:</b> {{ state.warehouse }} / {{ state.from_location }}</p>
+  <table class="table">
+    <thead><tr><th>품번</th><th>LOT</th><th>품명</th><th>규격</th><th>재고</th></tr></thead>
+    <tbody>
+      {% for r in items %}
+      <tr><td>{{ r.item_code }}</td><td>{{ r.lot }}</td><td>{{ r.item_name }}</td><td>{{ r.spec }}</td><td>{{ r.qty }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <form method="post" action="/이동/선택" style="margin-top:12px">
+    <div class="row">
+      <div><label>품번</label><input name="품번" required></div>
+      <div><label>LOT</label><input name="LOT" required></div>
+    </div>
+    <label>수량</label><input name="수량" type="number" min="1" required>
+    <label>비고</label><input name="비고">
+    <button type="submit">2) 선택 완료</button>
+  </form>
+  {% elif state.stage == 3 %}
+  <p><b>출발:</b> {{ state.warehouse }} / {{ state.from_location }}</p>
+  <p><b>선택:</b> {{ state.item_code }} / LOT {{ state.lot }} / 수량 {{ state.qty }}</p>
+  <form method="post" action="/이동/도착">
+    <label>도착 로케이션 QR</label><input name="도착QR" required>
+    <button type="submit">3) 도착 QR 입력 → 이동 완료</button>
+  </form>
+  {% elif state.stage == 4 %}
+  <p><b>이동 완료</b></p>
+  <p>{{ state.from_location }} → {{ state.to_location }}</p>
+  <p>{{ state.item_code }} / LOT {{ state.lot }} / 수량 {{ state.qty }}</p>
+  <form method="post" action="/이동/리셋"><button class="btn2" type="submit">새 이동 시작</button></form>
+  {% endif %}
+
+  <form method="post" action="/이동/리셋" class="noprint" style="margin-top:10px">
+    <button class="btn2" type="submit">이동 초기화</button>
+  </form>
+  <p class="noprint"><a href="/">← 홈</a></p>
 </div>
 {% endblock %}

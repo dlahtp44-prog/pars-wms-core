@@ -1,26 +1,24 @@
-
-{% extends "_layout.html" %}
-{% block body %}
-<div class="header">이력 조회</div>
+{% extends "base.html" %}
+{% block content %}
 <div class="card">
-  <div class="top-actions">
-    <a href="/">← 홈</a>
-    <a href="/api/history?limit={{ limit }}">API 보기</a>
+  <h2>이력 조회</h2>
+  <form method="get" class="noprint">
+    <label>구분</label>
+    <select name="구분">
+      <option value="" {% if type=="" %}selected{% endif %}>전체</option>
+      <option value="입고" {% if type=="입고" %}selected{% endif %}>입고</option>
+      <option value="출고" {% if type=="출고" %}selected{% endif %}>출고</option>
+      <option value="이동" {% if type=="이동" %}selected{% endif %}>이동</option>
+    </select>
+    <button type="submit">필터</button>
+  </form>
+  <div class="printbar noprint" style="margin-top:10px">
+    <button type="button" onclick="window.print()">프린트</button>
+    <button class="btn2" type="button" onclick="location.href='/'">홈</button>
   </div>
-  <table class="table">
-    <thead><tr><th>시간</th><th>구분</th><th>품번/LOT</th><th>수량</th><th>출발→도착</th><th>비고</th></tr></thead>
-    <tbody>
-      {% for r in rows %}
-      <tr>
-        <td class="small">{{ r['ts'] }}</td>
-        <td><span class="badge">{{ r['type'] }}</span></td>
-        <td><b>{{ r['item'] }}</b><div class="small">{{ r['lot'] }}</div></td>
-        <td>{{ r['qty'] }}</td>
-        <td class="small">{{ r['src'] }} → {{ r['dst'] }}</td>
-        <td class="small">{{ r['memo'] }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
+  <table class="table" style="margin-top:12px">
+    <thead><tr><th>구분</th><th>창고</th><th>품번</th><th>LOT</th><th>출발</th><th>도착</th><th>수량</th><th>일시</th></tr></thead>
+    <tbody>{% for r in rows %}<tr><td>{{ r.type }}</td><td>{{ r.warehouse }}</td><td>{{ r.item_code }}</td><td>{{ r.lot }}</td><td>{{ r.from_location }}</td><td>{{ r.to_location }}</td><td>{{ r.qty }}</td><td>{{ r.created_at }}</td></tr>{% endfor %}</tbody>
   </table>
 </div>
 {% endblock %}

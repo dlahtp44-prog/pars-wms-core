@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="menu">
+  <a href="/입고">📥 <b>입고</b></a>
+  <a href="/출고">📤 <b>출고</b></a>
+  <a href="/이동">🔁 <b>이동</b><span class="badge">QR 4단계</span></a>
+  <a href="/QR">📷 <b>QR 스캔</b><span class="badge">자동입력</span></a>
+  <a href="/재고">📦 <b>재고 조회</b></a>
+  <a href="/이력">🧾 <b>이력 조회</b></a>
+  <a href="/달력">🗓️ <b>달력</b></a>
+  <a href="/관리자">⚙️ <b>관리자</b>{% if admin %}<span class="badge">로그인됨</span>{% endif %}</a>
+</div>
+{% endblock %}

@@ -1,12 +1,20 @@
-
-<!doctype html><html><body>
-<h3>입고</h3>
-<form method="post" action="/api/inbound">
-<input name="item" placeholder="품번"><br>
-<input name="name" placeholder="품명"><br>
-<input name="lot" placeholder="LOT"><br>
-<input name="spec" placeholder="규격"><br>
-<button>입고 완료 + 라벨</button>
-</form>
-<a href="/">← 홈</a>
-</body></html>
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>입고</h2>
+  <form method="post" action="/api/입고">
+    <div class="row">
+      <div><label>창고</label><input name="창고" required></div>
+      <div><label>로케이션</label><input name="로케이션" value="{{ prefill.get('로케이션','') }}" required></div>
+    </div>
+    <label>품번</label><input name="품번" value="{{ prefill.get('품번','') }}" required>
+    <label>품명</label><input name="품명" required>
+    <label>LOT</label><input name="LOT" required>
+    <label>규격</label><input name="규격" required>
+    <label>수량</label><input name="수량" type="number" min="1" required>
+    <label>비고</label><input name="비고">
+    <button type="submit">입고 저장</button>
+  </form>
+  <p class="noprint"><a href="/">← 홈</a></p>
+</div>
+{% endblock %}
