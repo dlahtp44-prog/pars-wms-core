@@ -1,13 +1,18 @@
 
 import os
 import sqlite3
+import io
+import datetime
+import re
 from typing import Optional
 
-from fastapi import FastAPI, Request, Form, Query
+from fastapi import FastAPI, Request, Form, Query, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse, Response, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
+
+from openpyxl import Workbook, load_workbook
 
 APP_TITLE = "PARS WMS CORE"
 ADMIN_PIN = os.getenv("ADMIN_PIN", "0000")
@@ -59,6 +64,17 @@ def init_db():
         author TEXT NOT NULL DEFAULT '',
         updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
     )""")
+
+    # --- Schema migration (add brand/memo columns if missing) ---
+    def _ensure_column(table: str, col: str, coldef: str):
+        cols = [r[1] for r in c.execute(f"PRAGMA table_info({table})").fetchall()]
+        if col not in cols:
+            c.execute(f"ALTER TABLE {table} ADD COLUMN {col} {coldef}")
+
+    _ensure_column("stock", "brand", "TEXT NOT NULL DEFAULT ''")
+    _ensure_column("stock", "memo", "TEXT NOT NULL DEFAULT ''")
+    _ensure_column("history", "brand", "TEXT NOT NULL DEFAULT ''")
+
     db.commit()
     db.close()
 
@@ -152,7 +168,7 @@ def page_move(request: Request):
 @app.get("/page/inventory", response_class=HTMLResponse)
 def page_inventory(request: Request, location: str = "", item: str = ""):
     db = get_db()
-    q = "SELECT item,item_name,lot,spec,location,qty,updated_at FROM stock WHERE 1=1"
+    q = "SELECT item,item_name,lot,spec,brand,location,qty,updated_at,memo FROM stock WHERE 1=1"
     args = []
     if location:
         q += " AND location LIKE ?"
@@ -168,7 +184,7 @@ def page_inventory(request: Request, location: str = "", item: str = ""):
 @app.get("/page/history", response_class=HTMLResponse)
 def page_history(request: Request, limit: int = 200):
     db = get_db()
-    rows = db.execute("SELECT type,item,item_name,lot,spec,qty,src,dst,memo,ts FROM history ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
+    rows = db.execute("SELECT type,item,item_name,lot,spec,brand,qty,src,dst,memo,ts FROM history ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
     db.close()
     return templates.TemplateResponse("history.html", {"request": request, "rows": rows, "limit": limit})
 
@@ -222,6 +238,7 @@ def api_inbound(
     item_name: str = Form(""),
     lot: str = Form(""),
     spec: str = Form(""),
+    brand: str = Form(""),
     location: str = Form(...),
     qty: int = Form(...),
     memo: str = Form(""),
@@ -230,16 +247,18 @@ def api_inbound(
     db=get_db()
     # upsert
     db.execute("""
-    INSERT INTO stock(item,item_name,lot,spec,location,qty)
-    VALUES(?,?,?,?,?,?)
+    INSERT INTO stock(item,item_name,lot,spec,brand,location,qty,memo)
+    VALUES(?,?,?,?,?,?,?,?)
     ON CONFLICT(item,lot,location) DO UPDATE SET
       qty = qty + excluded.qty,
       item_name = excluded.item_name,
       spec = excluded.spec,
+      brand = excluded.brand,
+      memo = excluded.memo,
       updated_at = datetime('now','localtime')
-    """, (item,item_name,lot,spec,location,int(qty)))
-    db.execute("INSERT INTO history(type,item,item_name,lot,spec,qty,src,dst,memo) VALUES('IN',?,?,?,?,?,?,?,?)",
-               (item,item_name,lot,spec,int(qty),"",location,memo))
+    """, (item,item_name,lot,spec,brand,location,int(qty),memo))
+    db.execute("INSERT INTO history(type,item,item_name,lot,spec,brand,qty,src,dst,memo) VALUES('IN',?,?,?,?,?,?,?,?,?)",
+               (item,item_name,lot,spec,brand,int(qty),"",location,memo))
     db.commit(); db.close()
     return RedirectResponse("/page/inbound", status_code=303)
 
@@ -249,6 +268,7 @@ def api_outbound(
     item_name: str = Form(""),
     lot: str = Form(""),
     spec: str = Form(""),
+    brand: str = Form(""),
     location: str = Form(...),
     qty: int = Form(...),
     memo: str = Form(""),
@@ -263,8 +283,8 @@ def api_outbound(
         return templates.TemplateResponse("message.html", {"request": Request, "title":"출고 오류", "msg":"재고가 부족합니다."}, status_code=400)
     db.execute("UPDATE stock SET qty = qty - ?, updated_at=datetime('now','localtime') WHERE item=? AND lot=? AND location=?",
                (int(qty),item,lot,location))
-    db.execute("INSERT INTO history(type,item,item_name,lot,spec,qty,src,dst,memo) VALUES('OUT',?,?,?,?,?,?,?,?)",
-               (item,item_name,lot,spec,int(qty),location,"",memo))
+    db.execute("INSERT INTO history(type,item,item_name,lot,spec,brand,qty,src,dst,memo) VALUES('OUT',?,?,?,?,?,?,?,?,?)",
+               (item,item_name,lot,spec,brand,int(qty),location,"",memo))
     db.commit(); db.close()
     return RedirectResponse("/page/outbound", status_code=303)
 
@@ -274,6 +294,7 @@ def api_move(
     item_name: str = Form(""),
     lot: str = Form(""),
     spec: str = Form(""),
+    brand: str = Form(""),
     src: str = Form(...),
     dst: str = Form(...),
     qty: int = Form(...),
@@ -291,23 +312,213 @@ def api_move(
                (int(qty),item,lot,src))
     # add dst upsert
     db.execute("""
-    INSERT INTO stock(item,item_name,lot,spec,location,qty)
-    VALUES(?,?,?,?,?,?)
+    INSERT INTO stock(item,item_name,lot,spec,brand,location,qty,memo)
+    VALUES(?,?,?,?,?,?,?,?)
     ON CONFLICT(item,lot,location) DO UPDATE SET
       qty = qty + excluded.qty,
       item_name = excluded.item_name,
       spec = excluded.spec,
+      brand = excluded.brand,
+      memo = excluded.memo,
       updated_at = datetime('now','localtime')
     """, (item,item_name,lot,spec,dst,int(qty)))
-    db.execute("INSERT INTO history(type,item,item_name,lot,spec,qty,src,dst,memo) VALUES('MOVE',?,?,?,?,?,?,?,?)",
-               (item,item_name,lot,spec,int(qty),src,dst,memo))
+    db.execute("INSERT INTO history(type,item,item_name,lot,spec,brand,qty,src,dst,memo) VALUES('MOVE',?,?,?,?,?,?,?,?,?)",
+               (item,item_name,lot,spec,brand,int(qty),src,dst,memo))
     db.commit(); db.close()
     return RedirectResponse("/page/move", status_code=303)
+
+
+# -----------------------
+# Excel helpers / APIs
+# -----------------------
+def _xlsx_rows(file_bytes: bytes):
+    """Read first sheet of xlsx and yield dicts by header row.
+    Supports Korean/English headers.
+    """
+    wb = load_workbook(filename=io.BytesIO(file_bytes), data_only=True)
+    ws = wb.active
+    rows = list(ws.iter_rows(values_only=True))
+    if not rows:
+        return []
+    header = [str(c).strip() if c is not None else "" for c in rows[0]]
+    def norm(h: str) -> str:
+        return re.sub(r"\s+", "", h.lower())
+    # header key map
+    mapping = {
+        "로케이션":"location",
+        "위치":"location",
+        "location":"location",
+        "품번":"item",
+        "품목":"item",
+        "item":"item",
+        "품명":"item_name",
+        "itemname":"item_name",
+        "제품명":"item_name",
+        "lot":"lot",
+        "규격":"spec",
+        "spec":"spec",
+        "브랜드":"brand",
+        "brand":"brand",
+        "수량":"qty",
+        "qty":"qty",
+        "비고":"memo",
+        "메모":"memo",
+        "memo":"memo",
+        "출발":"src",
+        "from":"src",
+        "src":"src",
+        "도착":"dst",
+        "to":"dst",
+        "dst":"dst",
+    }
+    keys=[]
+    for h in header:
+        k = mapping.get(h, mapping.get(h.strip(), None))
+        if not k:
+            k = mapping.get(h.replace(" ", ""), None)
+        if not k:
+            k = mapping.get(h, None)
+        if not k:
+            # try normalized
+            k = mapping.get(norm(h), None)
+        keys.append(k)
+
+    out=[]
+    for r in rows[1:]:
+        if r is None: 
+            continue
+        d={}
+        empty=True
+        for k,v in zip(keys, r):
+            if k is None:
+                continue
+            if v is None:
+                d[k]=""
+            else:
+                d[k]=str(v).strip() if isinstance(v,str) else v
+            if d[k] not in ("", None):
+                empty=False
+        if not d or empty:
+            continue
+        out.append(d)
+    return out
+
+def _xlsx_response(filename: str, headers: list, data_rows: list):
+    wb = Workbook()
+    ws = wb.active
+    ws.append(headers)
+    for r in data_rows:
+        ws.append(r)
+    buf = io.BytesIO()
+    wb.save(buf)
+    content = buf.getvalue()
+    return Response(
+        content,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+
+@app.post("/api/inbound/excel")
+async def api_inbound_excel(file: UploadFile = File(...)):
+    data = await file.read()
+    rows = _xlsx_rows(data)
+    db = get_db()
+    for d in rows:
+        location = str(d.get("location","")).strip()
+        item = str(d.get("item","")).strip()
+        if not location or not item:
+            continue
+        item_name = str(d.get("item_name","") or "")
+        lot = str(d.get("lot","") or "")
+        spec = str(d.get("spec","") or "")
+        brand = str(d.get("brand","") or "")
+        memo = str(d.get("memo","") or "")
+        qty = int(float(d.get("qty",0) or 0))
+        if qty <= 0:
+            continue
+        db.execute("""
+        INSERT INTO stock(item,item_name,lot,spec,brand,location,qty,memo)
+        VALUES(?,?,?,?,?,?,?,?)
+        ON CONFLICT(item,lot,location) DO UPDATE SET
+          qty = qty + excluded.qty,
+          item_name = excluded.item_name,
+          spec = excluded.spec,
+          brand = excluded.brand,
+          memo = excluded.memo,
+          updated_at = datetime('now','localtime')
+        """, (item,item_name,lot,spec,brand,location,qty,memo))
+        db.execute("INSERT INTO history(type,item,item_name,lot,spec,brand,qty,src,dst,memo) VALUES('IN',?,?,?,?,?,?,?,?,?)",
+                   (item,item_name,lot,spec,brand,qty,"",location,memo))
+    db.commit(); db.close()
+    return RedirectResponse("/page/inbound", status_code=303)
+
+@app.post("/api/outbound/excel")
+async def api_outbound_excel(file: UploadFile = File(...)):
+    data = await file.read()
+    rows = _xlsx_rows(data)
+    db = get_db()
+    for d in rows:
+        location = str(d.get("location","")).strip()
+        item = str(d.get("item","")).strip()
+        if not location or not item:
+            continue
+        item_name = str(d.get("item_name","") or "")
+        lot = str(d.get("lot","") or "")
+        spec = str(d.get("spec","") or "")
+        brand = str(d.get("brand","") or "")
+        memo = str(d.get("memo","") or "")
+        qty = int(float(d.get("qty",0) or 0))
+        if qty <= 0:
+            continue
+        db.execute("UPDATE stock SET qty = qty - ?, updated_at=datetime('now','localtime') WHERE item=? AND lot=? AND location=?",
+                   (qty,item,lot,location))
+        db.execute("INSERT INTO history(type,item,item_name,lot,spec,brand,qty,src,dst,memo) VALUES('OUT',?,?,?,?,?,?,?,?,?)",
+                   (item,item_name,lot,spec,brand,qty,location,"",memo))
+    db.commit(); db.close()
+    return RedirectResponse("/page/outbound", status_code=303)
+
+@app.post("/api/move/excel")
+async def api_move_excel(file: UploadFile = File(...)):
+    data = await file.read()
+    rows = _xlsx_rows(data)
+    db = get_db()
+    for d in rows:
+        src = str(d.get("src","")).strip()
+        dst = str(d.get("dst","")).strip()
+        item = str(d.get("item","")).strip()
+        if not src or not dst or not item:
+            continue
+        item_name = str(d.get("item_name","") or "")
+        lot = str(d.get("lot","") or "")
+        spec = str(d.get("spec","") or "")
+        brand = str(d.get("brand","") or "")
+        memo = str(d.get("memo","") or "")
+        qty = int(float(d.get("qty",0) or 0))
+        if qty <= 0:
+            continue
+        db.execute("UPDATE stock SET qty = qty - ?, updated_at=datetime('now','localtime') WHERE item=? AND lot=? AND location=?",
+                   (qty,item,lot,src))
+        db.execute("""
+        INSERT INTO stock(item,item_name,lot,spec,brand,location,qty,memo)
+        VALUES(?,?,?,?,?,?,?,?)
+        ON CONFLICT(item,lot,location) DO UPDATE SET
+          qty = qty + excluded.qty,
+          item_name = excluded.item_name,
+          spec = excluded.spec,
+          brand = excluded.brand,
+          memo = excluded.memo,
+          updated_at = datetime('now','localtime')
+        """, (item,item_name,lot,spec,brand,dst,qty,memo))
+        db.execute("INSERT INTO history(type,item,item_name,lot,spec,brand,qty,src,dst,memo) VALUES('MOVE',?,?,?,?,?,?,?,?,?)",
+                   (item,item_name,lot,spec,brand,qty,src,dst,memo))
+    db.commit(); db.close()
+    return RedirectResponse("/page/move", status_code=303)
+
 
 @app.get("/api/inventory")
 def api_inventory(location: Optional[str]=None, item: Optional[str]=None):
     db=get_db()
-    q="SELECT item,item_name,lot,spec,location,qty,updated_at FROM stock WHERE 1=1"
+    q="SELECT item,item_name,lot,spec,brand,location,qty,updated_at,memo FROM stock WHERE 1=1"
     args=[]
     if location:
         q+=" AND location LIKE ?"; args.append(f"%{location}%")
@@ -318,12 +529,41 @@ def api_inventory(location: Optional[str]=None, item: Optional[str]=None):
     db.close()
     return {"rows": rows}
 
+
+@app.get("/api/inventory.xlsx")
+def api_inventory_xlsx(location: Optional[str]=None, item: Optional[str]=None):
+    db=get_db()
+    q="SELECT location,item,lot,spec,brand,qty,updated_at,memo FROM stock WHERE 1=1"
+    args=[]
+    if location:
+        q+=" AND location LIKE ?"; args.append(f"%{location}%")
+    if item:
+        q+=" AND item LIKE ?"; args.append(f"%{item}%")
+    q+=" ORDER BY location,item"
+    rows=[dict(r) for r in db.execute(q,args).fetchall()]
+    db.close()
+    headers=["로케이션","품번","LOT","규격","브랜드","수량","업데이트","비고"]
+    data_rows=[[r["location"], r["item"], r["lot"], r["spec"], r["brand"], r["qty"], r["updated_at"], r["memo"]] for r in rows]
+    fn="inventory.xlsx"
+    return _xlsx_response(fn, headers, data_rows)
+
 @app.get("/api/history")
 def api_history(limit:int=200):
     db=get_db()
     rows=[dict(r) for r in db.execute("SELECT * FROM history ORDER BY id DESC LIMIT ?", (limit,)).fetchall()]
     db.close()
     return {"rows": rows}
+
+
+@app.get("/api/history.xlsx")
+def api_history_xlsx(limit:int=200):
+    db=get_db()
+    rows=[dict(r) for r in db.execute("SELECT * FROM history ORDER BY id DESC LIMIT ?", (limit,)).fetchall()]
+    db.close()
+    headers=["시간","구분","로케이션(출발)","로케이션(도착)","품번","LOT","규격","브랜드","수량","비고"]
+    data_rows=[[r["ts"], r["type"], r["src"], r["dst"], r["item"], r["lot"], r["spec"], r.get("brand",""), r["qty"], r.get("memo","")] for r in rows]
+    fn="history.xlsx"
+    return _xlsx_response(fn, headers, data_rows)
 
 @app.post("/api/calendar")
 def api_calendar(action: str = Form("add"), id: int = Form(0), date: str = Form(""), memo: str = Form(""), author: str = Form("")):

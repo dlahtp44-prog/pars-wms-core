@@ -1,35 +1,40 @@
-
 {% extends "_layout.html" %}
 {% block body %}
-<div class="header">입고</div>
-<div class="card">
+<div class="header">입고등록</div>
+
+<div class="card sheet-card">
   <div class="top-actions">
     <a href="/m/qr?mode=in_loc">📷 로케이션 QR</a>
     <a href="/m/qr?mode=in_item">📷 품번 QR</a>
     <a href="/">← 홈</a>
   </div>
-  <form class="form" method="post" action="/api/inbound">
-    <div class="row2">
-      <div>
-        <label>로케이션</label>
-        <input name="location" value="{{ qr_loc }}" placeholder="예: B01-01-02-A" required />
-      </div>
-      <div>
-        <label>품번</label>
-        <input name="item" value="{{ qr_item }}" placeholder="예: 766109" required />
-      </div>
+
+  <div class="section-title">수기 입고</div>
+  <form method="post" action="/api/inbound">
+    <table class="sheet">
+      <tr><th>로케이션</th><td><input name="location" value="{{ qr_loc }}" placeholder="예: B01-01-02-A" required></td></tr>
+      <tr><th>품번</th><td><input name="item" value="{{ qr_item }}" placeholder="예: 123456" required></td></tr>
+      <tr><th>품명</th><td><input name="item_name" placeholder="예: ABCDEF"></td></tr>
+      <tr><th>LOT</th><td><input name="lot" placeholder="예: H505"></td></tr>
+      <tr><th>규격</th><td><input name="spec" placeholder="예: 600*1200"></td></tr>
+      <tr><th>브랜드</th><td><input name="brand" placeholder="예: FLOIM"></td></tr>
+      <tr><th>수량</th><td><input name="qty" type="number" min="1" placeholder="예: 10" required></td></tr>
+      <tr><th>비고</th><td><input name="memo" placeholder=""></td></tr>
+    </table>
+    <div class="sheet-actions">
+      <button type="submit">입고 저장</button>
     </div>
-    <div class="row2">
-      <div><label>품명</label><input name="item_name" placeholder="품명" /></div>
-      <div><label>LOT</label><input name="lot" placeholder="LOT" /></div>
+  </form>
+
+  <div class="hr"></div>
+
+  <div class="section-title">📊 엑셀 입고</div>
+  <form class="excel-form" method="post" action="/api/inbound/excel" enctype="multipart/form-data">
+    <div class="excel-row">
+      <input type="file" name="file" accept=".xlsx" required>
+      <button type="submit" class="btn-outline">엑셀 업로드</button>
     </div>
-    <div class="row2">
-      <div><label>규격</label><input name="spec" placeholder="규격" /></div>
-      <div><label>수량</label><input name="qty" type="number" min="1" required /></div>
-    </div>
-    <label>비고</label><input name="memo" placeholder="비고" />
-    <button type="submit">입고 저장</button>
-    <div class="small">QR만 찍고 수량만 입력하는 흐름을 지원합니다.</div>
+    <div class="small">필수 컬럼: 로케이션 / 품번 / LOT / 규격 / 수량 (품명/브랜드/비고는 선택)</div>
   </form>
 </div>
 {% endblock %}
