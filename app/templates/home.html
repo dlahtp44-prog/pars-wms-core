@@ -1,0 +1,17 @@
+{% extends "_layout.html" %}
+{% block content %}
+<div class="card">
+  <h2>메뉴</h2>
+  <div class="menu">
+    <a class="menu-item" href="/inbound">📥 입고</a>
+    <a class="menu-item" href="/outbound">📤 출고</a>
+    <a class="menu-item" href="/move">🔁 이동</a>
+    <a class="menu-item" href="/qr">📷 QR 스캔</a>
+    <a class="menu-item" href="/inventory">📦 재고 조회</a>
+    <a class="menu-item" href="/history">🧾 이력 조회</a>
+    <a class="menu-item" href="/calendar">🗓️ 달력</a>
+    <a class="menu-item" href="/admin">👤 관리자</a>
+  </div>
+  <p class="hint">A단계: 입고 + 라벨 출력(LS-3108/LS-3118)까지 구현</p>
+</div>
+{% endblock %}

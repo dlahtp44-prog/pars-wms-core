@@ -1,5 +1,20 @@
+{% extends "_layout.html" %}
+{% block content %}
+<div class="card">
+  <h2>입고</h2>
 
-<!doctype html><html><body>
-<h3>INBOUND PAGE</h3>
-<a href="/">홈</a>
-</body></html>
+  <form class="form" method="post" action="/api/inbound">
+    <label>창고 <input name="warehouse" required placeholder="예: 본창고" /></label>
+    <label>로케이션 <input name="location" required placeholder="예: B01-01-02-A" /></label>
+    <label>품번 <input name="product_code" required /></label>
+    <label>품명 <input name="product_name" required /></label>
+    <label>LOT <input name="lot" required /></label>
+    <label>규격 <input name="spec" required placeholder="예: 1200*2400*6" /></label>
+    <label>수량 <input name="quantity" type="number" min="1" required /></label>
+    <label>비고 <input name="memo" /></label>
+    <button type="submit">입고 저장</button>
+  </form>
+
+  <p class="hint">저장 완료 후 라벨 출력 버튼이 나타납니다.</p>
+</div>
+{% endblock %}

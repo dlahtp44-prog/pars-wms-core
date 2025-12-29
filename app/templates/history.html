@@ -1,5 +1,22 @@
-
-<!doctype html><html><body>
-<h3>HISTORY PAGE</h3>
-<a href="/">홈</a>
-</body></html>
+{% extends "_layout.html" %}
+{% block content %}
+<div class="card">
+  <h2>이력 조회 (최근 200건)</h2>
+  <div class="table">
+    <div class="tr head">
+      <div>구분</div><div>창고</div><div>로케이션</div><div>품번</div><div>LOT</div><div>수량</div><div>시간</div>
+    </div>
+    {% for r in rows %}
+      <div class="tr">
+        <div>{{ r["action"] }}</div>
+        <div>{{ r["warehouse"] }}</div>
+        <div>{{ r["location_to"] }}</div>
+        <div>{{ r["product_code"] }}</div>
+        <div>{{ r["lot"] }}</div>
+        <div>{{ r["quantity"] }}</div>
+        <div>{{ r["created_at"] }}</div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

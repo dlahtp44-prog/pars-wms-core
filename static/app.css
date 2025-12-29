@@ -1,23 +1,100 @@
-:root{--bg:#f5f6fa;--line:#dfe6e9;--text:#111;--muted:#666;--card:#fff;--accent:#2c3e50;}
-*{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text);}
-.header{padding:16px;font-size:22px;font-weight:800}
-.menu{background:var(--card);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
-.menu a{display:flex;gap:12px;align-items:center;padding:18px 16px;border-bottom:1px solid var(--line);text-decoration:none;color:var(--text);font-size:18px}
-.menu a:last-child{border-bottom:none}
-.badge{margin-left:auto;font-size:12px;color:var(--muted)}
-.container{padding:14px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin:12px 0}
-h2{margin:0 0 12px 0}
-label{display:block;margin:10px 0 6px 0;color:#222;font-weight:600}
-input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font-size:16px;background:#fff}
-button{width:100%;padding:12px;border:0;border-radius:10px;background:var(--accent);color:#fff;font-size:16px;font-weight:700}
-.btn2{background:#34495e}
-.row{display:flex;gap:10px}
-.row>div{flex:1}
-.table{width:100%;border-collapse:collapse;font-size:13px}
-.table th,.table td{border:1px solid var(--line);padding:8px;vertical-align:top}
-.printbar{display:flex;gap:10px}
-.printbar button{width:auto;flex:1}
-.hint{color:var(--muted);font-size:13px;margin-top:8px}
-@media print{ .noprint{display:none !important} body{background:#fff} .card{border:none} }
+:root{
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#64748b;
+  --line:#e5e7eb;
+  --btn:#0f172a;
+}
+
+*{ box-sizing:border-box; }
+body{ margin:0; background:var(--bg); color:var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+a{ color:inherit; text-decoration:none; }
+
+.app{ min-height:100vh; display:flex; flex-direction:column; }
+.topbar{
+  position:sticky; top:0;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 14px;
+  background:#0b1220; color:#fff;
+}
+.brand{ font-weight:800; letter-spacing:0.2px; }
+.home{ color:#fff; opacity:0.9; font-size:14px; }
+
+.content{ padding:14px; padding-bottom:86px; }
+
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.03);
+}
+.card h2{ margin:0 0 10px 0; }
+.hint{ margin:10px 0 0; color:var(--muted); font-size:13px; }
+
+.menu{ display:flex; flex-direction:column; gap:10px; margin-top:10px; }
+.menu-item{
+  display:flex; align-items:center;
+  padding:12px 12px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#f8fafc;
+  font-weight:700;
+}
+
+.form{ display:flex; flex-direction:column; gap:10px; margin-top:12px; }
+.form label{ display:flex; flex-direction:column; gap:6px; font-size:13px; color:var(--muted); }
+.form input{
+  padding:12px 12px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  font-size:15px;
+  background:#fff;
+  color:var(--text);
+}
+.form button{
+  margin-top:6px;
+  padding:12px 12px;
+  border-radius:12px;
+  border:0;
+  background:var(--btn);
+  color:#fff;
+  font-weight:800;
+  font-size:15px;
+}
+
+.kv{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+.btnrow{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+.btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:#0b1220;
+  color:#fff;
+  font-weight:800;
+  font-size:14px;
+}
+
+.table{ margin-top:12px; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+.tr{ display:grid; grid-template-columns: 56px 1fr 1fr 1fr 1fr 64px; gap:8px; padding:10px 10px; border-top:1px solid var(--line); font-size:13px; }
+.tr.head{ background:#f1f5f9; font-weight:800; border-top:0; }
+.tr div{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+.bottom{
+  position:fixed; left:0; right:0; bottom:0;
+  display:flex; gap:4px;
+  padding:8px;
+  background:#0b1220;
+  overflow-x:auto;
+}
+.bottom a{
+  flex:0 0 auto;
+  padding:10px 10px;
+  border-radius:12px;
+  background:rgba(255,255,255,0.08);
+  color:#fff;
+  font-size:13px;
+  font-weight:700;
+}

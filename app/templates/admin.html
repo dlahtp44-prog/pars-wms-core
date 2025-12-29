@@ -1,5 +1,27 @@
+{% extends "_layout.html" %}
+{% block content %}
+<div class="card">
+  <h2>관리자</h2>
+  <p class="hint">A단계: 입고 라벨 출력 / 로케이션 라벨은 다음 단계에서 확장</p>
 
-<!doctype html><html><body>
-<h3>ADMIN PAGE</h3>
-<a href="/">홈</a>
-</body></html>
+  <h3 style="margin-top:16px;">최근 입고 (라벨 출력)</h3>
+  <div class="table">
+    <div class="tr head">
+      <div>ID</div><div>품번</div><div>품명</div><div>LOT</div><div>규격</div><div>라벨</div>
+    </div>
+    {% for r in inbound_rows %}
+      <div class="tr">
+        <div>{{ r["id"] }}</div>
+        <div>{{ r["product_code"] }}</div>
+        <div>{{ r["product_name"] }}</div>
+        <div>{{ r["lot"] }}</div>
+        <div>{{ r["spec"] }}</div>
+        <div>
+          <a href="/print/ls-3108/{{ r['id'] }}?mode=one" target="_blank">3108</a> |
+          <a href="/print/ls-3118/{{ r['id'] }}?mode=one" target="_blank">3118</a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

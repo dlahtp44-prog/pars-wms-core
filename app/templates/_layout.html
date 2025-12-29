@@ -1,15 +1,32 @@
-
 <!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{{ title or "PARS WMS" }}</title>
-  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/app.css" />
 </head>
 <body>
-  <div class="container">
-    {% block body %}{% endblock %}
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">PARS WMS</div>
+      <a class="home" href="/">홈</a>
+    </header>
+
+    <main class="content">
+      {% block content %}{% endblock %}
+    </main>
+
+    <nav class="bottom">
+      <a href="/inbound">입고</a>
+      <a href="/outbound">출고</a>
+      <a href="/move">이동</a>
+      <a href="/qr">QR</a>
+      <a href="/inventory">재고</a>
+      <a href="/history">이력</a>
+      <a href="/calendar">달력</a>
+      <a href="/admin">관리자</a>
+    </nav>
   </div>
 </body>
 </html>
