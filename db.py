@@ -1,6 +1,4 @@
-
 import sqlite3
-
 DB_PATH = "wms.db"
 
 def get_db():
@@ -12,50 +10,67 @@ def init_db():
     conn = get_db()
     cur = conn.cursor()
 
-    # Inventory (재고)
     cur.execute("""
-    CREATE TABLE IF NOT EXISTS 재고(
+    CREATE TABLE IF NOT EXISTS inventory (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        창고 TEXT NOT NULL,
-        로케이션 TEXT NOT NULL,
-        품번 TEXT NOT NULL,
-        품명 TEXT NOT NULL,
-        LOT TEXT NOT NULL,
-        규격 TEXT NOT NULL,
-        수량 INTEGER NOT NULL DEFAULT 0,
-        비고 TEXT DEFAULT '',
+        warehouse TEXT NOT NULL,
+        location TEXT NOT NULL,
+        item_code TEXT NOT NULL,
+        item_name TEXT NOT NULL,
+        lot TEXT NOT NULL,
+        spec TEXT NOT NULL,
+        qty INTEGER NOT NULL,
+        remark TEXT DEFAULT '',
         updated_at TEXT DEFAULT (datetime('now','localtime')),
-        UNIQUE(창고, 로케이션, 품번, LOT)
+        UNIQUE(warehouse, location, item_code, lot)
     )
     """)
 
-    # History (이력)
     cur.execute("""
-    CREATE TABLE IF NOT EXISTS 이력(
+    CREATE TABLE IF NOT EXISTS history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        구분 TEXT NOT NULL,
-        창고 TEXT NOT NULL,
-        품번 TEXT NOT NULL,
-        LOT TEXT NOT NULL,
-        출발로케이션 TEXT DEFAULT '',
-        도착로케이션 TEXT DEFAULT '',
-        수량 INTEGER NOT NULL,
-        비고 TEXT DEFAULT '',
+        type TEXT NOT NULL,
+        warehouse TEXT NOT NULL,
+        item_code TEXT NOT NULL,
+        item_name TEXT NOT NULL,
+        lot TEXT NOT NULL,
+        spec TEXT NOT NULL,
+        from_location TEXT DEFAULT '',
+        to_location TEXT DEFAULT '',
+        qty INTEGER NOT NULL,
+        remark TEXT DEFAULT '',
         created_at TEXT DEFAULT (datetime('now','localtime'))
     )
     """)
 
-    # Calendar (공용달력)
     cur.execute("""
-    CREATE TABLE IF NOT EXISTS 공용달력(
+    CREATE TABLE IF NOT EXISTS locations (
+        code TEXT PRIMARY KEY,
+        created_at TEXT DEFAULT (datetime('now','localtime'))
+    )
+    """)
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS calendar_memo (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        날짜 TEXT NOT NULL,
-        제목 TEXT NOT NULL,
-        내용 TEXT NOT NULL,
+        date TEXT NOT NULL,
+        content TEXT NOT NULL,
         created_at TEXT DEFAULT (datetime('now','localtime')),
         updated_at TEXT DEFAULT (datetime('now','localtime'))
     )
     """)
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        username TEXT PRIMARY KEY,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL
+    )
+    """)
+
+    cur.execute("SELECT COUNT(*) AS c FROM users WHERE username='admin'")
+    if cur.fetchone()["c"] == 0:
+        cur.execute("INSERT INTO users(username,password,role) VALUES('admin','1234','admin')")
 
     conn.commit()
     conn.close()
