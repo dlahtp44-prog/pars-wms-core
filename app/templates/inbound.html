@@ -2,8 +2,15 @@
 <!doctype html>
 <html><head>
 <link rel="stylesheet" href="/static/app.css">
-</head><body>
-<h3>입고</h3>
-<p>입고 상세 폼 위치 (라벨 출력 연동 예정)</p>
-<a href="/">← 홈</a>
+</head>
+<body>
+<h3>입고 등록</h3>
+<form method="post" action="/inbound/save">
+  <input name="item_code" placeholder="품번" required><br>
+  <input name="item_name" placeholder="품명" required><br>
+  <input name="lot" placeholder="LOT" required><br>
+  <input name="spec" placeholder="규격" required><br>
+  <input type="number" name="qty" placeholder="수량" required><br>
+  <button type="submit">입고 저장</button>
+</form>
 </body></html>
