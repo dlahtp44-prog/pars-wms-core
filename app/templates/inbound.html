@@ -1,38 +1,35 @@
-{% extends "_base.html" %}
-{% block content %}
-<h2>입고등록</h2>
 
-<table border="1" cellpadding="6" cellspacing="0">
-  <tr><th colspan="2">수기입고</th></tr>
-  <tr><td>로케이션</td><td><input form="manualForm" name="location" value="{{ request.query_params.get('location','A01-01') }}"></td></tr>
-  <tr><td>품번</td><td><input form="manualForm" name="item_code" placeholder="예: 123456"></td></tr>
-  <tr><td>품명</td><td><input form="manualForm" name="item_name" placeholder="예: ABCDEF"></td></tr>
-  <tr><td>LOT</td><td><input form="manualForm" name="lot" placeholder="예: H123"></td></tr>
-  <tr><td>규격</td><td><input form="manualForm" name="spec" placeholder="예: 600*1200"></td></tr>
-  <tr><td>브랜드</td><td><input form="manualForm" name="brand" placeholder="예: FLOIM"></td></tr>
-  <tr><td>수량</td><td><input form="manualForm" type="number" name="qty" placeholder="예: 10"></td></tr>
-  <tr><td>비고</td><td><input form="manualForm" name="memo" placeholder=""></td></tr>
-</table>
-
-<form id="manualForm" action="/api/inbound" method="post" style="margin-top:8px">
-  <button type="submit">수기 입고 저장</button>
-</form>
-
-<br>
-
-<table border="1" cellpadding="6" cellspacing="0">
-  <tr><th colspan="2">엑셀 입고</th></tr>
-  <tr>
-    <td colspan="2">
-      <form action="/api/inbound/excel" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".xlsx" required>
-        <button type="submit">엑셀 업로드</button>
-      </form>
-    </td>
-  </tr>
-  <tr><td colspan="2" style="font-size:12px;color:#666">
-    필수 컬럼: 로케이션 / 품번 / 품명 / LOT / 규격 / 수량<br>
-    선택 컬럼: 브랜드 / 비고
-  </td></tr>
-</table>
+{% extends "_layout.html" %}
+{% block body %}
+<div class="header">입고</div>
+<div class="card">
+  <div class="top-actions">
+    <a href="/m/qr?mode=in_loc">📷 로케이션 QR</a>
+    <a href="/m/qr?mode=in_item">📷 품번 QR</a>
+    <a href="/">← 홈</a>
+  </div>
+  <form class="form" method="post" action="/api/inbound">
+    <div class="row2">
+      <div>
+        <label>로케이션</label>
+        <input name="location" value="{{ qr_loc }}" placeholder="예: B01-01-02-A" required />
+      </div>
+      <div>
+        <label>품번</label>
+        <input name="item" value="{{ qr_item }}" placeholder="예: 766109" required />
+      </div>
+    </div>
+    <div class="row2">
+      <div><label>품명</label><input name="item_name" placeholder="품명" /></div>
+      <div><label>LOT</label><input name="lot" placeholder="LOT" /></div>
+    </div>
+    <div class="row2">
+      <div><label>규격</label><input name="spec" placeholder="규격" /></div>
+      <div><label>수량</label><input name="qty" type="number" min="1" required /></div>
+    </div>
+    <label>비고</label><input name="memo" placeholder="비고" />
+    <button type="submit">입고 저장</button>
+    <div class="small">QR만 찍고 수량만 입력하는 흐름을 지원합니다.</div>
+  </form>
+</div>
 {% endblock %}
