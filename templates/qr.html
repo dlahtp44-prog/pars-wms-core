@@ -1,0 +1,47 @@
+
+{% extends "_layout.html" %}
+{% block body %}
+<div class="header">QR 스캔</div>
+<div class="card">
+  <div class="small">모드: <b>{{ mode }}</b> (스캔 후 자동으로 해당 화면으로 돌아갑니다)</div>
+  <div class="top-actions">
+    <a href="/page/inbound">입고</a>
+    <a href="/page/outbound">출고</a>
+    <a href="/page/move">이동</a>
+    <a href="/">← 홈</a>
+  </div>
+
+  <div id="reader" style="width:100%;"></div>
+
+  <form class="form" method="post" action="/m/qr/save" style="margin-top:12px;">
+    <input type="hidden" name="mode" value="{{ mode }}" />
+    <label>스캔 결과(자동 입력)</label>
+    <input id="qrValue" name="value" placeholder="스캔되면 자동 입력됨 / 직접 입력도 가능" />
+    <button type="submit">적용</button>
+  </form>
+
+  <div class="small">※ 카메라 스캔이 안 될 때는 직접 텍스트를 입력하고 적용을 누르세요.</div>
+</div>
+
+<!-- Camera QR library (CDN) -->
+<script src="https://unpkg.com/html5-qrcode@2.3.10/html5-qrcode.min.js"></script>
+<script>
+  const qrInput = document.getElementById("qrValue");
+  function start(){
+    if (!window.Html5Qrcode) return;
+    const html5QrCode = new Html5Qrcode("reader");
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    Html5Qrcode.getCameras().then(devices => {
+      const camId = devices && devices[0] ? devices[0].id : null;
+      if(!camId) return;
+      html5QrCode.start(
+        camId,
+        config,
+        (decodedText) => { qrInput.value = decodedText; },
+        (err) => {}
+      );
+    }).catch(() => {});
+  }
+  start();
+</script>
+{% endblock %}

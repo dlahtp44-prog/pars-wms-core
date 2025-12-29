@@ -1,0 +1,23 @@
+<!doctype html><html lang="ko"><head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>로케이션 라벨</title>
+<style>
+@page { size: A4; margin: 8mm; }
+.sheet { display:flex; flex-wrap:wrap; gap: 4mm; }
+.label { width: 99.1mm; height: 140mm; border:1px solid #000; text-align:center; padding:6mm; }
+.code { font-weight:900; font-size:22px; margin: 6mm 0; }
+img { width: 70mm; height: 70mm; object-fit:contain; }
+@media print{ .noprint{display:none} }
+</style></head><body>
+<div class="noprint" style="padding:10px">
+  <button onclick="window.print()">프린트</button>
+  <button onclick="location.href='/관리자'">관리자</button>
+</div>
+<div class="sheet">
+{% for r in rows %}
+  <div class="label">
+    <div class="code">{{ r.code }}</div>
+    <img src="/qr/img/{{ r.code }}" alt="qr">
+  </div>
+{% endfor %}
+</div></body></html>

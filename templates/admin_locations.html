@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>로케이션 관리</h2>
+  <form method="post" action="/관리자/로케이션/추가" class="noprint">
+    <label>로케이션 코드</label><input name="code" required>
+    <button type="submit">추가</button>
+  </form>
+  <div class="printbar noprint" style="margin-top:10px">
+    <button type="button" onclick="location.href='/관리자/라벨/로케이션'">전체 라벨 출력</button>
+    <button class="btn2" type="button" onclick="location.href='/관리자'">관리자</button>
+  </div>
+  <table class="table" style="margin-top:12px">
+    <thead><tr><th>로케이션</th><th>생성일</th></tr></thead>
+    <tbody>{% for r in rows %}<tr><td>{{ r.code }}</td><td>{{ r.created_at }}</td></tr>{% endfor %}</tbody>
+  </table>
+</div>
+{% endblock %}

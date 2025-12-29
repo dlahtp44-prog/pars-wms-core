@@ -2,29 +2,23 @@
 {% block content %}
 <div class="card">
   <h2>이력 조회</h2>
-  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
-    <a class="btn" href="/print/이력.pdf" target="_blank">🖨️ 이력 출력(PDF)</a>
-    <a class="btn" href="/print/이력.pdf?구분=출고" target="_blank">출고만</a>
-    <a class="btn" href="/print/이력.pdf?구분=이동" target="_blank">이동만</a>
+  <form method="get" class="noprint">
+    <label>구분</label>
+    <select name="구분">
+      <option value="" {% if type=="" %}selected{% endif %}>전체</option>
+      <option value="입고" {% if type=="입고" %}selected{% endif %}>입고</option>
+      <option value="출고" {% if type=="출고" %}selected{% endif %}>출고</option>
+      <option value="이동" {% if type=="이동" %}selected{% endif %}>이동</option>
+    </select>
+    <button type="submit">필터</button>
+  </form>
+  <div class="printbar noprint" style="margin-top:10px">
+    <button type="button" onclick="window.print()">프린트</button>
+    <button class="btn2" type="button" onclick="location.href='/'">홈</button>
   </div>
-  <div id="hist"></div>
+  <table class="table" style="margin-top:12px">
+    <thead><tr><th>구분</th><th>창고</th><th>품번</th><th>LOT</th><th>출발</th><th>도착</th><th>수량</th><th>일시</th></tr></thead>
+    <tbody>{% for r in rows %}<tr><td>{{ r.type }}</td><td>{{ r.warehouse }}</td><td>{{ r.item_code }}</td><td>{{ r.lot }}</td><td>{{ r.from_location }}</td><td>{{ r.to_location }}</td><td>{{ r.qty }}</td><td>{{ r.created_at }}</td></tr>{% endfor %}</tbody>
+  </table>
 </div>
-
-<script>
-async function loadHist(){
-  const res = await fetch('/api/이력?limit=200');
-  const data = await res.json();
-  let html = `<p class="small">최근 ${data.count}건</p>`;
-  html += `<table class="table"><thead><tr>
-    <th>구분</th><th>창고</th><th>품번</th><th>품명</th><th>LOT</th><th>규격</th><th>출발</th><th>도착</th><th>수량</th><th>시간</th>
-  </tr></thead><tbody>`;
-  for(const it of data.items){
-    html += `<tr><td>${it['구분']}</td><td>${it['창고']}</td><td>${it['품번']}</td><td>${it['품명']}</td><td>${it['LOT']}</td><td>${it['규격']}</td>
-      <td>${it['출발로케이션']||''}</td><td>${it['도착로케이션']||''}</td><td>${it['수량']}</td><td>${it['created_at']}</td></tr>`;
-  }
-  html += `</tbody></table>`;
-  document.getElementById('hist').innerHTML = html;
-}
-loadHist();
-</script>
 {% endblock %}
