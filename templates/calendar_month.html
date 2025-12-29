@@ -1,0 +1,26 @@
+{% extends "_layout.html" %}
+{% block body %}
+<div class="header">
+  <a href="/page/calendar/month?year={{ prev_year }}&month={{ prev_month }}">◀</a>
+  {{ year }}년 {{ month }}월
+  <a href="/page/calendar/month?year={{ next_year }}&month={{ next_month }}">▶</a>
+</div>
+
+<div class="calendar-grid">
+  <div class="dow">일</div><div class="dow">월</div><div class="dow">화</div>
+  <div class="dow">수</div><div class="dow">목</div><div class="dow">금</div><div class="dow">토</div>
+
+  {% for day in days %}
+  <div class="cell {% if day.is_today %}today{% endif %} {% if day.is_weekend %}weekend{% endif %}">
+    <div class="date">{{ day.date.day }}</div>
+    {% for memo in day.memos[:4] %}
+      <div class="memo">{{ memo.memo }}</div>
+    {% endfor %}
+    {% if day.memos|length > 4 %}
+      <div class="more">+{{ day.memos|length - 4 }}</div>
+    {% endif %}
+    <a class="cover" href="/page/calendar?date={{ day.date }}"></a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
