@@ -1,20 +1,5 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="card">
-  <h2>출고</h2>
-  <form method="post" action="/api/출고">
-    <div class="row">
-      <div><label>창고</label><input name="창고" required></div>
-      <div><label>로케이션</label><input name="로케이션" value="{{ prefill.get('로케이션','') }}" required></div>
-    </div>
-    <div class="row">
-      <div><label>품번</label><input name="품번" value="{{ prefill.get('품번','') }}" required></div>
-      <div><label>LOT</label><input name="LOT" required></div>
-    </div>
-    <label>수량</label><input name="수량" type="number" min="1" required>
-    <label>비고</label><input name="비고">
-    <button type="submit">출고 처리</button>
-  </form>
-  <p class="noprint"><a href="/">← 홈</a></p>
-</div>
-{% endblock %}
+
+<!doctype html><html><body>
+<h3>OUTBOUND PAGE</h3>
+<a href="/">홈</a>
+</body></html>

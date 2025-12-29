@@ -1,28 +1,5 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="card">
-  <h2>달력 메모</h2>
-  <form method="post" action="/달력/추가" class="noprint">
-    <label>날짜</label><input name="date" type="date" required>
-    <label>메모</label><textarea name="content" rows="3" required></textarea>
-    <button type="submit">메모 추가</button>
-  </form>
-  <h3 style="margin-top:16px">메모 목록</h3>
-  {% for m in memos %}
-    <div class="card" style="margin:10px 0">
-      <div><b>{{ m.date }}</b></div>
-      <div style="white-space:pre-wrap;margin-top:6px">{{ m.content }}</div>
-      <form method="post" action="/달력/수정" class="noprint" style="margin-top:10px">
-        <input type="hidden" name="id" value="{{ m.id }}">
-        <label>수정</label><textarea name="content" rows="2" required>{{ m.content }}</textarea>
-        <button class="btn2" type="submit">수정 저장</button>
-      </form>
-      <form method="post" action="/달력/삭제" class="noprint" style="margin-top:8px">
-        <input type="hidden" name="id" value="{{ m.id }}">
-        <button type="submit" style="background:#c0392b">삭제</button>
-      </form>
-    </div>
-  {% endfor %}
-  <p class="noprint"><a href="/">← 홈</a></p>
-</div>
-{% endblock %}
+
+<!doctype html><html><body>
+<h3>CALENDAR PAGE</h3>
+<a href="/">홈</a>
+</body></html>
