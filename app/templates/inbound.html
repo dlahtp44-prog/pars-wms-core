@@ -1,35 +1,16 @@
 
-{% extends "_layout.html" %}
-{% block body %}
-<div class="header">입고</div>
-<div class="card">
-  <div class="top-actions">
-    <a href="/m/qr?mode=in_loc">📷 로케이션 QR</a>
-    <a href="/m/qr?mode=in_item">📷 품번 QR</a>
-    <a href="/">← 홈</a>
-  </div>
-  <form class="form" method="post" action="/api/inbound">
-    <div class="row2">
-      <div>
-        <label>로케이션</label>
-        <input name="location" value="{{ qr_loc }}" placeholder="예: B01-01-02-A" required />
-      </div>
-      <div>
-        <label>품번</label>
-        <input name="item" value="{{ qr_item }}" placeholder="예: 766109" required />
-      </div>
-    </div>
-    <div class="row2">
-      <div><label>품명</label><input name="item_name" placeholder="품명" /></div>
-      <div><label>LOT</label><input name="lot" placeholder="LOT" /></div>
-    </div>
-    <div class="row2">
-      <div><label>규격</label><input name="spec" placeholder="규격" /></div>
-      <div><label>수량</label><input name="qty" type="number" min="1" required /></div>
-    </div>
-    <label>비고</label><input name="memo" placeholder="비고" />
-    <button type="submit">입고 저장</button>
-    <div class="small">QR만 찍고 수량만 입력하는 흐름을 지원합니다.</div>
-  </form>
-</div>
-{% endblock %}
+<h2>입고</h2>
+
+<form action="/api/inbound" method="post">
+  <!-- 기존 수동 입고 폼 유지 -->
+</form>
+
+<hr>
+
+<h3>엑셀 입고</h3>
+<form action="/api/inbound/excel" method="post" enctype="multipart/form-data">
+  <input type="file" name="file" accept=".xlsx" required>
+  <button type="submit">엑셀 업로드</button>
+</form>
+
+<p>필수 컬럼: 로케이션 / 품번 / 품명 / LOT / 규격 / 수량</p>

@@ -1,19 +1,8 @@
 
-# PARS WMS CORE (Mobile/Tablet Functional)
+PARS WMS 엑셀 입고 추가 패키지
 
-## Routes (UI)
-- / (mobile menu)
-- /입고, /출고, /이동, /재고, /이력, /달력, /관리자  (Korean aliases)
-- /page/inbound, /page/outbound, /page/move, /page/inventory, /page/history, /page/calendar, /page/admin
-- /m/qr (camera QR scan page)
+1. app/routers/inbound.py → 기존 파일에 병합
+2. app/templates/inbound.html → 하단에 엑셀 업로드 영역 추가
+3. pandas, openpyxl 설치 필요
 
-## Routes (API)
-- /api/inbound
-- /api/outbound
-- /api/move
-- /api/inventory
-- /api/history
-- /api/calendar (create/update/delete via action field)
-
-## Admin
-- Set env `ADMIN_PIN` (default 0000)
+pip install pandas openpyxl
