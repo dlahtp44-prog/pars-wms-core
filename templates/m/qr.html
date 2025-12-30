@@ -5,26 +5,32 @@
     <title>QR 스캔</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- 절대경로 기준 -->
+    <!-- 🔑 절대경로 기준 (iOS / 인앱 브라우저 필수) -->
     <base href="https://pars-wms-core-production.up.railway.app/">
 
+    <!-- QR 스캔 라이브러리 -->
     <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             padding: 12px;
+            margin: 0;
         }
         #reader {
             width: 100%;
             max-width: 360px;
             margin: 0 auto;
         }
-        .status {
-            margin-top: 12px;
+        h2 {
             text-align: center;
-            color: #555;
+            margin-bottom: 12px;
+        }
+        .hint {
+            text-align: center;
             font-size: 14px;
+            color: #666;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -33,12 +39,17 @@
 <h2>📷 QR 스캔</h2>
 
 <div id="reader"></div>
-<div class="status" id="status">QR을 스캔해주세요</div>
+<div class="hint">QR을 인식하면 자동으로 재고 조회 화면으로 이동합니다.</div>
 
 <script>
 let qr = null;
 let moved = false;
 
+/**
+ * QR 값 정규화
+ * - URL QR → 마지막 path
+ * - 텍스트 QR → 그대로
+ */
 function extractLocation(text) {
     if (!text) return "";
     if (text.startsWith("http")) {
@@ -52,7 +63,7 @@ function startScan() {
     qr = new Html5Qrcode("reader");
 
     Html5Qrcode.getCameras().then(devices => {
-        if (!devices.length) {
+        if (!devices || devices.length === 0) {
             alert("카메라를 찾을 수 없습니다.");
             return;
         }
@@ -61,20 +72,21 @@ function startScan() {
             devices[0].id,
             { fps: 10, qrbox: 250 },
             qrText => {
-                if (moved) return; // 중복 방지
+                if (moved) return;
                 moved = true;
 
                 const location = extractLocation(qrText);
-                document.getElementById("status").innerText =
-                    "인식됨: " + location + " / 이동 중…";
 
                 // 1️⃣ 카메라 완전 종료
                 qr.stop().then(() => {
                     qr.clear();
 
-                    // 2️⃣ Safari 이벤트 루프 탈출 (이게 핵심)
+                    // 2️⃣ 사용자에게 전환 중 화면 표시 (체감 UX 핵심)
+                    document.body.innerHTML =
+                        "<h2 style='text-align:center;margin-top:40px'>재고 조회로 이동 중...</h2>";
+
+                    // 3️⃣ Safari 이벤트 루프 탈출 후 이동
                     setTimeout(() => {
-                        // 3️⃣ history 남기지 않고 이동
                         location.replace(
                             "https://pars-wms-core-production.up.railway.app/m/qr/inventory?location="
                             + encodeURIComponent(location)
@@ -83,9 +95,12 @@ function startScan() {
                 });
             }
         );
+    }).catch(err => {
+        alert("카메라 접근 실패: " + err);
     });
 }
 
+// 페이지 열리면 바로 스캔 시작
 window.onload = startScan;
 </script>
 
