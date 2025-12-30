@@ -42,7 +42,7 @@
 <h2>📷 QR 스캔</h2>
 
 <div id="reader"></div>
-<div class="hint">QR 인식 후 재고 조회 버튼이 나타납니다.</div>
+<div class="hint">QR 인식 후 자동으로 재고 화면으로 이동합니다.</div>
 
 <form method="GET" action="/m/qr/inventory">
     <input type="hidden" name="location" id="location">
@@ -77,23 +77,3 @@ function startScan() {
             devices[0].id,
             { fps: 10, qrbox: 250 },
             qrText => {
-                if (scanned) return;
-                scanned = true;
-
-                const location = extractLocation(qrText);
-                document.getElementById("location").value = location;
-
-                qr.stop().then(() => {
-                    qr.clear();
-                    document.getElementById("submitBtn").style.display = "block";
-                });
-            }
-        );
-    });
-}
-
-window.onload = startScan;
-</script>
-
-</body>
-</html>
