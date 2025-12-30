@@ -8,8 +8,12 @@
     <style>
         body { font-family: sans-serif; padding: 12px; }
         #reader { width: 100%; max-width: 360px; margin: auto; }
-        input { width: 100%; padding: 8px; margin-top: 10px; }
-        button { width: 100%; padding: 10px; margin-top: 10px; }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -30,21 +34,22 @@ function startScan() {
     html5QrCode = new Html5Qrcode("reader");
 
     Html5Qrcode.getCameras().then(devices => {
-        if (devices && devices.length) {
-            const cameraId = devices[0].id;
-
-            html5QrCode.start(
-                cameraId,
-                { fps: 10, qrbox: 250 },
-                qrCodeMessage => {
-                    document.getElementById("qr-result").value = qrCodeMessage;
-                    stopScan();
-
-                    // 👉 다음 단계: QR 재고 조회로 연결
-                    // location.href = "/m/qr/inventory?location=" + encodeURIComponent(qrCodeMessage);
-                }
-            );
+        if (devices.length === 0) {
+            alert("카메라를 찾을 수 없습니다.");
+            return;
         }
+
+        html5QrCode.start(
+            devices[0].id,
+            { fps: 10, qrbox: 250 },
+            qrText => {
+                document.getElementById("qr-result").value = qrText;
+                stopScan();
+
+                // ✅ QR → 재고 조회 페이지로 이동
+                location.href = "/m/qr/inventory?location=" + encodeURIComponent(qrText);
+            }
+        );
     }).catch(err => {
         alert("카메라 접근 실패: " + err);
     });
