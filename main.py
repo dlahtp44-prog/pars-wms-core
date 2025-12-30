@@ -199,21 +199,3 @@ def history_xlsx(limit: int = 200):
     xbytes = history_to_xlsx(rows)
     token = _save_download_bytes("xlsx", xbytes)
     return RedirectResponse(url=f"/download/{token}", status_code=302)
-
-
-# ===============================
-# Mobile QR (added - no core changes)
-# ===============================
-from fastapi.responses import JSONResponse
-
-@app.get("/m/qr", response_class=HTMLResponse)
-def mobile_qr_page(request: Request):
-    # 모바일 전용 QR 스캔 페이지
-    return templates.TemplateResponse("mobile/qr_scan.html", {"request": request})
-
-@app.get("/api/qr/inventory")
-def api_qr_inventory(location: str = ""):
-    # 로케이션 기반 재고 조회 (모바일 QR용)
-    rows = search_inventory(location=location, item_code="")
-    return {"count": len(rows), "items": rows}
-
