@@ -4,17 +4,12 @@
     <meta charset="UTF-8">
     <title>QR 스캔</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- QR 라이브러리 -->
     <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             padding: 12px;
-        }
-        h2 {
-            margin-bottom: 12px;
         }
         #reader {
             width: 100%;
@@ -41,19 +36,15 @@
 <input type="text" id="qr-result" placeholder="스캔 결과" readonly>
 
 <button onclick="startScan()">스캔 시작</button>
-<button onclick="stopScan()">스캔 중지</button>
+<button onclick="goInventory()">재고 조회</button>
 
 <script>
 let html5QrCode = null;
+let scannedLocation = "";
 
-/**
- * QR 값에서 로케이션 코드만 추출
- * - 텍스트 QR: B01-01-02-A
- * - URL QR   : https://example.com/B01-01-02-A
- */
+// QR 값에서 로케이션 코드만 추출
 function extractLocation(text) {
     if (!text) return "";
-
     if (text.startsWith("http")) {
         const parts = text.split("/");
         return parts[parts.length - 1];
@@ -76,22 +67,13 @@ function startScan() {
             devices[0].id,
             { fps: 10, qrbox: 250 },
             qrText => {
-                const locationCode = extractLocation(qrText);
+                scannedLocation = extractLocation(qrText);
+                document.getElementById("qr-result").value = scannedLocation;
 
-                // 화면 표시
-                document.getElementById("qr-result").value = locationCode;
-
-                // 🔴 iOS Safari 대응: 카메라 완전 종료 후 이동
+                // 카메라만 정지 (이동 안 함)
                 html5QrCode.stop().then(() => {
                     html5QrCode.clear();
                     html5QrCode = null;
-
-                    // 약간의 딜레이 후 페이지 이동
-                    setTimeout(() => {
-                        window.location.href =
-                            "/m/qr/inventory?location=" +
-                            encodeURIComponent(locationCode);
-                    }, 300);
                 });
             }
         );
@@ -100,15 +82,4 @@ function startScan() {
     });
 }
 
-function stopScan() {
-    if (!html5QrCode) return;
-
-    html5QrCode.stop().then(() => {
-        html5QrCode.clear();
-        html5QrCode = null;
-    });
-}
-</script>
-
-</body>
-</html>
+// 🔑 사용자 클릭 → Saf
