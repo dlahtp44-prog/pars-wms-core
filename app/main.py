@@ -32,11 +32,12 @@ templates = Jinja2Templates(directory=TEMPLATES_DIR)
 # QR 전용 Router / Page (추가)
 # =========================
 from app.pages import mobile_home, mobile_qr
-from app.routers import qr_inventory
+from app.routers.qr_inventory import router as qr_inventory_router
 
 app.include_router(mobile_home.router)
 app.include_router(mobile_qr.router)
-app.include_router(qr_inventory.router)
+app.include_router(qr_inventory_router)
+
 
 # =========================
 # 상태 저장 (다운로드)
