@@ -7,7 +7,7 @@
 
   {% if report.errors %}
   <h4>오류 상세</h4>
-  <pre class="pre">{{ report.errors_pretty }}</pre>
+  <pre class="pre">{{ report.errors | tojson(indent=2) }}</pre>
   {% endif %}
 
   {% if report.fail_token %}
