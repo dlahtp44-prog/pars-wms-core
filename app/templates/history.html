@@ -1,45 +1,33 @@
-{% extends "base.html" %}
+{% extends "_layout.html" %}
 {% block body %}
-<div class="title">이력조회</div>
-<a class="toplink" href="/">← 홈</a>
+<h1 class="h1 center">이력조회</h1>
+<a class="back" href="/">← 홈</a>
 
 <div class="card">
-  <div class="card-hd">DB</div>
-  <div class="card-bd">
-    <a class="btn ghost" href="/page/history.xlsx?limit={{ limit }}">엑셀 다운로드</a>
+  <div class="row">
+    <a class="btn outline" href="/page/history.xlsx?limit={{limit}}">엑셀 다운로드</a>
+    <a class="btn" href="/page/history?limit={{limit}}">새로고침</a>
   </div>
 </div>
 
-<div class="hr"></div>
-
-<div class="card">
-  <div class="card-hd">최근 {{ limit }}건</div>
-  <div class="card-bd" style="overflow:auto">
-    <table>
-      <thead>
-        <tr>
-          <th>시간</th><th>구분</th><th>로케이션</th><th>출발</th><th>도착</th><th>품번</th><th>품명</th><th>LOT</th><th>규격</th><th>브랜드</th><th>수량</th><th>비고</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for r in rows %}
-          <tr>
-            <td>{{ r.ts }}</td>
-            <td>{{ r.action }}</td>
-            <td>{{ r.location }}</td>
-            <td>{{ r.from_location }}</td>
-            <td>{{ r.to_location }}</td>
-            <td>{{ r.item_code }}</td>
-            <td>{{ r.item_name }}</td>
-            <td>{{ r.lot }}</td>
-            <td>{{ r.spec }}</td>
-            <td>{{ r.brand }}</td>
-            <td>{{ r.qty }}</td>
-            <td>{{ r.note }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+<div class="card mt">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>시간</th><th>구분</th><th>로케이션</th><th>출발</th><th>도착</th><th>품번</th><th>품명</th><th>LOT</th><th>규격</th><th>브랜드</th><th>수량</th><th>비고</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if rows|length == 0 %}
+      <tr><td colspan="12" class="muted">이력 데이터가 없습니다.</td></tr>
+      {% endif %}
+      {% for r in rows %}
+      <tr>
+        <td>{{r.ts}}</td><td>{{r.type}}</td><td>{{r.location}}</td><td>{{r.from_location}}</td><td>{{r.to_location}}</td>
+        <td>{{r.item_code}}</td><td>{{r.item_name}}</td><td>{{r.lot}}</td><td>{{r.spec}}</td><td>{{r.brand}}</td><td>{{r.qty}}</td><td>{{r.note}}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endblock %}

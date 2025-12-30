@@ -1,41 +1,31 @@
-{% extends "base.html" %}
+{% extends "_layout.html" %}
 {% block body %}
-<div class="title">이동등록</div>
-<a class="toplink" href="/">← 홈</a>
-
-{% if msg %}
-  <div class="card" style="margin-bottom:12px;"><div class="card-bd"><b>{{ msg }}</b></div></div>
-{% endif %}
+<h1 class="h1 center">이동등록</h1>
+<a class="back" href="/">← 홈</a>
 
 <div class="card">
-  <div class="card-hd">수기 이동</div>
-  <div class="card-bd">
-    <form class="form" method="post" action="/page/move/save">
-      <div class="row"><label>출발</label><input name="from_location" placeholder="출발 로케이션" required></div>
-      <div class="row"><label>도착</label><input name="to_location" placeholder="도착 로케이션" required></div>
-      <div class="row"><label>품번</label><input name="item_code" required></div>
-      <div class="row"><label>품명</label><input name="item_name" required></div>
-      <div class="row"><label>LOT</label><input name="lot" required></div>
-      <div class="row"><label>규격</label><input name="spec" required></div>
-      <div class="row"><label>브랜드</label><input name="brand"></div>
-      <div class="row"><label>수량</label><input name="qty" type="number" min="1" required></div>
-      <div class="row"><label>비고</label><input name="note"></div>
-      <button class="btn wide" type="submit">이동 처리</button>
-    </form>
-  </div>
+  <form method="post" action="/api/move">
+    <div class="grid">
+      <label>출발 <input name="from_location" placeholder="출발 로케이션" required/></label>
+      <label>도착 <input name="to_location" placeholder="도착 로케이션" required/></label>
+      <label>품번 <input name="item_code" placeholder="품번" required/></label>
+      <label>품명 <input name="item_name" placeholder="품명" required/></label>
+      <label>LOT <input name="lot" placeholder="LOT" required/></label>
+      <label>규격 <input name="spec" placeholder="규격" required/></label>
+      <label>브랜드 <input name="brand" placeholder="브랜드"/></label>
+      <label>수량 <input name="qty" type="number" min="1" placeholder="수량" required/></label>
+      <label>비고 <input name="note" placeholder=""/></label>
+    </div>
+    <button class="btn" type="submit">이동 처리</button>
+  </form>
 </div>
 
-<div class="hr"></div>
-
-<div class="card">
-  <div class="card-hd">엑셀 이동 업로드</div>
-  <div class="card-bd">
-    <div class="muted">필수 컬럼: 출발로케이션, 도착로케이션, 품번, 품명, LOT, 규격, 수량 / 옵션: 브랜드, 비고</div>
-    <div style="height:10px"></div>
-    <form class="form" method="post" action="/page/move/excel" enctype="multipart/form-data">
-      <input type="file" name="file" accept=".xlsx" required>
-      <button class="btn wide" type="submit">엑셀 업로드</button>
-    </form>
-  </div>
+<div class="card mt">
+  <h2 class="h2">엑셀 이동 업로드</h2>
+  <p class="muted">필수 컬럼: 출발로케이션, 도착로케이션, 품번, 품명, LOT, 규격, 수량 / 선택: 브랜드, 비고</p>
+  <form method="post" action="/page/move/excel" enctype="multipart/form-data">
+    <input type="file" name="file" accept=".xlsx" required/>
+    <button class="btn" type="submit">엑셀 업로드</button>
+  </form>
 </div>
 {% endblock %}

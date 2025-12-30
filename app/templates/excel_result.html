@@ -1,18 +1,18 @@
-{% extends "base.html" %}
+{% extends "_layout.html" %}
 {% block body %}
-<div class="title">{{ title }}</div>
-<a class="toplink" href="/">← 홈</a>
+<h1 class="h1 center">{{title}}</h1>
+<a class="back" href="{{back_url}}">← 돌아가기</a>
 
 <div class="card">
-  <div class="card-bd">
-    <div><b>성공:</b> {{ ok_count }}건</div>
-    <div><b>실패:</b> {{ fail_count }}건</div>
+  <p>성공: <b>{{report.ok}}</b> 건 / 실패: <b>{{report.fail}}</b> 건</p>
 
-    {% if download_token %}
-      <div class="hr"></div>
-      <a class="btn ghost" href="/download/{{ download_token }}">실패행 엑셀 다운로드</a>
-      <div class="muted" style="margin-top:10px;">※ 다운로드 링크는 1회 사용/20분 후 만료됩니다.</div>
-    {% endif %}
-  </div>
+  {% if download_token %}
+    <a class="btn outline" href="/download/{{download_token}}">실패행 엑셀 다운로드</a>
+  {% endif %}
+
+  {% if report.errors and report.errors|length > 0 %}
+    <h2 class="h2 mt">오류(최대 50건)</h2>
+    <pre class="pre">{{ report.errors | tojson(indent=2, ensure_ascii=False) }}</pre>
+  {% endif %}
 </div>
 {% endblock %}

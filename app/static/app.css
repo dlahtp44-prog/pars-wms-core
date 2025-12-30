@@ -1,1 +1,42 @@
-body{font-family:Arial;}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; background:#f6f7f9; margin:0;}
+.container{max-width:980px; margin:0 auto; padding:24px;}
+.center{text-align:center;}
+.h1{font-size:28px; margin:12px 0 18px;}
+.h2{font-size:18px; margin:0 0 10px;}
+.card{background:#fff; border-radius:12px; padding:16px; box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.menu-item{display:block; padding:14px 12px; border-top:1px solid #eef0f3; text-decoration:none; color:#111;}
+.menu-item:first-child{border-top:none;}
+.menu-item:hover{background:#fafbfc;}
+.muted{color:#6b7280; font-size:13px;}
+.back{display:inline-block; margin:0 0 12px; text-decoration:none; color:#2563eb;}
+.mt{margin-top:14px;}
+.grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.grid label, .grid2 label{display:flex; flex-direction:column; font-size:13px; color:#111;}
+.grid input, .grid2 input, textarea{padding:10px; border:1px solid #e5e7eb; border-radius:10px; font-size:14px;}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.btn{display:inline-block; width:100%; margin-top:12px; padding:12px 14px; border-radius:12px; border:none; background:#2563eb; color:white; font-weight:700; cursor:pointer; text-align:center; text-decoration:none;}
+.btn.outline{background:white; color:#2563eb; border:1px solid #c7d2fe;}
+.row{display:flex; gap:10px; flex-wrap:wrap;}
+.row .btn{width:auto; margin-top:0;}
+.table{width:100%; border-collapse:collapse; font-size:13px;}
+.table th,.table td{border-bottom:1px solid #eef0f3; padding:8px; text-align:left; vertical-align:top;}
+.pre{background:#0b1020; color:#e5e7eb; padding:12px; border-radius:10px; overflow:auto; font-size:12px;}
+
+.desktop-only{display:block;}
+.mobile-only{display:none;}
+
+@media (max-width: 900px){
+  .container{max-width:100%; padding:16px;}
+  .grid{grid-template-columns:1fr;}
+  .desktop-only{display:none;}
+  .mobile-only{display:block;}
+}
+
+.cal-head{display:flex; justify-content:center; align-items:center; gap:14px; padding:6px 0 14px;}
+.cal-title{font-weight:800;}
+.cal-nav{text-decoration:none; font-weight:800; color:#2563eb; padding:6px 10px; border-radius:10px;}
+.cal-nav:hover{background:#eef2ff;}
+.cal{width:100%; border-collapse:collapse;}
+.cal th,.cal td{border:1px solid #e5e7eb; height:64px; vertical-align:top; padding:6px;}
+.cal-day{font-weight:800;}
+.chip{display:inline-block; margin-top:6px; padding:2px 8px; border-radius:999px; background:#2563eb; color:white; font-size:12px;}

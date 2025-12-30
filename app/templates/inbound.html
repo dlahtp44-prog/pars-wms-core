@@ -1,40 +1,30 @@
-{% extends "base.html" %}
+{% extends "_layout.html" %}
 {% block body %}
-<div class="title">입고등록</div>
-<a class="toplink" href="/">← 홈</a>
-
-{% if msg %}
-  <div class="card" style="margin-bottom:12px;"><div class="card-bd"><b>{{ msg }}</b></div></div>
-{% endif %}
+<h1 class="h1 center">입고등록</h1>
+<a class="back" href="/">← 홈</a>
 
 <div class="card">
-  <div class="card-hd">수기 입고</div>
-  <div class="card-bd">
-    <form class="form" method="post" action="/page/inbound/save">
-      <div class="row"><label>로케이션</label><input name="location" placeholder="예: B01-01-02-A" required></div>
-      <div class="row"><label>품번</label><input name="item_code" placeholder="예: 123456" required></div>
-      <div class="row"><label>품명</label><input name="item_name" placeholder="예: ABCDEF" required></div>
-      <div class="row"><label>LOT</label><input name="lot" placeholder="예: H505" required></div>
-      <div class="row"><label>규격</label><input name="spec" placeholder="예: 600*1200" required></div>
-      <div class="row"><label>브랜드</label><input name="brand" placeholder="예: FLOIM"></div>
-      <div class="row"><label>수량</label><input name="qty" type="number" min="1" placeholder="예: 10" required></div>
-      <div class="row"><label>비고</label><input name="note" placeholder=""></div>
-      <button class="btn wide" type="submit">입고 저장</button>
-    </form>
-  </div>
+  <form method="post" action="/api/inbound">
+    <div class="grid">
+      <label>로케이션 <input name="location" placeholder="예: B01-01-02-A" required/></label>
+      <label>품번 <input name="item_code" placeholder="예: 123456" required/></label>
+      <label>품명 <input name="item_name" placeholder="예: ABCDEF" required/></label>
+      <label>LOT <input name="lot" placeholder="예: H505" required/></label>
+      <label>규격 <input name="spec" placeholder="예: 600*1200" required/></label>
+      <label>브랜드 <input name="brand" placeholder="예: FLOIM"/></label>
+      <label>수량 <input name="qty" type="number" min="1" placeholder="예: 10" required/></label>
+      <label>비고 <input name="note" placeholder=""/></label>
+    </div>
+    <button class="btn" type="submit">입고 저장</button>
+  </form>
 </div>
 
-<div class="hr"></div>
-
-<div class="card">
-  <div class="card-hd">엑셀 입고 업로드</div>
-  <div class="card-bd">
-    <div class="muted">필수 컬럼: 로케이션, 품번, 품명, LOT, 규격, 수량 / 옵션: 브랜드, 비고</div>
-    <div style="height:10px"></div>
-    <form class="form" method="post" action="/page/inbound/excel" enctype="multipart/form-data">
-      <input type="file" name="file" accept=".xlsx" required>
-      <button class="btn wide" type="submit">엑셀 업로드</button>
-    </form>
-  </div>
+<div class="card mt">
+  <h2 class="h2">엑셀 입고 업로드</h2>
+  <p class="muted">필수 컬럼: 로케이션, 품번, 품명, LOT, 규격, 수량 / 선택: 브랜드, 비고</p>
+  <form method="post" action="/page/inbound/excel" enctype="multipart/form-data">
+    <input type="file" name="file" accept=".xlsx" required/>
+    <button class="btn" type="submit">엑셀 업로드</button>
+  </form>
 </div>
 {% endblock %}
