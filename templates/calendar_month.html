@@ -1,27 +1,49 @@
 {% extends "_layout_calendar.html" %}
 {% block body %}
 
-<div class="calendar-header">
-  <a href="/page/calendar/month?year={{ prev_year }}&month={{ prev_month }}">◀</a>
-  <strong>{{ year }}년 {{ month }}월</strong>
-  <a href="/page/calendar/month?year={{ next_year }}&month={{ next_month }}">▶</a>
-</div>
+<div class="calendar-wrap">
+  <div class="calendar-header">
+    <a class="cal-nav" href="/page/calendar/month?year={{ prev_year }}&month={{ prev_month }}">◀</a>
+    <strong class="cal-title">{{ year }}년 {{ month }}월</strong>
+    <a class="cal-nav" href="/page/calendar/month?year={{ next_year }}&month={{ next_month }}">▶</a>
 
-<table class="calendar">
-  <thead>
-    <tr>
-      <th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for week in weeks %}
-    <tr>
-      {% for day in week %}
-      <td class="{{ 'other' if day.month != month else '' }}">{{ day.day }}</td>
+    <div class="cal-actions">
+      <a class="btn-small" href="/page/calendar/month">오늘(월)</a>
+      <a class="btn-small" href="/page/calendar?date={{ "%04d-%02d-%02d"|format(year, month, 1) }}">월 메모</a>
+    </div>
+  </div>
+
+  <div class="calendar-weekdays">
+    <div class="wd sun">일</div>
+    <div class="wd">월</div>
+    <div class="wd">화</div>
+    <div class="wd">수</div>
+    <div class="wd">목</div>
+    <div class="wd">금</div>
+    <div class="wd sat">토</div>
+  </div>
+
+  <div class="calendar-grid">
+    {% for week in days|batch(7, fill_with=None) %}
+      {% for d in week %}
+        {% if d %}
+          <a class="day {{ 'out' if not d.in_month else '' }} {{ 'today' if d.is_today else '' }} {{ 'sun' if d.weekday==6 else '' }} {{ 'sat' if d.weekday==5 else '' }}"
+             href="/page/calendar?date={{ d.date }}">
+            <div class="day-num">{{ d.day }}</div>
+            {% if d.memo_count and d.memo_count > 0 %}
+              <div class="memo-dot">{{ d.memo_count }}</div>
+            {% endif %}
+          </a>
+        {% else %}
+          <div class="day empty"></div>
+        {% endif %}
       {% endfor %}
-    </tr>
     {% endfor %}
-  </tbody>
-</table>
+  </div>
+
+  <div class="cal-help">
+    ※ 날짜 클릭 → 해당 날짜 상세(등록/수정). 메모는 기본 4줄 표시.
+  </div>
+</div>
 
 {% endblock %}

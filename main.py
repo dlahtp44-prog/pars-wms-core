@@ -3,6 +3,7 @@ import os
 import sqlite3
 import io
 import datetime
+import calendar
 import re
 from typing import Optional
 
@@ -576,3 +577,59 @@ def api_calendar(action: str = Form("add"), id: int = Form(0), date: str = Form(
         db.execute("DELETE FROM calendar_memo WHERE id=?", (id,))
     db.commit(); db.close()
     return RedirectResponse("/page/calendar?date="+date, status_code=303)
+
+@app.get("/page/calendar/month")
+def page_calendar_month(
+    request: Request,
+    year: int = Query(datetime.date.today().year, ge=1900, le=2100),
+    month: int = Query(datetime.date.today().month, ge=1, le=12),
+):
+    """월간 달력(메모용) - 날짜 클릭 시 /page/calendar?date=YYYY-MM-DD 로 이동"""
+    conn = get_db()
+    cur = conn.cursor()
+
+    # 해당 월 메모 수 집계
+    ym_prefix = f"{year:04d}-{month:02d}-"
+    cur.execute(
+        "SELECT date, COUNT(*) FROM calendar_memo WHERE date LIKE ? GROUP BY date",
+        (ym_prefix + "%",),
+    )
+    memo_counts = {row[0]: row[1] for row in cur.fetchall()}
+    conn.close()
+
+    cal = calendar.Calendar(firstweekday=6)  # Sunday start
+    weeks_dates = cal.monthdatescalendar(year, month)  # list[week][date]
+
+    today = datetime.date.today()
+    days = []
+    for week in weeks_dates:
+        for d in week:
+            ds = d.isoformat()
+            days.append(
+                {
+                    "date": ds,
+                    "day": d.day,
+                    "weekday": d.weekday(),  # Mon=0..Sun=6
+                    "in_month": (d.month == month),
+                    "is_today": (d == today),
+                    "memo_count": int(memo_counts.get(ds, 0)),
+                }
+            )
+
+    # 이전/다음 월 계산
+    prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
+    next_year, next_month = (year + 1, 1) if month == 12 else (year, month + 1)
+
+    return templates.TemplateResponse(
+        "calendar_month.html",
+        {
+            "request": request,
+            "year": year,
+            "month": month,
+            "days": days,  # 7*n 형태(flat). 템플릿에서 batch(7)로 사용
+            "prev_year": prev_year,
+            "prev_month": prev_month,
+            "next_year": next_year,
+            "next_month": next_month,
+        },
+    )
