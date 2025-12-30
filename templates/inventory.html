@@ -1,51 +1,89 @@
-{% extends "base.html" %}
+{% extends "_layout.html" %}
 {% block body %}
 <h1>재고 조회</h1>
+<a class="back-link" href="/">← 홈</a>
 
-<div class="badge"><a href="/" style="text-decoration:none;color:var(--primary);font-weight:600;">← 홈</a></div>
-
-<div class="card" style="padding:16px;">
-  <div class="grid">
-    <div class="form-row"><span>로케이션</span><input class="input" id="location" placeholder="필터"></div>
-    <div class="form-row"><span>품번</span><input class="input" id="item_code" placeholder="필터"></div>
-    <button class="btn" id="btn">조회</button>
-    <a class="btn-outline" id="dl" href="/page/inventory.xlsx">엑셀 다운로드</a>
-    <div class="badge"><a href="/" style="text-decoration:none;color:var(--primary);font-weight:600;">← 홈</a></div>
-    <div id="table"></div>
-  </div>
+<div class="card">
+  <form method="get" action="/page/inventory">
+    <div class="grid2">
+      <div>
+        <label>로케이션</label>
+        <input name="location" value="{{ location or '' }}" placeholder="예: B01-01-02-A">
+      </div>
+      <div>
+        <label>품번</label>
+        <input name="item_code" value="{{ item_code or '' }}" placeholder="예: 123456">
+      </div>
+    </div>
+    <button class="btn primary" type="submit">조회</button>
+  </form>
 </div>
-{% endblock %}
-{% block script %}
+
+{% if rows and rows|length > 0 %}
+<div class="card">
+  <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:space-between;">
+    <div><strong>조회 결과</strong> ({{ rows|length }}건)</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a class="btn" href="/page/inventory.xlsx?location={{ location or '' }}&item_code={{ item_code or '' }}">엑셀 다운로드</a>
+      <button class="btn primary" form="labelForm" type="submit">QR 재고 라벨 출력(A4 LS-3108)</button>
+      <a class="btn" href="/page/labels/locations">로케이션 QR 라벨 출력(A4 LS-3118)</a>
+    </div>
+  </div>
+
+  <form id="labelForm" method="post" action="/page/labels/items">
+    <div style="overflow:auto;margin-top:12px;">
+      <table class="table">
+        <thead>
+          <tr>
+            <th style="width:42px;"><input type="checkbox" onclick="toggleAll(this)"></th>
+            <th>로케이션</th>
+            <th>품번</th>
+            <th>품명</th>
+            <th>LOT</th>
+            <th>규격</th>
+            <th>브랜드</th>
+            <th style="text-align:right;">수량</th>
+            <th>업데이트</th>
+            <th>비고</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for r in rows %}
+          <tr>
+            <td><input type="checkbox" name="pick" value="{{ loop.index0 }}"></td>
+            <td>{{ r.location }}</td>
+            <td>{{ r.item_code }}</td>
+            <td>{{ r.item_name }}</td>
+            <td>{{ r.lot }}</td>
+            <td>{{ r.spec }}</td>
+            <td>{{ r.brand }}</td>
+            <td style="text-align:right;">{{ r.qty }}</td>
+            <td>{{ r.updated_at }}</td>
+            <td>{{ r.note }}</td>
+
+            <!-- 라벨용 hidden -->
+            <input type="hidden" name="location_{{ loop.index0 }}" value="{{ r.location }}">
+            <input type="hidden" name="item_code_{{ loop.index0 }}" value="{{ r.item_code }}">
+            <input type="hidden" name="item_name_{{ loop.index0 }}" value="{{ r.item_name }}">
+            <input type="hidden" name="lot_{{ loop.index0 }}" value="{{ r.lot }}">
+            <input type="hidden" name="spec_{{ loop.index0 }}" value="{{ r.spec }}">
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </form>
+</div>
+
 <script>
-function esc(s){return String(s??'').replace(/[&<>"]/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));}
-document.getElementById('btn').addEventListener('click', async ()=>{
-  const loc = document.getElementById('location').value;
-  const code = document.getElementById('item_code').value;
-  const qs = new URLSearchParams();
-  if(loc) qs.set('location', loc);
-  if(code) qs.set('item_code', code);
-  const dlqs = qs.toString();
-  document.getElementById('dl').href = '/page/inventory.xlsx' + (dlqs ? ('?' + dlqs) : '');
-  const r = await fetch('/api/inventory?' + qs.toString());
-  const t = await r.json();
-  const rows = t.rows || [];
-  let html = '<div style="overflow:auto;"><table style="width:100%;border-collapse:collapse;">';
-  html += '<thead><tr>';
-  const cols = ['location','item_code','item_name','lot','spec','brand','qty'];
-  const labels = ['로케이션','품번','품명','LOT','규격','브랜드','수량'];
-  for(let i=0;i<cols.length;i++){ html += '<th style="text-align:left;padding:10px;border-bottom:1px solid #e5e7eb;">'+labels[i]+'</th>'; }
-  html += '</tr></thead><tbody>';
-  if(rows.length===0){
-    html += '<tr><td colspan="7" style="padding:12px;color:#667085;">조회 결과가 없습니다.</td></tr>';
-  }else{
-    for(const row of rows){
-      html += '<tr>';
-      for(const c of cols){ html += '<td style="padding:10px;border-bottom:1px solid #f0f2f5;">'+esc(row[c])+'</td>'; }
-      html += '</tr>';
-    }
-  }
-  html += '</tbody></table></div>';
-  document.getElementById('table').innerHTML = html;
-});
+function toggleAll(master){
+  document.querySelectorAll('input[name="pick"]').forEach(cb => cb.checked = master.checked);
+}
 </script>
+{% else %}
+  {% if location or item_code %}
+    <div class="card"><p>조회 결과가 없습니다.</p></div>
+  {% endif %}
+{% endif %}
+
 {% endblock %}

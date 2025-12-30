@@ -1,9 +1,41 @@
+{% extends "_layout.html" %}
+{% block body %}
+<h1>QR 재고 확인</h1>
+<a class="back-link" href="/page/qr/location/scan">← 다시 스캔</a>
 
-{% extends "base.html" %}
-{% block content %}
-<h2>로케이션 QR 재고 조회</h2>
-<form method="get" action="/api/재고">
-  <input name="로케이션" placeholder="로케이션(QR)" required>
-  <button type="submit">조회</button>
-</form>
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+    <div><strong>로케이션:</strong> {{ location }}</div>
+    <a class="btn" href="/page/inventory?location={{ location }}">재고조회 열기</a>
+  </div>
+</div>
+
+<div class="card">
+  {% if rows and rows|length>0 %}
+    <div style="overflow:auto;">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>품번</th><th>품명</th><th>LOT</th><th>규격</th><th>브랜드</th><th style="text-align:right;">수량</th><th>비고</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for r in rows %}
+          <tr>
+            <td>{{ r.item_code }}</td>
+            <td>{{ r.item_name }}</td>
+            <td>{{ r.lot }}</td>
+            <td>{{ r.spec }}</td>
+            <td>{{ r.brand }}</td>
+            <td style="text-align:right;">{{ r.qty }}</td>
+            <td>{{ r.note }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>해당 로케이션 재고가 없습니다.</p>
+  {% endif %}
+</div>
 {% endblock %}

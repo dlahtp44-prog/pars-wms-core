@@ -1,16 +1,14 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{{ title if title else "PARS WMS" }}</title>
-  <link rel="stylesheet" href="/static/style.css" />
-  {% block head %}{% endblock %}
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{{ title or "PARS WMS" }}</title>
+  <link rel="stylesheet" href="/static/style.css"/>
 </head>
 <body>
-  <div class="container">
+  <div class="wrap">
     {% block body %}{% endblock %}
   </div>
-  {% block script %}{% endblock %}
 </body>
 </html>

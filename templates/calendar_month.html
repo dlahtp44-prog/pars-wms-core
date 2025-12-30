@@ -1,84 +1,78 @@
-{% extends "_layout_calendar.html" %}
-{% block body_calendar %}
-<h1>달력(월간)</h1>
-<div class="badge"><a href="/" style="text-decoration:none;color:var(--primary);font-weight:600;">← 홈</a></div>
+{% extends "_layout.html" %}
+{% block body %}
+<h1 class="h1 center">달력(월간)</h1>
+<a class="back" href="/">← 홈</a>
 
-<div class="calendar-wrap" style="margin-top:10px;">
-  <div class="calendar-header">
-    <a href="/page/calendar/month?year={{ prev_year }}&month={{ prev_month }}">◀</a>
-    <span>{{ year }}년 {{ month }}월</span>
-    <a href="/page/calendar/month?year={{ next_year }}&month={{ next_month }}">▶</a>
+<div class="card">
+  <div class="cal-head">
+    <a class="cal-nav" href="/page/calendar/month?year={{ year-1 if month==1 else year }}&month={{ 12 if month==1 else month-1 }}">◀</a>
+    <div class="cal-title">{{year}}년 {{month}}월</div>
+    <a class="cal-nav" href="/page/calendar/month?year={{ year+1 if month==12 else year }}&month={{ 1 if month==12 else month+1 }}">▶</a>
   </div>
 
-  <div class="calendar-grid">
-    {% set wds = ["일","월","화","수","목","금","토"] %}
-    {% for wd in wds %}
-      <div class="calendar-cell calendar-weekday">{{ wd }}</div>
-    {% endfor %}
+  <table class="cal">
+    <thead>
+      <tr><th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th></tr>
+    </thead>
+    <tbody>
+      {# build month grid in template #}
+      {% set first = (year|string) ~ "-" ~ ("%02d"|format(month)) ~ "-01" %}
+      {% set first_dt = first|tojson %}
+    </tbody>
+  </table>
 
-    {% for week in weeks %}
-      {% for d in week %}
-        <div class="calendar-cell">
-          {% if d != 0 %}
-            <div class="daynum">
-              <span>{{ d }}</span>
-              {% set ymd = "%04d-%02d-%02d"|format(year, month, d) %}
-              {% if ymd == today_ymd %}
-                <span class="tag-today">오늘</span>
-              {% endif %}
-            </div>
-
-            {% if memos_by_day.get(d) %}
-              {% for m in memos_by_day.get(d)[:3] %}
-                <div class="memo">
-                  {% if m.author %}<span class="author">[{{ m.author }}]</span> {% endif %}
-                  {{ m.memo }}
-                </div>
-              {% endfor %}
-              {% if memos_by_day.get(d)|length > 3 %}
-                <div class="memo author">+ {{ memos_by_day.get(d)|length - 3 }}건</div>
-              {% endif %}
-            {% else %}
-              <div class="memo author">-</div>
-            {% endif %}
-          {% endif %}
-        </div>
-      {% endfor %}
-    {% endfor %}
-  </div>
-
-  <div class="memo-add">
-    <form id="memoForm">
-      <div class="grid">
-        <div class="form-row">
-          <span>날짜</span>
-          <input class="input" type="date" name="ymd" value="{{ today_ymd }}" required>
-        </div>
-        <div class="form-row">
-          <span>작성자</span>
-          <input class="input" name="author" placeholder="이름(선택)">
-        </div>
-        <div class="form-row">
-          <span>메모</span>
-          <textarea class="input" name="memo" rows="3" placeholder="메모 입력" required></textarea>
-        </div>
-        <button class="btn" type="submit">메모 추가</button>
-        <div id="msg" class="badge"></div>
-      </div>
+  {# JS renders grid and memo chips; server provides memos dict #}
+  <div class="mt">
+    <form method="post" action="/page/calendar/memo">
+      <label>날짜 <input type="date" name="memo_date" value="{{today}}" required></label>
+      <label>작성자 <input name="author" placeholder="이름(선택)"></label>
+      <label>메모 <textarea name="memo" rows="3" placeholder="메모 입력" required></textarea></label>
+      <button class="btn" type="submit">메모 추가</button>
     </form>
   </div>
 </div>
-{% endblock %}
-{% block script %}
+
 <script>
-document.getElementById('memoForm').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const fd = new FormData(e.target);
-  const r = await fetch('/api/calendar/memo', {method:'POST', body: fd});
-  const t = await r.json().catch(()=>({}));
-  const msg = document.getElementById('msg');
-  if(r.ok){ msg.textContent='저장 완료 (새로고침 됩니다)'; setTimeout(()=>location.reload(), 350); }
-  else{ msg.textContent='오류: ' + (t.detail || r.status); }
-});
+(function(){
+  const year={{year}}, month={{month}};
+  const memos={{memos|tojson}};
+  function pad(n){return (n<10?'0':'')+n}
+  const first = new Date(year, month-1, 1);
+  const startDay = first.getDay(); // 0=Sun
+  const last = new Date(year, month, 0);
+  const daysInMonth = last.getDate();
+
+  const tbody = document.querySelector(".cal tbody");
+  tbody.innerHTML = "";
+  let day=1;
+  for(let r=0;r<6;r++){
+    let tr=document.createElement("tr");
+    for(let c=0;c<7;c++){
+      let td=document.createElement("td");
+      if(r===0 && c<startDay){ td.innerHTML=""; }
+      else if(day>daysInMonth){ td.innerHTML=""; }
+      else{
+        const dkey = `${year}-${pad(month)}-${pad(day)}`;
+        td.innerHTML = `<div class="cal-day">${day}</div>`;
+        const list = memos[dkey] || [];
+        if(list.length>0){
+          const chip = document.createElement("div");
+          chip.className="chip";
+          chip.textContent = "메모 " + list.length;
+          td.appendChild(chip);
+        }
+        td.onclick = ()=>{
+          const dateInput=document.querySelector('input[name="memo_date"]');
+          dateInput.value = dkey;
+          dateInput.scrollIntoView({behavior:'smooth', block:'center'});
+        };
+        day++;
+      }
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+    if(day>daysInMonth) break;
+  }
+})();
 </script>
 {% endblock %}
