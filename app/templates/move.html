@@ -1,42 +1,37 @@
-{% extends "_layout.html" %}
+{% extends "base.html" %}
 {% block body %}
-<div class="header">이동등록</div>
+<h1>이동등록</h1>
 
-<div class="card sheet-card">
-  <div class="top-actions">
-    <a href="/m/qr?mode=mv_src">📷 출발 QR</a>
-    <a href="/m/qr?mode=mv_item">📷 품번 QR</a>
-    <a href="/m/qr?mode=mv_dst">📷 도착 QR</a>
-    <a href="/">← 홈</a>
-  </div>
+<div class="badge"><a href="/" style="text-decoration:none;color:var(--primary);font-weight:600;">← 홈</a></div>
 
-  <div class="section-title">수기 이동</div>
-  <form method="post" action="/api/move">
-    <table class="sheet">
-      <tr><th>출발</th><td><input name="src" value="{{ src }}" placeholder="출발 로케이션" required></td></tr>
-      <tr><th>도착</th><td><input name="dst" value="{{ dst }}" placeholder="도착 로케이션" required></td></tr>
-      <tr><th>품번</th><td><input name="item" value="{{ item }}" placeholder="품번" required></td></tr>
-      <tr><th>품명</th><td><input name="item_name" placeholder=""></td></tr>
-      <tr><th>LOT</th><td><input name="lot" placeholder=""></td></tr>
-      <tr><th>규격</th><td><input name="spec" placeholder=""></td></tr>
-      <tr><th>브랜드</th><td><input name="brand" placeholder=""></td></tr>
-      <tr><th>수량</th><td><input name="qty" type="number" min="1" required></td></tr>
-      <tr><th>비고</th><td><input name="memo" placeholder=""></td></tr>
-    </table>
-    <div class="sheet-actions">
-      <button type="submit">이동 처리</button>
+<div class="card" style="padding:16px;">
+  <form id="f">
+    <div class="grid">
+      <label class="form-row"><span>출발</span><input class="input" name="src_location" placeholder="출발 로케이션" required></label>
+      <label class="form-row"><span>도착</span><input class="input" name="dst_location" placeholder="도착 로케이션" required></label>
+      <label class="form-row"><span>품번</span><input class="input" name="item_code" required></label>
+      <label class="form-row"><span>품명</span><input class="input" name="item_name" required></label>
+      <label class="form-row"><span>LOT</span><input class="input" name="lot" required></label>
+      <label class="form-row"><span>규격</span><input class="input" name="spec" required></label>
+      <label class="form-row"><span>브랜드</span><input class="input" name="brand"></label>
+      <label class="form-row"><span>수량</span><input class="input" name="qty" type="number" min="1" required></label>
+      <label class="form-row"><span>비고</span><input class="input" name="note"></label>
+      <button class="btn" type="submit">이동 처리</button>
+      <div id="msg" class="badge"></div>
     </div>
-  </form>
-
-  <div class="hr"></div>
-
-  <div class="section-title">📊 엑셀 이동</div>
-  <form class="excel-form" method="post" action="/api/move/excel" enctype="multipart/form-data">
-    <div class="excel-row">
-      <input type="file" name="file" accept=".xlsx" required>
-      <button type="submit" class="btn-outline">엑셀 업로드</button>
-    </div>
-    <div class="small">필수 컬럼: 출발 / 도착 / 품번 / LOT / 규격 / 수량</div>
   </form>
 </div>
+{% endblock %}
+{% block script %}
+<script>
+document.getElementById('f').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const r = await fetch('/api/move', {method:'POST', body: fd});
+  const t = await r.json().catch(()=>({}));
+  const msg = document.getElementById('msg');
+  if(r.ok){ msg.textContent='저장 완료'; e.target.reset(); }
+  else{ msg.textContent='오류: ' + (t.detail || r.status); }
+});
+</script>
 {% endblock %}

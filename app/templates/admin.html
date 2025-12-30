@@ -1,23 +1,10 @@
-
-{% extends "_layout.html" %}
+{% extends "base.html" %}
 {% block body %}
-<div class="header">관리자</div>
-<div class="card">
-  {% if authed %}
-    <div class="badge">ADMIN</div>
-    <p class="small">관리자 전용 진입 완료</p>
-    <div class="top-actions">
-      <a href="/page/history">이력 보기</a>
-      <a href="/page/inventory">재고 보기</a>
-      <a href="/api/inventory">재고 API</a>
-    </div>
-  {% else %}
-    <p class="small">관리자 PIN을 입력하세요.</p>
-    <form class="form" method="get" action="/page/admin">
-      <input name="pin" placeholder="PIN (기본 0000)" />
-      <button type="submit">진입</button>
-    </form>
-  {% endif %}
-  <div class="top-actions"><a href="/">← 홈</a></div>
+<h1>관리자</h1>
+
+<div class="badge"><a href="/" style="text-decoration:none;color:var(--primary);font-weight:600;">← 홈</a></div>
+
+<div class="card" style="padding:16px;">
+  <div class="badge">관리자 기능은 다음 단계에서 확장합니다. (현재는 페이지 연결 확인용)</div>
 </div>
 {% endblock %}

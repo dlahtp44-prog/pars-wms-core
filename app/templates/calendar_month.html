@@ -1,41 +1,84 @@
 {% extends "_layout_calendar.html" %}
-{% block body %}
+{% block body_calendar %}
+<h1>달력(월간)</h1>
+<div class="badge"><a href="/" style="text-decoration:none;color:var(--primary);font-weight:600;">← 홈</a></div>
 
-<div class="cal-wrap">
-  <div class="cal-header">
-    <a class="cal-nav" href="/page/calendar/month?year={{ prev_year }}&month={{ prev_month }}" aria-label="이전달">◀</a>
-    <div class="cal-title">{{ year }}년 {{ month }}월</div>
-    <a class="cal-nav" href="/page/calendar/month?year={{ next_year }}&month={{ next_month }}" aria-label="다음달">▶</a>
-
-    <div class="cal-actions">
-      <a class="cal-btn" href="/page/calendar/month" title="이번달">오늘(월)</a>
-      <a class="cal-btn" href="/page/calendar?date={{ today }}" title="오늘 상세">오늘 상세</a>
-    </div>
+<div class="calendar-wrap" style="margin-top:10px;">
+  <div class="calendar-header">
+    <a href="/page/calendar/month?year={{ prev_year }}&month={{ prev_month }}">◀</a>
+    <span>{{ year }}년 {{ month }}월</span>
+    <a href="/page/calendar/month?year={{ next_year }}&month={{ next_month }}">▶</a>
   </div>
 
-  <div class="cal-weekdays">
-    <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
-  </div>
+  <div class="calendar-grid">
+    {% set wds = ["일","월","화","수","목","금","토"] %}
+    {% for wd in wds %}
+      <div class="calendar-cell calendar-weekday">{{ wd }}</div>
+    {% endfor %}
 
-  <div class="cal-grid">
     {% for week in weeks %}
-      {% for day in week %}
-        <a class="cal-cell {% if day.is_other_month %}other{% endif %} {% if day.is_today %}today{% endif %}"
-           href="/page/calendar?date={{ day.date }}">
-          <div class="cal-daynum">{{ day.day }}</div>
-          {% if day.memos and day.memos|length > 0 %}
-            <ul class="cal-memos">
-              {% for m in day.memos %}
-                <li>{{ m }}</li>
+      {% for d in week %}
+        <div class="calendar-cell">
+          {% if d != 0 %}
+            <div class="daynum">
+              <span>{{ d }}</span>
+              {% set ymd = "%04d-%02d-%02d"|format(year, month, d) %}
+              {% if ymd == today_ymd %}
+                <span class="tag-today">오늘</span>
+              {% endif %}
+            </div>
+
+            {% if memos_by_day.get(d) %}
+              {% for m in memos_by_day.get(d)[:3] %}
+                <div class="memo">
+                  {% if m.author %}<span class="author">[{{ m.author }}]</span> {% endif %}
+                  {{ m.memo }}
+                </div>
               {% endfor %}
-            </ul>
+              {% if memos_by_day.get(d)|length > 3 %}
+                <div class="memo author">+ {{ memos_by_day.get(d)|length - 3 }}건</div>
+              {% endif %}
+            {% else %}
+              <div class="memo author">-</div>
+            {% endif %}
           {% endif %}
-        </a>
+        </div>
       {% endfor %}
     {% endfor %}
   </div>
 
-  <div class="cal-footnote">※ 날짜 칸 클릭 → 해당 날짜 상세(등록/수정). 메모는 기본 4줄 표시</div>
+  <div class="memo-add">
+    <form id="memoForm">
+      <div class="grid">
+        <div class="form-row">
+          <span>날짜</span>
+          <input class="input" type="date" name="ymd" value="{{ today_ymd }}" required>
+        </div>
+        <div class="form-row">
+          <span>작성자</span>
+          <input class="input" name="author" placeholder="이름(선택)">
+        </div>
+        <div class="form-row">
+          <span>메모</span>
+          <textarea class="input" name="memo" rows="3" placeholder="메모 입력" required></textarea>
+        </div>
+        <button class="btn" type="submit">메모 추가</button>
+        <div id="msg" class="badge"></div>
+      </div>
+    </form>
+  </div>
 </div>
-
+{% endblock %}
+{% block script %}
+<script>
+document.getElementById('memoForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const r = await fetch('/api/calendar/memo', {method:'POST', body: fd});
+  const t = await r.json().catch(()=>({}));
+  const msg = document.getElementById('msg');
+  if(r.ok){ msg.textContent='저장 완료 (새로고침 됩니다)'; setTimeout(()=>location.reload(), 350); }
+  else{ msg.textContent='오류: ' + (t.detail || r.status); }
+});
+</script>
 {% endblock %}

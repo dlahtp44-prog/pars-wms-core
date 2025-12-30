@@ -1,58 +1,48 @@
-{% extends "_layout.html" %}
+{% extends "base.html" %}
 {% block body %}
-<div class="header">재고 조회</div>
+<h1>재고 조회</h1>
 
-<div class="card sheet-card">
-  <form method="get" action="/page/inventory">
-    <div class="filter-bar">
-      <div class="filter-item">
-        <label>로케이션</label>
-        <input name="location" value="{{ location }}" placeholder="필터">
-      </div>
-      <div class="filter-item">
-        <label>품번</label>
-        <input name="item" value="{{ item }}" placeholder="필터">
-      </div>
-    </div>
-    <div class="sheet-actions">
-      <button type="submit">조회</button>
-      <a class="link" href="/">← 홈</a>
-    </div>
-  </form>
+<div class="badge"><a href="/" style="text-decoration:none;color:var(--primary);font-weight:600;">← 홈</a></div>
 
-  <table class="grid" style="margin-top:10px;">
-    <thead>
-      <tr>
-        <th>로케이션</th>
-        <th>품번</th>
-        <th>LOT</th>
-        <th>규격</th>
-        <th>브랜드</th>
-        <th>수량</th>
-        <th>업데이트</th>
-        <th>비고</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for r in rows %}
-      <tr>
-        <td>{{ r['location'] }}</td>
-        <td>{{ r['item'] }}</td>
-        <td>{{ r['lot'] }}</td>
-        <td>{{ r['spec'] }}</td>
-        <td>{{ r['brand'] }}</td>
-        <td><span class="badge">{{ r['qty'] }}</span></td>
-        <td class="small">{{ r['updated_at'] }}</td>
-        <td class="small">{{ r['memo'] }}</td>
-      </tr>
-      {% endfor %}
-      {% if rows|length == 0 %}
-      <tr><td colspan="8" class="small" style="padding:14px;">조회 결과가 없습니다.</td></tr>
-      {% endif %}
-    </tbody>
-  </table>
-
-  <div class="hr"></div>
-  <a class="btn-outline full" href="/api/inventory.xlsx?location={{ location }}&item={{ item }}">엑셀 다운로드</a>
+<div class="card" style="padding:16px;">
+  <div class="grid">
+    <div class="form-row"><span>로케이션</span><input class="input" id="location" placeholder="필터"></div>
+    <div class="form-row"><span>품번</span><input class="input" id="item_code" placeholder="필터"></div>
+    <button class="btn" id="btn">조회</button>
+    <div class="badge"><a href="/" style="text-decoration:none;color:var(--primary);font-weight:600;">← 홈</a></div>
+    <div id="table"></div>
+  </div>
 </div>
+{% endblock %}
+{% block script %}
+<script>
+function esc(s){return String(s??'').replace(/[&<>"]/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));}
+document.getElementById('btn').addEventListener('click', async ()=>{
+  const loc = document.getElementById('location').value;
+  const code = document.getElementById('item_code').value;
+  const qs = new URLSearchParams();
+  if(loc) qs.set('location', loc);
+  if(code) qs.set('item_code', code);
+  const r = await fetch('/api/inventory?' + qs.toString());
+  const t = await r.json();
+  const rows = t.rows || [];
+  let html = '<div style="overflow:auto;"><table style="width:100%;border-collapse:collapse;">';
+  html += '<thead><tr>';
+  const cols = ['location','item_code','item_name','lot','spec','brand','qty'];
+  const labels = ['로케이션','품번','품명','LOT','규격','브랜드','수량'];
+  for(let i=0;i<cols.length;i++){ html += '<th style="text-align:left;padding:10px;border-bottom:1px solid #e5e7eb;">'+labels[i]+'</th>'; }
+  html += '</tr></thead><tbody>';
+  if(rows.length===0){
+    html += '<tr><td colspan="7" style="padding:12px;color:#667085;">조회 결과가 없습니다.</td></tr>';
+  }else{
+    for(const row of rows){
+      html += '<tr>';
+      for(const c of cols){ html += '<td style="padding:10px;border-bottom:1px solid #f0f2f5;">'+esc(row[c])+'</td>'; }
+      html += '</tr>';
+    }
+  }
+  html += '</tbody></table></div>';
+  document.getElementById('table').innerHTML = html;
+});
+</script>
 {% endblock %}
