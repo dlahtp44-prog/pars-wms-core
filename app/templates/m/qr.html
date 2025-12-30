@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>QR 스캔</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body { font-family: sans-serif; padding: 12px; }
+        #reader { width: 100%; max-width: 360px; margin: auto; }
+        input { width: 100%; padding: 8px; margin-top: 10px; }
+        button { width: 100%; padding: 10px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<h2>📷 QR 스캔</h2>
+
+<div id="reader"></div>
+
+<input type="text" id="qr-result" placeholder="스캔 결과" readonly>
+
+<button onclick="startScan()">스캔 시작</button>
+<button onclick="stopScan()">스캔 중지</button>
+
+<script>
+let html5QrCode;
+
+function startScan() {
+    html5QrCode = new Html5Qrcode("reader");
+
+    Html5Qrcode.getCameras().then(devices => {
+        if (devices && devices.length) {
+            const cameraId = devices[0].id;
+
+            html5QrCode.start(
+                cameraId,
+                { fps: 10, qrbox: 250 },
+                qrCodeMessage => {
+                    document.getElementById("qr-result").value = qrCodeMessage;
+                    stopScan();
+
+                    // 👉 다음 단계: QR 재고 조회로 연결
+                    // location.href = "/m/qr/inventory?location=" + encodeURIComponent(qrCodeMessage);
+                }
+            );
+        }
+    }).catch(err => {
+        alert("카메라 접근 실패: " + err);
+    });
+}
+
+function stopScan() {
+    if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+            html5QrCode.clear();
+        });
+    }
+}
+</script>
+
+</body>
+</html>
