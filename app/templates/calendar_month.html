@@ -1,11 +1,41 @@
-<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8">
-  <title>월간 달력</title>
-</head>
-<body>
-  <h2>◀ {{ year }}년 {{ month }}월 ▶</h2>
-  <div>월간 달력 영역 (여기에 날짜 그리기)</div>
-</body>
-</html>
+{% extends "_layout_calendar.html" %}
+{% block body %}
+
+<div class="cal-wrap">
+  <div class="cal-header">
+    <a class="cal-nav" href="/page/calendar/month?year={{ prev_year }}&month={{ prev_month }}" aria-label="이전달">◀</a>
+    <div class="cal-title">{{ year }}년 {{ month }}월</div>
+    <a class="cal-nav" href="/page/calendar/month?year={{ next_year }}&month={{ next_month }}" aria-label="다음달">▶</a>
+
+    <div class="cal-actions">
+      <a class="cal-btn" href="/page/calendar/month" title="이번달">오늘(월)</a>
+      <a class="cal-btn" href="/page/calendar?date={{ today }}" title="오늘 상세">오늘 상세</a>
+    </div>
+  </div>
+
+  <div class="cal-weekdays">
+    <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+  </div>
+
+  <div class="cal-grid">
+    {% for week in weeks %}
+      {% for day in week %}
+        <a class="cal-cell {% if day.is_other_month %}other{% endif %} {% if day.is_today %}today{% endif %}"
+           href="/page/calendar?date={{ day.date }}">
+          <div class="cal-daynum">{{ day.day }}</div>
+          {% if day.memos and day.memos|length > 0 %}
+            <ul class="cal-memos">
+              {% for m in day.memos %}
+                <li>{{ m }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </a>
+      {% endfor %}
+    {% endfor %}
+  </div>
+
+  <div class="cal-footnote">※ 날짜 칸 클릭 → 해당 날짜 상세(등록/수정). 메모는 기본 4줄 표시</div>
+</div>
+
+{% endblock %}

@@ -137,7 +137,8 @@ def k_hist():
 
 @app.get("/달력")
 def k_cal():
-    return RedirectResponse("/page/calendar", status_code=307)
+    # 달력 메뉴는 월간 달력으로 진입
+    return RedirectResponse("/page/calendar/month", status_code=307)
 
 @app.get("/관리자")
 def k_admin():
@@ -578,42 +579,55 @@ def api_calendar(action: str = Form("add"), id: int = Form(0), date: str = Form(
     return RedirectResponse("/page/calendar?date="+date, status_code=303)
 
 @app.get("/page/calendar/month", response_class=HTMLResponse)
-def page_calendar_month(request: Request, year: int, month: int):
-    import calendar, datetime
+def page_calendar_month(
+    request: Request,
+    year: int = Query(default=datetime.date.today().year),
+    month: int = Query(default=datetime.date.today().month),
+):
+    """월간 달력: 간단 메모용 (칸당 최대 4줄 표시)"""
+    import calendar
+
     db = get_db()
     cal = calendar.Calendar(6)  # 일요일 시작
-    days = []
-    today = datetime.date.today()
+    today = datetime.now().date()
 
+    days = []
     for d in cal.itermonthdates(year, month):
-        memos = db.execute(
+        rows = db.execute(
             "SELECT memo FROM calendar_memo WHERE date=? ORDER BY id",
             (d.isoformat(),)
         ).fetchall()
+        memos = [r[0] for r in rows][:4]  # ✅ 4줄만
+        days.append(
+            {
+                "date": d,
+                "memos": memos,
+                "in_month": (d.month == month),
+                "is_today": (d == today),
+                "is_weekend": (d.weekday() >= 5),
+            }
+        )
+    db.close()
 
-        days.append({
-            "date": d,
-            "memos": memos,
-            "is_today": d == today,
-            "is_weekend": d.weekday() >= 5
-        })
+    # 7일 단위로 주(week) 분리
+    weeks = [days[i : i + 7] for i in range(0, len(days), 7)]
 
-    prev_month = month - 1 or 12
+    prev_month = 12 if month == 1 else month - 1
     prev_year = year - 1 if month == 1 else year
-    next_month = month + 1 if month < 12 else 1
+    next_month = 1 if month == 12 else month + 1
     next_year = year + 1 if month == 12 else year
 
     return templates.TemplateResponse(
         "calendar_month.html",
         {
             "request": request,
-            "days": days,
+            "weeks": weeks,
             "year": year,
             "month": month,
             "prev_year": prev_year,
             "prev_month": prev_month,
             "next_year": next_year,
-            "next_month": next_month
-        }
+            "next_month": next_month,
+        },
     )
 
