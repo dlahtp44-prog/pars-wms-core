@@ -22,6 +22,24 @@ app = FastAPI(title="PARS WMS")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
+# =========================
+# Mobile Routes
+# =========================
+@app.get("/m", response_class=HTMLResponse)
+def mobile_menu(request: Request):
+    return templates.TemplateResponse(
+        "mobile_menu.html",
+        {"request": request}
+    )
+
+@app.get("/m/qr", response_class=HTMLResponse)
+def mobile_qr(request: Request):
+    return templates.TemplateResponse(
+        "mobile/qr_scan.html",
+        {"request": request}
+    )
+
+
 # in-memory download store (token -> file path)
 app.state.downloads = {}
 
