@@ -5,6 +5,9 @@
     <title>QR 스캔</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- 🔑 절대경로 기준 (모바일 필수) -->
+    <base href="https://pars-wms-core-production.up.railway.app/">
+
     <!-- QR 라이브러리 -->
     <script src="https://unpkg.com/html5-qrcode"></script>
 
@@ -38,8 +41,8 @@
 <div id="reader"></div>
 <div class="hint">QR을 인식하면 자동으로 재고 화면으로 이동합니다.</div>
 
-<!-- 🔑 서버 redirect용 form -->
-<form id="submitForm" method="POST" action="/m/qr/submit">
+<!-- 🔑 서버 redirect용 form (절대경로) -->
+<form id="submitForm" method="POST" action="https://pars-wms-core-production.up.railway.app/m/qr/submit">
     <input type="hidden" name="location" id="location">
 </form>
 
@@ -76,7 +79,7 @@ function startScan() {
                 const location = extractLocation(qrText);
                 document.getElementById("location").value = location;
 
-                // 카메라 종료 후 서버로 submit
+                // 카메라 완전 종료 후 서버로 POST
                 qr.stop().then(() => {
                     qr.clear();
                     document.getElementById("submitForm").submit();
