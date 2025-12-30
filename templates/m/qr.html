@@ -1,6 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>QR 스캔</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<html><body>
-<h2>QR 스캔</h2>
-<video id="camera"></video>
-<script src="/static/js/qr-camera.js"></script>
-</body></html>
+    <!-- 절대경로 기준 (iOS 필수) -->
+    <base href="https://pars-wms-core-production.up.railway.app/">
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 12px;
+        }
+        #reader {
+            width: 100%;
+            max-width: 360px;
+            margin: 0 auto;
+        }
+        .hint {
+            margin-top: 12px;
+            color: #666;
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<h2>📷 QR 스캔</h2>
+
+<div id="reader"></div>
+<div class="hint">QR을 인식하면 자동으로 재고 조회 화면으로 이동합니다.</div>
+
+<script>
+let html5QrCode = null;
+
+/**
+ * QR 값 정규화
+ * - URL QR → 마지막 path
+ * - 텍스트 QR → 그대로
+ */
+function extractLocation(text) {
+    if (!text) return "";
+
+    if (text.startsWith("http")) {
+        const parts = text.split("/");
+        return parts[parts.length - 1];
+    }
+    return text;
+}
+
+function startScan() {
+    html5QrCode = new Html5Qrcode("reader");
+
+    Html5Qrcode.getCameras().then(devices => {
+        if (!devices || devices.length === 0) {
+            alert("카메라를 찾을 수 없습니다.");
+            return;
+        }
+
+        html5QrCode.start(
+            devices[0].id,
+            { fps: 10, qrbox: 250 },
+            qrText => {
+                const location = extractLocation(qrText);
+
+                // 스캔 중지
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                });
+
+                // 🔥 핵심: 즉시 재고 조회 화면으로 이동
+                window.location.href =
+                    "https://pars-wms-core-production.up.railway.app/m/qr/inventory?location="
+                    + encodeURIComponent(location);
+            }
+        );
+    }).catch(err => {
+        alert("카메라 접근 실패: " + err);
+    });
+}
+
+// 페이지 로드시 바로 스캔 시작
+window.onload = startScan;
+</script>
+
+</body>
+</html>
