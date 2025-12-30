@@ -201,6 +201,43 @@ def get_calendar_memos_for_month(year: int, month: int) -> Dict[str, List[Dict[s
 def _norm(s: str) -> str:
     return (s or "").strip()
 
+def _hnorm(s: str) -> str:
+    """Header normalizer: trims, removes spaces, uppercases ASCII tokens."""
+    s = _norm(s).replace(" ", "")
+    if re.fullmatch(r"[A-Za-z0-9_]+", s or ""):
+        s = s.upper()
+    return s
+
+# Common header aliases (after _hnorm)
+HEADER_ALIASES = {
+    "위치": "로케이션",
+    "LOCATION": "로케이션",
+    "LOC": "로케이션",
+    "품목코드": "품번",
+    "ITEMCODE": "품번",
+    "ITEM_CODE": "품번",
+    "SKU": "품번",
+    "품목명": "품명",
+    "ITEMNAME": "품명",
+    "ITEM_NAME": "품명",
+    "PRODUCT": "품명",
+    "LOTNO": "LOT",
+    "BATCH": "LOT",
+    "BATCHNO": "LOT",
+    "SPEC": "규격",
+    "SIZE": "규격",
+    "DIM": "규격",
+    "QTY": "수량",
+    "QUANTITY": "수량",
+    "AMOUNT": "수량",
+    "REMARK": "비고",
+    "MEMO": "비고",
+    "NOTE": "비고",
+    "BRAND": "브랜드",
+    "FROM": "출발로케이션",
+    "TO": "도착로케이션",
+}
+
 def _read_upload_bytes(file: UploadFile) -> bytes:
     return file.file.read()
 
@@ -231,7 +268,7 @@ async def parse_inbound_xlsx(file: UploadFile) -> Dict[str, Any]:
     except Exception:
         raise HTTPException(status_code=400, detail="엑셀 파일(.xlsx)만 업로드 가능합니다.")
     ws = wb.active
-    header = [ _norm(str(x)) for x in next(_sheet_rows(ws)) ]
+    header = [ HEADER_ALIASES.get(_hnorm(str(x)), _hnorm(str(x))) for x in next(_sheet_rows(ws)) ]
     col_map = {h: idx for idx, h in enumerate(header) if h}
     required = ["로케이션","품번","품명","LOT","규격","수량"]
     missing = [c for c in required if c not in col_map]
