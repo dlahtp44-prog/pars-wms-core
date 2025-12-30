@@ -165,6 +165,7 @@ async def page_inbound_excel(request: Request, file: UploadFile = File(...)):
     token = None
     if report.get("error_xlsx_bytes"):
         token = _save_download_bytes("xlsx", report["error_xlsx_bytes"])
+    report["errors_pretty"] = json.dumps(report.get("errors", []), ensure_ascii=False, indent=2)
     return templates.TemplateResponse("excel_result.html", {
         "request": request, "title": "입고 엑셀 업로드 결과", "report": report, "download_token": token,
         "back_url": "/page/inbound"
@@ -176,6 +177,7 @@ async def page_outbound_excel(request: Request, file: UploadFile = File(...)):
     token = None
     if report.get("error_xlsx_bytes"):
         token = _save_download_bytes("xlsx", report["error_xlsx_bytes"])
+    report["errors_pretty"] = json.dumps(report.get("errors", []), ensure_ascii=False, indent=2)
     return templates.TemplateResponse("excel_result.html", {
         "request": request, "title": "출고 엑셀 업로드 결과", "report": report, "download_token": token,
         "back_url": "/page/outbound"
@@ -187,6 +189,7 @@ async def page_move_excel(request: Request, file: UploadFile = File(...)):
     token = None
     if report.get("error_xlsx_bytes"):
         token = _save_download_bytes("xlsx", report["error_xlsx_bytes"])
+    report["errors_pretty"] = json.dumps(report.get("errors", []), ensure_ascii=False, indent=2)
     return templates.TemplateResponse("excel_result.html", {
         "request": request, "title": "이동 엑셀 업로드 결과", "report": report, "download_token": token,
         "back_url": "/page/move"
@@ -335,6 +338,9 @@ async def qr_move_commit(request: Request):
             errors.append({"row": p, "error": str(e)})
 
     report = {"success": moved, "failed": len(errors), "errors": errors, "fail_token": None}
+    report["errors_pretty"] = json.dumps(report.get("errors", []), ensure_ascii=False, indent=2)
+    report["errors_pretty"] = json.dumps(report.get("errors", []), ensure_ascii=False, indent=2)
+
     return templates.TemplateResponse("excel_result.html", {"request": request, "report": report})
 
 @app.get("/page/labels/locations")
