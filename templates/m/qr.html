@@ -5,10 +5,6 @@
     <title>QR 스캔</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- 🔑 절대경로 기준 (모바일 필수) -->
-    <base href="https://pars-wms-core-production.up.railway.app/">
-
-    <!-- QR 라이브러리 -->
     <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
@@ -32,6 +28,13 @@
             font-size: 14px;
             color: #666;
         }
+        #submitBtn {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            margin-top: 16px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -39,18 +42,19 @@
 <h2>📷 QR 스캔</h2>
 
 <div id="reader"></div>
-<div class="hint">QR을 인식하면 자동으로 재고 화면으로 이동합니다.</div>
+<div class="hint">QR 인식 후 재고 조회 버튼이 나타납니다.</div>
 
-<!-- 🔑 서버 redirect용 form (절대경로) -->
-<form id="submitForm" method="POST" action="https://pars-wms-core-production.up.railway.app/m/qr/submit">
+<form method="GET" action="/m/qr/inventory">
     <input type="hidden" name="location" id="location">
+    <button id="submitBtn" type="submit">
+        재고 조회
+    </button>
 </form>
 
 <script>
 let qr = null;
-let submitted = false;
+let scanned = false;
 
-// QR 값에서 로케이션 코드만 추출
 function extractLocation(text) {
     if (!text) return "";
     if (text.startsWith("http")) {
@@ -64,7 +68,7 @@ function startScan() {
     qr = new Html5Qrcode("reader");
 
     Html5Qrcode.getCameras().then(devices => {
-        if (!devices || devices.length === 0) {
+        if (!devices.length) {
             alert("카메라를 찾을 수 없습니다.");
             return;
         }
@@ -73,25 +77,21 @@ function startScan() {
             devices[0].id,
             { fps: 10, qrbox: 250 },
             qrText => {
-                if (submitted) return;
-                submitted = true;
+                if (scanned) return;
+                scanned = true;
 
                 const location = extractLocation(qrText);
                 document.getElementById("location").value = location;
 
-                // 카메라 완전 종료 후 서버로 POST
                 qr.stop().then(() => {
                     qr.clear();
-                    document.getElementById("submitForm").submit();
+                    document.getElementById("submitBtn").style.display = "block";
                 });
             }
         );
-    }).catch(err => {
-        alert("카메라 접근 실패: " + err);
     });
 }
 
-// 페이지 열리면 바로 스캔 시작
 window.onload = startScan;
 </script>
 
