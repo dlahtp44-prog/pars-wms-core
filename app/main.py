@@ -38,6 +38,10 @@ app.include_router(mobile_home.router)
 app.include_router(mobile_qr.router)
 app.include_router(qr_inventory_router)
 
+from app.pages import mobile_qr_inventory
+app.include_router(mobile_qr_inventory.router)
+
+
 
 # =========================
 # 상태 저장 (다운로드)
