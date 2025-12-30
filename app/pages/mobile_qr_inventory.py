@@ -9,6 +9,7 @@ templates = Jinja2Templates(directory="app/templates")
 @router.get("/m/qr/inventory", response_class=HTMLResponse)
 def mobile_qr_inventory(request: Request, location: str):
     rows = search_inventory(location=location)
+
     return templates.TemplateResponse(
         "m/qr_inventory.html",
         {
