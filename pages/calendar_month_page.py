@@ -1,65 +1,66 @@
-from fastapi import APIRouter, Query, Request
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, Request, Form
 from fastapi.templating import Jinja2Templates
-from datetime import date, datetime
+from app.core.paths import TEMPLATES_DIR
+from fastapi.responses import RedirectResponse
+from datetime import datetime
+from zoneinfo import ZoneInfo
 import calendar as _cal
 
-from app.db import get_db
+from app.db import get_db, now_kst_iso
 
-router = APIRouter(prefix="/page/calendar")
-templates = Jinja2Templates(directory="app/templates")
+router = APIRouter(prefix="/page/calendar", tags=["page-calendar"])
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+
+def _month_grid(year: int, month: int):
+    cal = _cal.Calendar(firstweekday=6)  # Sunday
+    return cal.monthdatescalendar(year, month)
 
 @router.get("/month")
-def calendar_month(
-    request: Request,
-    year: int | None = Query(default=None),
-    month: int | None = Query(default=None),
-):
-    today = date.today()
-    y = year or today.year
-    m = month or today.month
+def calendar_month(request: Request, year: int, month: int, ymd: str = ""):
+    grid = _month_grid(year, month)
+    # memos count per day in month
+    conn=get_db()
+    cur=conn.cursor()
+    start=f"{year:04d}-{month:02d}-01"
+    # end month
+    last_day=_cal.monthrange(year, month)[1]
+    end=f"{year:04d}-{month:02d}-{last_day:02d}"
+    cur.execute("SELECT ymd, COUNT(*) as c FROM calendar_memo WHERE ymd BETWEEN ? AND ? GROUP BY ymd", (start, end))
+    counts={row["ymd"]: row["c"] for row in cur.fetchall()}
 
-    # if missing params, redirect to canonical URL to avoid 422 and keep browser shareable
-    if year is None or month is None:
-        return RedirectResponse(url=f"/page/calendar/month?year={y}&month={m}", status_code=307)
+    selected = ymd or datetime.now(ZoneInfo("Asia/Seoul")).strftime("%Y-%m-%d")
+    cur.execute("SELECT id,ymd,author,memo,created_at FROM calendar_memo WHERE ymd=? ORDER BY id DESC", (selected,))
+    memos=cur.fetchall()
+    conn.close()
 
-    # build weeks matrix (list of weeks, each week list of 7 day numbers or 0)
-    cal = _cal.Calendar(firstweekday=6)  # Sunday=6 so grid starts with Sun
-    weeks = cal.monthdayscalendar(y, m)
+    prev_y, prev_m = (year-1, 12) if month==1 else (year, month-1)
+    next_y, next_m = (year+1, 1) if month==12 else (year, month+1)
 
-    # fetch memos for this month
-    ym_prefix = f"{y:04d}-{m:02d}-"
-    with get_db() as conn:
-        cur = conn.cursor()
-        rows = cur.execute(
-            "SELECT ymd, author, memo FROM calendar_memo WHERE ymd LIKE ? ORDER BY ymd, id",
-            (ym_prefix + "%",),
-        ).fetchall()
+    return templates.TemplateResponse("calendar_month.html", {
+        "request": request,
+        "title": "달력(월간)",
+        "year": year,
+        "month": month,
+        "grid": grid,
+        "counts": counts,
+        "selected": selected,
+        "memos": memos,
+        "prev_y": prev_y, "prev_m": prev_m,
+        "next_y": next_y, "next_m": next_m,
+    })
 
-    memos_by_day: dict[int, list[dict]] = {}
-    for r in rows:
-        try:
-            d = int(r["ymd"].split("-")[2])
-        except Exception:
-            continue
-        memos_by_day.setdefault(d, []).append({"author": r.get("author",""), "memo": r.get("memo","")})
+@router.post("/memo/add")
+def add_memo(year: int = Form(...), month: int = Form(...), ymd: str = Form(...), author: str = Form(""), memo: str = Form(...)):
+    memo = (memo or "").strip()
+    if not memo:
+        return RedirectResponse(url=f"/page/calendar/month?year={year}&month={month}", status_code=303)
 
-    prev_y, prev_m = (y - 1, 12) if m == 1 else (y, m - 1)
-    next_y, next_m = (y + 1, 1) if m == 12 else (y, m + 1)
-
-    return templates.TemplateResponse(
-        "calendar_month.html",
-        {
-            "request": request,
-            "title": "달력(월간)",
-            "year": y,
-            "month": m,
-            "weeks": weeks,
-            "memos_by_day": memos_by_day,
-            "prev_year": prev_y,
-            "prev_month": prev_m,
-            "next_year": next_y,
-            "next_month": next_m,
-            "today_ymd": today.strftime("%Y-%m-%d"),
-        },
+    conn=get_db()
+    cur=conn.cursor()
+    cur.execute(
+        "INSERT INTO calendar_memo(ymd,author,memo,created_at) VALUES (?,?,?,?)",
+        (ymd, author.strip(), memo, now_kst_iso()),
     )
+    conn.commit()
+    conn.close()
+    return RedirectResponse(url=f"/page/calendar/month?year={year}&month={month}&ymd={ymd}", status_code=303)
