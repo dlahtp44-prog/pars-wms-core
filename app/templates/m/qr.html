@@ -33,14 +33,23 @@
 
 <div id="reader"></div>
 
-<input type="text" id="qr-result" placeholder="스캔 결과" readonly>
+<!-- 🔑 핵심: form GET 방식 -->
+<form method="GET" action="/m/qr/inventory">
+    <input
+        type="text"
+        id="location"
+        name="location"
+        placeholder="스캔 결과"
+        readonly
+        required
+    >
+    <button type="submit">재고 조회</button>
+</form>
 
 <button onclick="startScan()">스캔 시작</button>
-<button onclick="goInventory()">재고 조회</button>
 
 <script>
 let html5QrCode = null;
-let scannedLocation = "";
 
 // QR 값에서 로케이션 코드만 추출
 function extractLocation(text) {
@@ -67,19 +76,11 @@ function startScan() {
             devices[0].id,
             { fps: 10, qrbox: 250 },
             qrText => {
-                scannedLocation = extractLocation(qrText);
-                document.getElementById("qr-result").value = scannedLocation;
+                const locationCode = extractLocation(qrText);
 
-                // 카메라만 정지 (이동 안 함)
+                // 🔑 input에 값만 넣는다 (이동 ❌)
+                document.getElementById("location").value = locationCode;
+
+                // 카메라 종료
                 html5QrCode.stop().then(() => {
-                    html5QrCode.clear();
-                    html5QrCode = null;
-                });
-            }
-        );
-    }).catch(err => {
-        alert("카메라 접근 실패: " + err);
-    });
-}
-
-// 🔑 사용자 클릭 → Saf
+                    html5QrCode.cle
