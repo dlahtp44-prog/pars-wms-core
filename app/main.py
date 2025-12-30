@@ -41,6 +41,29 @@ app.include_router(qr_inventory_router)
 from app.pages import mobile_qr_inventory
 app.include_router(mobile_qr_inventory.router)
 
+@app.get("/m/qr/inventory", response_class=HTMLResponse)
+def mobile_qr_inventory(request: Request, location: str):
+
+    # 1️⃣ 기본 정리
+    location = location.strip()
+
+    # 2️⃣ 대소문자/공백/URL 인코딩 대비
+    location = location.replace(" ", "")
+
+    # 3️⃣ 부분검색 허용 (PC와 동일하게)
+    rows = search_inventory(
+        location=location,
+        item_code=""
+    )
+
+    return templates.TemplateResponse(
+        "mobile/qr_inventory.html",
+        {
+            "request": request,
+            "location": location,
+            "rows": rows
+        }
+    )
 
 
 # =========================
