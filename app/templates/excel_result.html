@@ -1,18 +1,20 @@
 {% extends "_layout.html" %}
 {% block body %}
-<h1 class="h1 center">{{title}}</h1>
-<a class="back" href="{{back_url}}">← 돌아가기</a>
-
 <div class="card">
-  <p>성공: <b>{{report.ok}}</b> 건 / 실패: <b>{{report.fail}}</b> 건</p>
+  <h3>엑셀 업로드 결과</h3>
 
-  {% if download_token %}
-    <a class="btn outline" href="/download/{{download_token}}">실패행 엑셀 다운로드</a>
+  <p>성공: {{ report.success }}건 / 실패: {{ report.failed }}건</p>
+
+  {% if report.errors %}
+  <h4>오류 상세</h4>
+  <pre class="pre">{{ report.errors | tojson(indent=2) }}</pre>
   {% endif %}
 
-  {% if report.errors and report.errors|length > 0 %}
-    <h2 class="h2 mt">오류(최대 50건)</h2>
-    <pre class="pre">{{ report.errors | tojson(indent=2, ensure_ascii=False) }}</pre>
+  {% if report.fail_token %}
+  <a class="btn" href="/download/{{ report.fail_token }}">실패행 엑셀 다운로드</a>
   {% endif %}
+
+  <div class="hr"></div>
+  <a class="link" href="javascript:history.back()">← 돌아가기</a>
 </div>
 {% endblock %}
