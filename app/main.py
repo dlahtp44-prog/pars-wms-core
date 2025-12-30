@@ -6,6 +6,14 @@ from datetime import date, datetime
 from typing import Optional, List, Dict, Any
 import os, uuid
 
+from app.pages import mobile_home, mobile_qr
+from app.routers import qr_inventory
+
+app.include_router(mobile_home.router)
+app.include_router(mobile_qr.router)
+app.include_router(qr_inventory.router)
+
+
 from .db import (
     init_db, add_inbound, add_outbound, add_move,
     search_inventory, get_history, upsert_calendar_memo,
