@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>QR 재고 조회</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 12px;
+            margin: 0;
+        }
+        h2 {
+            margin-bottom: 8px;
+        }
+        .loc {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+        .item {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .row {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        .label {
+            color: #555;
+            font-weight: bold;
+        }
+        .back {
+            display: block;
+            margin-top: 20px;
+            padding: 12px;
+            text-align: center;
+            background: #f2f2f2;
+            text-decoration: none;
+            color: #000;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>📦 QR 재고 조회</h2>
+<div class="loc">위치 : {{ location }}</div>
+
+{% if rows %}
+    {% for r in rows %}
+        <div class="item">
+            <div class="row"><span class="label">품번</span> : {{ r.item_code }}</div>
+            <div class="row"><span class="label">품명</span> : {{ r.item_name }}</div>
+            <div class="row"><span class="label">LOT</span> : {{ r.lot }}</div>
+            <div class="row"><span class="label">규격</span> : {{ r.spec }}</div>
+            <div class="row"><span class="label">수량</span> : {{ r.qty }}</div>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>재고가 없습니다.</p>
+{% endif %}
+
+<a class="back" href="/m/qr">← 다시 스캔</a>
+
+</body>
+</html>
