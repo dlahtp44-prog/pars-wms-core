@@ -1,48 +1,43 @@
-{% extends "_layout.html" %}
+{% extends "base.html" %}
 {% block body %}
-<div class="header">이력조회</div>
+<h1>이력조회</h1>
 
-<div class="card sheet-card">
-  <div class="sheet-actions">
-    <a class="link" href="/">← 홈</a>
-    <a class="link" href="/api/history?limit={{ limit }}">API 보기</a>
+<div class="badge"><a href="/" style="text-decoration:none;color:var(--primary);font-weight:600;">← 홈</a></div>
+
+<div class="card" style="padding:16px;">
+  <div class="grid">
+    <button class="btn" id="btn">새로고침</button>
+    <a class="btn-outline" id="dl" href="/page/history.xlsx?limit=200">엑셀 다운로드</a>
+    <div id="table"></div>
   </div>
-
-  <table class="grid">
-    <thead>
-      <tr>
-        <th>시간</th>
-        <th>구분</th>
-        <th>로케이션</th>
-        <th>품번</th>
-        <th>LOT</th>
-        <th>규격</th>
-        <th>브랜드</th>
-        <th>수량</th>
-        <th>비고</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for r in rows %}
-      <tr>
-        <td class="small">{{ r['ts'] }}</td>
-        <td><span class="badge">{{ r['type'] }}</span></td>
-        <td class="small">{{ r['src'] }}{% if r['dst'] %} → {{ r['dst'] }}{% endif %}</td>
-        <td>{{ r['item'] }}</td>
-        <td>{{ r['lot'] }}</td>
-        <td>{{ r['spec'] }}</td>
-        <td>{{ r['brand'] }}</td>
-        <td>{{ r['qty'] }}</td>
-        <td class="small">{{ r['memo'] }}</td>
-      </tr>
-      {% endfor %}
-      {% if rows|length == 0 %}
-      <tr><td colspan="9" class="small" style="padding:14px;">이력 데이터가 없습니다.</td></tr>
-      {% endif %}
-    </tbody>
-  </table>
-
-  <div class="hr"></div>
-  <a class="btn-outline full" href="/api/history.xlsx?limit={{ limit }}">엑셀다운로드</a>
 </div>
+{% endblock %}
+{% block script %}
+<script>
+function esc(s){return String(s??'').replace(/[&<>"]/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));}
+async function load(){
+  const r = await fetch('/api/history?limit=200');
+  const t = await r.json();
+  const rows = t.rows || [];
+  let html = '<div style="overflow:auto;"><table style="width:100%;border-collapse:collapse;">';
+  const cols = ['ts','kind','location','src_location','item_code','item_name','lot','spec','brand','qty','note'];
+  const labels = ['시간','구분','로케이션','출발','품번','품명','LOT','규격','브랜드','수량','비고'];
+  html += '<thead><tr>';
+  for(let i=0;i<cols.length;i++){ html += '<th style="text-align:left;padding:10px;border-bottom:1px solid #e5e7eb;">'+labels[i]+'</th>'; }
+  html += '</tr></thead><tbody>';
+  if(rows.length===0){
+    html += '<tr><td colspan="'+cols.length+'" style="padding:12px;color:#667085;">이력 데이터가 없습니다.</td></tr>';
+  }else{
+    for(const row of rows){
+      html += '<tr>';
+      for(const c of cols){ html += '<td style="padding:10px;border-bottom:1px solid #f0f2f5;white-space:nowrap;">'+esc(row[c])+'</td>'; }
+      html += '</tr>';
+    }
+  }
+  html += '</tbody></table></div>';
+  document.getElementById('table').innerHTML = html;
+}
+document.getElementById('btn').addEventListener('click', load);
+load();
+</script>
 {% endblock %}
