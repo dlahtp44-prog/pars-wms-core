@@ -1,36 +1,40 @@
 {% extends "base.html" %}
 {% block body %}
-<h1>출고등록</h1>
+<div class="title">출고등록</div>
+<a class="toplink" href="/">← 홈</a>
 
-<div class="badge"><a href="/" style="text-decoration:none;color:var(--primary);font-weight:600;">← 홈</a></div>
+{% if msg %}
+  <div class="card" style="margin-bottom:12px;"><div class="card-bd"><b>{{ msg }}</b></div></div>
+{% endif %}
 
-<div class="card" style="padding:16px;">
-  <form id="f">
-    <div class="grid">
-      <label class="form-row"><span>로케이션</span><input class="input" name="location" placeholder="예: B01-01-02-A" required></label>
-      <label class="form-row"><span>품번</span><input class="input" name="item_code" placeholder="예: 123456" required></label>
-      <label class="form-row"><span>품명</span><input class="input" name="item_name" placeholder="예: ABCDEF" required></label>
-      <label class="form-row"><span>LOT</span><input class="input" name="lot" placeholder="예: H505" required></label>
-      <label class="form-row"><span>규격</span><input class="input" name="spec" placeholder="예: 600*1200" required></label>
-      <label class="form-row"><span>브랜드</span><input class="input" name="brand" placeholder="예: FLOIM"></label>
-      <label class="form-row"><span>수량</span><input class="input" name="qty" type="number" min="1" placeholder="예: 10" required></label>
-      <label class="form-row"><span>비고</span><input class="input" name="note" placeholder=""></label>
-      <button class="btn" type="submit">출고 저장</button>
-      <div id="msg" class="badge"></div>
-    </div>
-  </form>
+<div class="card">
+  <div class="card-hd">수기 출고</div>
+  <div class="card-bd">
+    <form class="form" method="post" action="/page/outbound/save">
+      <div class="row"><label>로케이션</label><input name="location" placeholder="예: B01-01-02-A" required></div>
+      <div class="row"><label>품번</label><input name="item_code" placeholder="예: 123456" required></div>
+      <div class="row"><label>품명</label><input name="item_name" placeholder="예: ABCDEF" required></div>
+      <div class="row"><label>LOT</label><input name="lot" placeholder="예: H505" required></div>
+      <div class="row"><label>규격</label><input name="spec" placeholder="예: 600*1200" required></div>
+      <div class="row"><label>브랜드</label><input name="brand" placeholder="예: FLOIM"></div>
+      <div class="row"><label>수량</label><input name="qty" type="number" min="1" placeholder="예: 10" required></div>
+      <div class="row"><label>비고</label><input name="note" placeholder=""></div>
+      <button class="btn wide" type="submit">출고 저장</button>
+    </form>
+  </div>
 </div>
-{% endblock %}
-{% block script %}
-<script>
-document.getElementById('f').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const fd = new FormData(e.target);
-  const r = await fetch('/api/outbound', {method:'POST', body: fd});
-  const t = await r.json().catch(()=>({}));
-  const msg = document.getElementById('msg');
-  if(r.ok){ msg.textContent='저장 완료'; e.target.reset(); }
-  else{ msg.textContent='오류: ' + (t.detail || r.status); }
-});
-</script>
+
+<div class="hr"></div>
+
+<div class="card">
+  <div class="card-hd">엑셀 출고 업로드</div>
+  <div class="card-bd">
+    <div class="muted">필수 컬럼: 로케이션, 품번, 품명, LOT, 규격, 수량 / 옵션: 브랜드, 비고</div>
+    <div style="height:10px"></div>
+    <form class="form" method="post" action="/page/outbound/excel" enctype="multipart/form-data">
+      <input type="file" name="file" accept=".xlsx" required>
+      <button class="btn wide" type="submit">엑셀 업로드</button>
+    </form>
+  </div>
+</div>
 {% endblock %}

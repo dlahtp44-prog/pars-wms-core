@@ -1,10 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from app.core.paths import STATIC_DIR
 
 from app.db import init_db
-from app.pages import index, inbound_page, outbound_page, move_page, inventory_page, history_page, calendar_month_page, admin_page, mobile_home, korean_redirects, qr_page, download
-from app.routers import inbound_api, outbound_api, move_api, inventory_api, history_api, calendar_api
+from app.pages import (
+    home, inbound_page, outbound_page, move_page,
+    inventory_page, history_page,
+    calendar_page, calendar_month_page,
+    admin_page, download_page, qr_mobile
+)
+from app.routers import api_inbound, api_outbound, api_move
 
 app = FastAPI(title="PARS WMS")
 
@@ -16,33 +22,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# static
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+init_db()
 
-@app.on_event("startup")
-def _startup():
-    init_db()
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
-# pages
-app.include_router(index.router)
-app.include_router(mobile_home.router)
-app.include_router(qr_page.router)
-app.include_router(download.router)
+# Pages
+app.include_router(home.router)
 app.include_router(inbound_page.router)
 app.include_router(outbound_page.router)
 app.include_router(move_page.router)
 app.include_router(inventory_page.router)
 app.include_router(history_page.router)
+app.include_router(calendar_page.router)
 app.include_router(calendar_month_page.router)
 app.include_router(admin_page.router)
+app.include_router(download_page.router)
+app.include_router(qr_mobile.router)
 
-# korean shortcuts
-app.include_router(korean_redirects.router)
-
-# apis
-app.include_router(inbound_api.router)
-app.include_router(outbound_api.router)
-app.include_router(move_api.router)
-app.include_router(inventory_api.router)
-app.include_router(history_api.router)
-app.include_router(calendar_api.router)
+# APIs
+app.include_router(api_inbound.router)
+app.include_router(api_outbound.router)
+app.include_router(api_move.router)

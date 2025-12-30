@@ -1,84 +1,69 @@
-{% extends "_layout_calendar.html" %}
-{% block body_calendar %}
-<h1>달력(월간)</h1>
-<div class="badge"><a href="/" style="text-decoration:none;color:var(--primary);font-weight:600;">← 홈</a></div>
+{% extends "base.html" %}
+{% block body %}
+<div class="title">달력(월간)</div>
+<a class="toplink" href="/">← 홈</a>
 
-<div class="calendar-wrap" style="margin-top:10px;">
-  <div class="calendar-header">
-    <a href="/page/calendar/month?year={{ prev_year }}&month={{ prev_month }}">◀</a>
-    <span>{{ year }}년 {{ month }}월</span>
-    <a href="/page/calendar/month?year={{ next_year }}&month={{ next_month }}">▶</a>
-  </div>
+<div class="card">
+  <div class="card-bd" style="overflow:auto">
+    <div style="display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:10px;">
+      <a href="/page/calendar/month?year={{ prev_y }}&month={{ prev_m }}">◀</a>
+      <div style="font-weight:800;">{{ year }}년 {{ month }}월</div>
+      <a href="/page/calendar/month?year={{ next_y }}&month={{ next_m }}">▶</a>
+    </div>
 
-  <div class="calendar-grid">
-    {% set wds = ["일","월","화","수","목","금","토"] %}
-    {% for wd in wds %}
-      <div class="calendar-cell calendar-weekday">{{ wd }}</div>
-    {% endfor %}
-
-    {% for week in weeks %}
-      {% for d in week %}
-        <div class="calendar-cell">
-          {% if d != 0 %}
-            <div class="daynum">
-              <span>{{ d }}</span>
-              {% set ymd = "%04d-%02d-%02d"|format(year, month, d) %}
-              {% if ymd == today_ymd %}
-                <span class="tag-today">오늘</span>
-              {% endif %}
-            </div>
-
-            {% if memos_by_day.get(d) %}
-              {% for m in memos_by_day.get(d)[:3] %}
-                <div class="memo">
-                  {% if m.author %}<span class="author">[{{ m.author }}]</span> {% endif %}
-                  {{ m.memo }}
+    <table>
+      <thead><tr><th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th></tr></thead>
+      <tbody>
+        {% for week in grid %}
+          <tr>
+            {% for d in week %}
+              {% set ds = d.strftime("%Y-%m-%d") %}
+              <td style="min-width:110px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <a href="/page/calendar/month?year={{ year }}&month={{ month }}&ymd={{ ds }}"><b>{{ d.day }}</b></a>
+                  {% if counts.get(ds) %}
+                    <span class="badge">메모 {{ counts.get(ds) }}</span>
+                  {% endif %}
                 </div>
-              {% endfor %}
-              {% if memos_by_day.get(d)|length > 3 %}
-                <div class="memo author">+ {{ memos_by_day.get(d)|length - 3 }}건</div>
-              {% endif %}
-            {% else %}
-              <div class="memo author">-</div>
-            {% endif %}
-          {% endif %}
-        </div>
-      {% endfor %}
-    {% endfor %}
-  </div>
+                {% if ds == selected %}
+                  <div style="margin-top:6px;"><span style="background:#2563eb;color:#fff;border-radius:999px;padding:3px 8px;font-size:12px;">오늘</span></div>
+                {% else %}
+                  <div style="height:18px"></div>
+                {% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
 
-  <div class="memo-add">
-    <form id="memoForm">
-      <div class="grid">
-        <div class="form-row">
-          <span>날짜</span>
-          <input class="input" type="date" name="ymd" value="{{ today_ymd }}" required>
-        </div>
-        <div class="form-row">
-          <span>작성자</span>
-          <input class="input" name="author" placeholder="이름(선택)">
-        </div>
-        <div class="form-row">
-          <span>메모</span>
-          <textarea class="input" name="memo" rows="3" placeholder="메모 입력" required></textarea>
-        </div>
-        <button class="btn" type="submit">메모 추가</button>
-        <div id="msg" class="badge"></div>
-      </div>
+    <div class="hr"></div>
+
+    <form class="form" method="post" action="/page/calendar/memo/add">
+      <input type="hidden" name="year" value="{{ year }}">
+      <input type="hidden" name="month" value="{{ month }}">
+      <div class="row"><label>날짜</label><input name="ymd" value="{{ selected }}" required></div>
+      <div class="row"><label>작성자</label><input name="author" placeholder="이름(선택)"></div>
+      <div class="row"><label>메모</label><textarea name="memo" placeholder="메모 입력" required></textarea></div>
+      <button class="btn wide" type="submit">메모 추가</button>
     </form>
+
+    <div class="hr"></div>
+    <div style="font-weight:800;margin-bottom:10px;">메모 목록 ({{ selected }})</div>
+    {% if memos|length == 0 %}
+      <div class="muted">메모가 없습니다.</div>
+    {% endif %}
+    <ul class="menu-list">
+      {% for m in memos %}
+        <li class="menu-item" style="display:block">
+          <div style="display:flex;justify-content:space-between;gap:10px;">
+            <div><b>{{ m.author or "익명" }}</b> <span class="badge">{{ m.created_at }}</span></div>
+          </div>
+          <div style="margin-top:8px;white-space:pre-wrap">{{ m.memo }}</div>
+        </li>
+      {% endfor %}
+    </ul>
+
   </div>
 </div>
-{% endblock %}
-{% block script %}
-<script>
-document.getElementById('memoForm').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const fd = new FormData(e.target);
-  const r = await fetch('/api/calendar/memo', {method:'POST', body: fd});
-  const t = await r.json().catch(()=>({}));
-  const msg = document.getElementById('msg');
-  if(r.ok){ msg.textContent='저장 완료 (새로고침 됩니다)'; setTimeout(()=>location.reload(), 350); }
-  else{ msg.textContent='오류: ' + (t.detail || r.status); }
-});
-</script>
 {% endblock %}
