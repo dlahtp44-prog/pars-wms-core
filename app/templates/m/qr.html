@@ -30,11 +30,25 @@
 <script>
 let html5QrCode;
 
+// 🔥 핵심: QR 값에서 로케이션 코드만 추출
+function extractLocation(text) {
+    if (!text) return "";
+
+    // URL 형태면 마지막 경로만 사용
+    if (text.startsWith("http")) {
+        const parts = text.split("/");
+        return parts[parts.length - 1];
+    }
+
+    // 일반 텍스트면 그대로
+    return text;
+}
+
 function startScan() {
     html5QrCode = new Html5Qrcode("reader");
 
     Html5Qrcode.getCameras().then(devices => {
-        if (devices.length === 0) {
+        if (!devices.length) {
             alert("카메라를 찾을 수 없습니다.");
             return;
         }
@@ -43,11 +57,17 @@ function startScan() {
             devices[0].id,
             { fps: 10, qrbox: 250 },
             qrText => {
-                document.getElementById("qr-result").value = qrText;
+                const locationCode = extractLocation(qrText);
+
+                // 화면 표시
+                document.getElementById("qr-result").value = locationCode;
+
                 stopScan();
 
-                // ✅ QR → 재고 조회 페이지로 이동
-                location.href = "/m/qr/inventory?location=" + encodeURIComponent(qrText);
+                // ✅ 재고 조회 페이지로 이동
+                location.href =
+                    "/m/qr/inventory?location=" +
+                    encodeURIComponent(locationCode);
             }
         );
     }).catch(err => {
@@ -63,6 +83,3 @@ function stopScan() {
     }
 }
 </script>
-
-</body>
-</html>
