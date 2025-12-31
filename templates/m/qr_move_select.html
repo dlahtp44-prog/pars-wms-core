@@ -2,44 +2,77 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>도착 로케이션 QR</title>
+  <title>이동 상품 선택</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
 
-<h2>도착 로케이션 QR 스캔</h2>
-<div id="reader"></div>
+<h2>출발 로케이션: {{ from_location }}</h2>
 
-<form id="moveForm" method="post" action="/m/qr/move/complete">
+{% if rows %}
+<form id="selectForm">
   <input type="hidden" name="from_location" value="{{ from_location }}">
-  <input type="hidden" name="item_code" value="{{ item_code }}">
-  <input type="hidden" name="item_name" value="{{ item_name }}">
-  <input type="hidden" name="lot" value="{{ lot }}">
-  <input type="hidden" name="spec" value="{{ spec }}">
-  <input type="hidden" name="qty" value="{{ qty }}">
-  <input type="hidden" name="to_location" id="to_location">
+
+  <table border="1" width="100%">
+    <tr>
+      <th>선택</th><th>품번</th><th>품명</th><th>LOT</th><th>규격</th><th>재고</th>
+    </tr>
+
+    {% for r in rows %}
+    <tr>
+      <td>
+        <input type="radio" name="item"
+          value="{{ r.item_code }}||{{ r.item_name }}||{{ r.lot }}||{{ r.spec }}"
+          required>
+      </td>
+      <td>{{ r.item_code }}</td>
+      <td>{{ r.item_name }}</td>
+      <td>{{ r.lot }}</td>
+      <td>{{ r.spec }}</td>
+      <td>{{ r.qty }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <p>
+    이동 수량:
+    <input type="number" name="qty" min="1" required>
+  </p>
+
+  <button type="submit">도착 로케이션 QR 스캔</button>
 </form>
 
 <script>
-const qr = new Html5Qrcode("reader");
+document.getElementById("selectForm").addEventListener("submit", function(e){
+  e.preventDefault();
 
-function onScanSuccess(text) {
-  qr.stop().then(() => {
-    document.getElementById("to_location").value =
-      text.trim().replace(/\s+/g,"");
-    document.getElementById("moveForm").submit();
-  });
-}
+  const selected = document.querySelector("input[name='item']:checked");
+  const qty = document.querySelector("input[name='qty']").value;
 
-Html5Qrcode.getCameras().then(() => {
-  qr.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 250 },
-    onScanSuccess
-  );
+  if (!selected) {
+    alert("이동할 상품을 선택하세요");
+    return;
+  }
+
+  const [item_code, item_name, lot, spec] = selected.value.split("||");
+  const from_location = "{{ from_location }}";
+
+  const url =
+    "/m/qr/move/to" +
+    "?from_location=" + encodeURIComponent(from_location) +
+    "&item_code=" + encodeURIComponent(item_code) +
+    "&item_name=" + encodeURIComponent(item_name) +
+    "&lot=" + encodeURIComponent(lot) +
+    "&spec=" + encodeURIComponent(spec) +
+    "&qty=" + encodeURIComponent(qty);
+
+  window.location.href = url;
 });
 </script>
+
+{% else %}
+<p>이동 가능한 재고가 없습니다.</p>
+{% endif %}
 
 </body>
 </html>
