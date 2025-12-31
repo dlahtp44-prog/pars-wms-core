@@ -4,11 +4,13 @@
   <meta charset="UTF-8">
   <title>도착 로케이션 QR 스캔</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ✅ 딱 한 번만 로드 -->
   <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
 
-<h3>도착 로케이션 QR 스캔</h3>
+<h3>📸 도착 로케이션 QR 스캔</h3>
 <div id="reader" style="width:100%"></div>
 
 <form id="moveForm" method="post" action="/m/qr/move/complete">
@@ -17,42 +19,43 @@
   <input type="hidden" name="item_name" value="{{ item_name }}">
   <input type="hidden" name="lot" value="{{ lot }}">
   <input type="hidden" name="spec" value="{{ spec }}">
+  <input type="hidden" name="brand" value="{{ brand }}">
   <input type="hidden" name="qty" value="{{ qty }}">
   <input type="hidden" name="to_location" id="to_location">
 </form>
 
 <script>
-const qr = new Html5Qrcode("reader");
+  const qr = new Html5Qrcode("reader");
 
-qr.start(
-  { facingMode: "environment" },
-  { fps: 10, qrbox: 250 },
-  (decodedText) => {
-    qr.stop();
+  qr.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: 250 },
+    (decodedText) => {
+      qr.stop();
 
-    let location = decodedText.trim();
+      let location = decodedText.trim();
 
-    if (location.includes(":")) location = location.split(":").pop();
-    if (location.includes("|")) location = location.split("|").pop();
-    if (location.startsWith("http")) location = location.split("/").pop();
+      if (location.includes(":")) location = location.split(":").pop();
+      if (location.includes("|")) location = location.split("|").pop();
+      if (location.startsWith("http")) location = location.split("/").pop();
 
-    location = location.trim();
-    if (!location) {
-      alert("도착 로케이션 QR 인식 실패");
-      return;
+      location = location.trim();
+
+      if (!location) {
+        alert("도착 로케이션 QR 인식 실패");
+        return;
+      }
+
+      document.getElementById("to_location").value = location;
+
+      console.log("TO_LOCATION =", location);
+
+      // ✅ iOS Safari 안정화 (중요)
+      setTimeout(() => {
+        document.getElementById("moveForm").submit();
+      }, 100);
     }
-
-    const input = document.getElementById("to_location");
-    input.value = location;
-
-    console.log("TO_LOCATION SET =", input.value);
-
-    // ✅ iOS Safari 대응: 한 틱 늦게 submit
-    setTimeout(() => {
-      document.getElementById("moveForm").submit();
-    }, 100);
-  }
-);
+  );
 </script>
 
 </body>
