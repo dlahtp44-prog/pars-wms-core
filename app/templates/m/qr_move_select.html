@@ -1,30 +1,80 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>이동 수량 입력</title>
+  <meta charset="UTF-8">
+  <title>이동할 재고 선택</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: sans-serif; padding:12px; background:#f5f6f8; }
+    h2 { margin-bottom:10px; }
+    .item {
+      background:#fff;
+      border:1px solid #ddd;
+      border-radius:8px;
+      padding:12px;
+      margin-bottom:12px;
+    }
+    .item div { margin-bottom:4px; }
+    .qty {
+      width:100%;
+      padding:8px;
+      margin-top:6px;
+      font-size:15px;
+    }
+    .btn {
+      width:100%;
+      margin-top:10px;
+      padding:10px;
+      border:none;
+      border-radius:8px;
+      background:#0a7cff;
+      color:#fff;
+      font-size:15px;
+      font-weight:600;
+    }
+  </style>
 </head>
 <body>
 
-<h3>이동 수량 입력</h3>
+<h2>📦 이동할 재고 선택</h2>
 
-<form method="get" action="/m/qr/move/to">
-  <!-- 출발 위치 -->
-  <input type="hidden" name="from_location" value="{{ from_location }}">
+<div><b>출발 위치 :</b> {{ from_location }}</div>
 
-  <!-- 🔴 여기 4개가 핵심 -->
-  <input type="hidden" name="item_code" value="{{ item_code }}">
-  <input type="hidden" name="item_name" value="{{ item_name }}">
-  <input type="hidden" name="lot" value="{{ lot }}">
-  <input type="hidden" name="spec" value="{{ spec }}">
+{% if rows %}
+  {% for r in rows %}
+  <div class="item">
+    <div><b>품번</b> : {{ r.item_code }}</div>
+    <div><b>품명</b> : {{ r.item_name }}</div>
+    <div><b>LOT</b> : {{ r.lot }}</div>
+    <div><b>규격</b> : {{ r.spec }}</div>
+    <div><b>재고</b> : {{ r.qty }}</div>
 
-  <!-- 수량 -->
-  <label>이동 수량</label><br>
-  <input type="number" name="qty" min="1" required><br><br>
+    <form method="get" action="/m/qr/move/to">
+      <input type="hidden" name="from_location" value="{{ from_location }}">
+      <input type="hidden" name="item_code" value="{{ r.item_code }}">
+      <input type="hidden" name="item_name" value="{{ r.item_name }}">
+      <input type="hidden" name="lot" value="{{ r.lot }}">
+      <input type="hidden" name="spec" value="{{ r.spec }}">
 
-  <button type="submit">도착 로케이션 QR 스캔</button>
-</form>
+      <input
+        class="qty"
+        type="number"
+        name="qty"
+        min="1"
+        max="{{ r.qty }}"
+        placeholder="이동 수량 입력"
+        required
+      >
+
+      <button type="submit" class="btn">
+        도착 로케이션 QR 스캔
+      </button>
+    </form>
+  </div>
+  {% endfor %}
+{% else %}
+  <p>이동 가능한 재고가 없습니다.</p>
+{% endif %}
 
 </body>
 </html>
