@@ -20,7 +20,7 @@
         #reader {
             width: 100%;
             max-width: 360px;
-            margin: 0 auto;
+            margin: auto;
         }
         .hint {
             text-align: center;
@@ -34,7 +34,7 @@
 
 <h2>📷 QR 스캔</h2>
 <div id="reader"></div>
-<div class="hint">QR을 인식하면 자동으로 재고 조회로 이동합니다.</div>
+<div class="hint">QR 인식 시 자동으로 재고 조회로 이동합니다.</div>
 
 <script>
 let scanned = false;
@@ -51,7 +51,7 @@ function extractLocation(text) {
 const qr = new Html5Qrcode("reader");
 
 Html5Qrcode.getCameras().then(devices => {
-    if (!devices || devices.length === 0) {
+    if (!devices.length) {
         alert("카메라를 찾을 수 없습니다.");
         return;
     }
@@ -65,15 +65,12 @@ Html5Qrcode.getCameras().then(devices => {
 
             const location = extractLocation(qrText);
 
-            qr.stop().then(() => {
-                window.location.href =
-                    "/m/qr/inventory?location=" +
-                    encodeURIComponent(location);
-            });
+            // 🔥 스캔 즉시 재고 조회 이동
+            window.location.href =
+                "/m/qr/inventory?location=" +
+                encodeURIComponent(location);
         }
     );
-}).catch(err => {
-    alert("카메라 접근 실패: " + err);
 });
 </script>
 
