@@ -31,13 +31,28 @@ templates = Jinja2Templates(directory=TEMPLATES_DIR)
 # =========================
 # QR 전용 Router / Page (추가)
 # =========================
-from app.pages import mobile_home, mobile_qr
-from app.routers.qr_inventory import router as qr_inventory_router
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
-app.include_router(mobile_home.router)
-app.include_router(mobile_qr.router)
-app.include_router(qr_inventory_router)
+from app.logic import search_inventory
 
+app = FastAPI()
+templates = Jinja2Templates(directory="templates")
+
+# =========================
+# 모바일 홈
+# =========================
+@app.get("/m", response_class=HTMLResponse)
+def mobile_home(request: Request):
+    return templates.TemplateResponse(
+        "mobile/home.html",
+        {"request": request}
+    )
+
+# =========================
+# 모바일 QR 스캔
+# =========================
 @app.get("/m/qr", response_class=HTMLResponse)
 def mobile_qr(request: Request):
     return templates.TemplateResponse(
@@ -45,20 +60,13 @@ def mobile_qr(request: Request):
         {"request": request}
     )
 
-
-from app.pages import mobile_qr_inventory
-app.include_router(mobile_qr_inventory.router)
-
+# =========================
+# 모바일 QR 재고 조회
+# =========================
 @app.get("/m/qr/inventory", response_class=HTMLResponse)
 def mobile_qr_inventory(request: Request, location: str):
+    location = location.strip().replace(" ", "")
 
-    # 1️⃣ 기본 정리
-    location = location.strip()
-
-    # 2️⃣ 대소문자/공백/URL 인코딩 대비
-    location = location.replace(" ", "")
-
-    # 3️⃣ 부분검색 허용 (PC와 동일하게)
     rows = search_inventory(
         location=location,
         item_code=""
@@ -72,7 +80,6 @@ def mobile_qr_inventory(request: Request, location: str):
             "rows": rows
         }
     )
-
 
 # =========================
 # 상태 저장 (다운로드)
