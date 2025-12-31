@@ -1,62 +1,57 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>도착 로케이션 QR</title>
-<script src="https://unpkg.com/html5-qrcode"></script>
+  <meta charset="UTF-8">
+  <title>도착 로케이션 QR 스캔</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
 
 <h3>도착 로케이션 QR 스캔</h3>
-<div id="reader"></div>
+<div id="reader" style="width:100%"></div>
 
 <form id="moveForm" method="post" action="/m/qr/move/complete">
-  <input type="hidden" name="from_location" id="from_location" value="{{ from_location }}">
-  <input type="hidden" name="item_code" id="item_code" value="{{ item_code }}">
-  <input type="hidden" name="item_name" id="item_name" value="{{ item_name }}">
-  <input type="hidden" name="lot" id="lot" value="{{ lot }}">
-  <input type="hidden" name="spec" id="spec" value="{{ spec }}">
-  <input type="hidden" name="qty" id="qty" value="{{ qty }}">
+  <input type="hidden" name="from_location" value="{{ from_location }}">
+  <input type="hidden" name="item_code" value="{{ item_code }}">
+  <input type="hidden" name="item_name" value="{{ item_name }}">
+  <input type="hidden" name="lot" value="{{ lot }}">
+  <input type="hidden" name="spec" value="{{ spec }}">
+  <input type="hidden" name="qty" value="{{ qty }}">
   <input type="hidden" name="to_location" id="to_location">
 </form>
 
 <script>
-let submitted = false;
-
 const qr = new Html5Qrcode("reader");
 
 qr.start(
   { facingMode: "environment" },
   { fps: 10, qrbox: 250 },
   (decodedText) => {
-    if (submitted) return;
+    qr.stop();
 
     let location = decodedText.trim();
+
+    // QR 포맷 정리
     if (location.includes(":")) location = location.split(":").pop();
     if (location.includes("|")) location = location.split("|").pop();
     if (location.startsWith("http")) location = location.split("/").pop();
+
     location = location.trim();
 
     if (!location) {
-      alert("도착 로케이션 인식 실패");
+      alert("도착 로케이션 QR 인식 실패");
       return;
     }
 
-    // 🔥 POST 직전 값 재주입 (iOS 대응 핵심)
+    // ✅ 핵심: 반드시 값 세팅
     document.getElementById("to_location").value = location;
-    document.getElementById("from_location").value = "{{ from_location }}";
-    document.getElementById("item_code").value = "{{ item_code }}";
-    document.getElementById("item_name").value = "{{ item_name }}";
-    document.getElementById("lot").value = "{{ lot }}";
-    document.getElementById("spec").value = "{{ spec }}";
-    document.getElementById("qty").value = "{{ qty }}";
 
-    submitted = true;
+    // 디버그용 (지워도 됨)
+    console.log("TO_LOCATION =", location);
 
-    qr.stop().then(() => {
-      document.getElementById("moveForm").submit();
-    });
+    // ✅ submit
+    document.getElementById("moveForm").submit();
   }
 );
 </script>
