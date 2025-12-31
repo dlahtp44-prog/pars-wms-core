@@ -169,35 +169,19 @@ def mobile_qr_inventory(request: Request, location: str):
 # - Step1: 출발 로케이션 스캔
 # - Step2: 상품 선택 → 도착 로케이션 스캔 → 이동 처리
 # =========================
-# =========================
-# MOBILE QR 이동 (완성본)
-# =========================
-
 @app.get("/m/qr/move", response_class=HTMLResponse)
 def mobile_qr_move_from(request: Request):
-    return templates.TemplateResponse(
-        "m/qr_move_from.html",
-        {"request": request}
-    )
+    return templates.TemplateResponse("m/qr_move_from.html", {"request": request})
 
 
 @app.get("/m/qr/move/select", response_class=HTMLResponse)
-def mobile_qr_move_select(
-    request: Request,
-    from_location: str
-):
+def mobile_qr_move_select(request: Request, from_location: str):
     from_location = from_location.strip().replace(" ", "")
     rows = search_inventory(location=from_location, item_code="")
-
     return templates.TemplateResponse(
         "m/qr_move_select.html",
-        {
-            "request": request,
-            "from_location": from_location,
-            "rows": rows
-        }
+        {"request": request, "from_location": from_location, "rows": rows},
     )
-
 
 
 @app.get("/m/qr/move/to", response_class=HTMLResponse)
@@ -220,7 +204,7 @@ def mobile_qr_move_to(
             "lot": lot,
             "spec": spec,
             "qty": qty,
-        }
+        },
     )
 
 
@@ -235,18 +219,13 @@ def mobile_qr_move_complete(
     spec: str = Form(...),
     qty: int = Form(...),
 ):
-    # 🔒 공백/QR 값 정제
+    # 공통 보정
     from_location = from_location.strip().replace(" ", "")
     to_location = to_location.strip().replace(" ", "")
-
-    # ✅ 최종 검증 (이제 400 원인 사라짐)
-    if not to_location:
-        raise HTTPException(status_code=400, detail="도착 로케이션이 없습니다.")
-
     if qty <= 0:
         raise HTTPException(status_code=400, detail="수량은 1 이상이어야 합니다.")
 
-    # ✅ 이동 처리
+    # 기존 로직 그대로 사용
     add_move(
         from_location,
         to_location,
@@ -254,26 +233,10 @@ def mobile_qr_move_complete(
         item_name,
         lot,
         spec,
-        "",
+        "",  # brand
         qty,
-        "QR 이동"
+        "QR 이동",  # note
     )
-
-    # ✅ 완료 화면
-    return templates.TemplateResponse(
-        "m/qr_move_done.html",
-        {
-            "request": request,
-            "from_location": from_location,
-            "to_location": to_location,
-            "item_code": item_code,
-            "item_name": item_name,
-            "lot": lot,
-            "spec": spec,
-            "qty": qty,
-        }
-    )
-
 
     return templates.TemplateResponse(
         "m/qr_move_done.html",
@@ -286,7 +249,7 @@ def mobile_qr_move_complete(
             "lot": lot,
             "spec": spec,
             "qty": qty,
-        }
+        },
     )
 
 
