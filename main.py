@@ -1,11 +1,12 @@
 from fastapi import (
-    FastAPI, Request, Form, UploadFile, File, HTTPException
+    FastAPI, Request, Form, UploadFile, File, HTTPException, Depends
 )
 from fastapi.responses import (
     HTMLResponse, RedirectResponse, FileResponse
 )
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session # DB 세션 타입 힌트용
 from datetime import date
 from typing import Optional
 import os, uuid
@@ -14,7 +15,7 @@ import os, uuid
 # DB / LOGIC
 # =========================
 from app.db import (
-    init_db,
+    init_db, get_db, # get_db 의존성 추가
     add_inbound, add_outbound, add_move,
     search_inventory, get_history,
     upsert_calendar_memo, get_calendar_memos_for_month,
@@ -29,7 +30,6 @@ app = FastAPI(title="PARS WMS")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
-templates = Jinja2Templates(directory=TEMPLATES_DIR)
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -152,8 +152,9 @@ def mobile_qr_move_to(
     spec: Optional[str] = None,
     qty: Optional[int] = None,
 ):
-    # 🔒 안전 가드: 정상 플로우 아니면 처음으로
-    if not all([from_location, item_code, item_name, lot, spec, qty]):
+    # 🔒 안전 가드: 필수 파라미터가 없으면 처음으로 리다이렉트
+    # (spec이나 item_name은 비어있을 수도 있으므로 None인지만 체크)
+    if from_location is None or item_code is None or qty is None:
         return RedirectResponse(url="/m/qr/move", status_code=302)
 
     return templates.TemplateResponse(
@@ -162,23 +163,24 @@ def mobile_qr_move_to(
             "request": request,
             "from_location": from_location,
             "item_code": item_code,
-            "item_name": item_name,
-            "lot": lot,
-            "spec": spec,
+            "item_name": item_name or "", # None이면 빈 문자열 처리
+            "lot": lot or "",
+            "spec": spec or "",
             "qty": qty,
         }
     )
 
 # 4️⃣ 이동 완료 + DB 반영
-@app.post("/m/qr/move/complete", response_class=HTMLResponse)
-def mobile_qr_move_complete(
+# HTML Form의 action="/m/qr/move/execute" 와 일치시킴
+@app.post("/m/qr/move/execute", response_class=HTMLResponse)
+def mobile_qr_move_execute(
     request: Request,
     from_location: str = Form(...),
     to_location: str = Form(...),
     item_code: str = Form(...),
-    item_name: str = Form(...),
-    lot: str = Form(...),
-    spec: str = Form(...),
+    item_name: str = Form(""), # HTML 폼에서 누락될 경우 대비해 기본값 설정
+    lot: str = Form(""),
+    spec: str = Form(""),
     qty: int = Form(...),
 ):
     from_location = from_location.strip().replace(" ", "")
@@ -187,6 +189,7 @@ def mobile_qr_move_complete(
     if qty <= 0:
         raise HTTPException(status_code=400, detail="수량은 1 이상이어야 합니다.")
 
+    # DB 이동 처리
     add_move(
         from_location,
         to_location,
@@ -194,7 +197,7 @@ def mobile_qr_move_complete(
         item_name,
         lot,
         spec,
-        "",
+        "", # 비고(remark)는 공란
         qty,
         "QR 이동"
     )
