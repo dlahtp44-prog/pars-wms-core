@@ -1,87 +1,40 @@
-{% extends "_layout.html" %}
-{% block body %}
-<h1>QR 이동</h1>
-<a class="back-link" href="/page/qr/move/scan">← 출발 다시 스캔</a>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>재고 선택</title>
+</head>
+<body>
 
-<div class="card">
-  <div><strong>출발:</strong> {{ from_location }}</div>
-  <p style="color:#6b7280;font-size:13px;margin-top:6px;">이동할 상품을 체크한 뒤, 도착 로케이션 QR을 스캔하고 ‘이동 처리’를 누르세요.</p>
-</div>
+<h3>📦 출발지 재고 선택</h3>
+<p><b>출발 위치:</b> {{ from_location }}</p>
 
-<div class="card">
-  {% if rows and rows|length>0 %}
-  <form method="post" action="/page/qr/move/commit" id="moveForm">
-    <input type="hidden" name="from_location" value="{{ from_location }}">
-    <input type="hidden" name="to_location" id="to_location" value="">
-    <div style="display:flex;gap:12px;flex-wrap:wrap;">
-      <div style="flex:1;min-width:300px;overflow:auto;">
-        <table class="table">
-          <thead>
-            <tr>
-              <th style="width:42px;"><input type="checkbox" onclick="toggleAll(this)"></th>
-              <th>품번</th><th>품명</th><th>LOT</th><th>규격</th><th style="text-align:right;">수량</th>
-            </tr>
-          </thead>
-          <tbody>
-          {% for r in rows %}
-            <tr>
-              <td>
-                <input type="checkbox" name="pick" value="{{ loop.index0 }}">
-                <input type="hidden" name="item_code_{{ loop.index0 }}" value="{{ r.item_code }}">
-                <input type="hidden" name="item_name_{{ loop.index0 }}" value="{{ r.item_name }}">
-                <input type="hidden" name="lot_{{ loop.index0 }}" value="{{ r.lot }}">
-                <input type="hidden" name="spec_{{ loop.index0 }}" value="{{ r.spec }}">
-              </td>
-              <td>{{ r.item_code }}</td>
-              <td>{{ r.item_name }}</td>
-              <td>{{ r.lot }}</td>
-              <td>{{ r.spec }}</td>
-              <td style="text-align:right;">
-                <input style="width:90px;text-align:right;" type="number" min="1" max="{{ r.qty }}" name="qty_{{ loop.index0 }}" value="{{ r.qty }}">
-              </td>
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table>
-      </div>
+{% if rows %}
+  {% for r in rows %}
+    <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+      <div>품번: {{ r.item_code }}</div>
+      <div>품명: {{ r.item_name }}</div>
+      <div>LOT: {{ r.lot }}</div>
+      <div>규격: {{ r.spec }}</div>
+      <div>수량: {{ r.qty }}</div>
 
-      <div style="flex:0 0 320px;">
-        <div class="card" style="margin:0;">
-          <h3 style="margin-top:0;">도착 로케이션 스캔</h3>
-          <div id="reader" style="width:100%;"></div>
-          <div style="margin-top:10px;">
-            <label>도착 로케이션</label>
-            <input id="to_text" placeholder="스캔 후 자동 입력" readonly>
-          </div>
-          <button class="btn primary" style="margin-top:10px;width:100%;" type="submit">이동 처리</button>
-        </div>
-      </div>
+      <!-- ✅ 이 버튼이 다음 단계 핵심 -->
+      <form method="get" action="/m/qr/move/to">
+        <input type="hidden" name="from_location" value="{{ from_location }}">
+        <input type="hidden" name="item_code" value="{{ r.item_code }}">
+        <input type="hidden" name="item_name" value="{{ r.item_name }}">
+        <input type="hidden" name="lot" value="{{ r.lot }}">
+        <input type="hidden" name="spec" value="{{ r.spec }}">
+        <input type="number" name="qty" value="{{ r.qty }}" min="1" max="{{ r.qty }}" required>
+
+        <button type="submit">이 재고 이동</button>
+      </form>
     </div>
-  </form>
-  {% else %}
-    <p>출발 로케이션에 재고가 없습니다.</p>
-  {% endif %}
-</div>
+  {% endfor %}
+{% else %}
+  <p style="color:red;">❌ 해당 로케이션에 재고가 없습니다.</p>
+{% endif %}
 
-<script src="https://unpkg.com/html5-qrcode"></script>
-<script>
-function toggleAll(master){
-  document.querySelectorAll('input[name="pick"]').forEach(cb => cb.checked = master.checked);
-}
-const reader = new Html5Qrcode("reader");
-Html5Qrcode.getCameras().then(cams=>{
-  const back = cams.find(c=> (c.label||"").toLowerCase().includes("back")) || cams[cams.length-1];
-  reader.start(
-    { deviceId: { exact: back.id } },
-    { fps: 10, qrbox: { width: 220, height: 220 } },
-    (text) => {
-      document.getElementById("to_location").value = text;
-      document.getElementById("to_text").value = text;
-      reader.stop();
-    }
-  );
-}).catch(err=>{
-  document.getElementById("reader").innerHTML = "<p>카메라 접근 실패: " + err + "</p>";
-});
-</script>
-{% endblock %}
+</body>
+</html>
