@@ -34,6 +34,15 @@ def index(request: Request):
 # 📦 모바일 QR 이동 (brand 포함 최종)
 # ===============================
 
+# 모바일 홈
+@app.get("/m", response_class=HTMLResponse)
+def mobile_home(request: Request):
+    return templates.TemplateResponse(
+        "m/home.html",
+        {"request": request}
+    )
+
+
 # 0️⃣ 출발 로케이션 QR
 @app.get("/m/qr/move/from", response_class=HTMLResponse)
 def qr_move_from(request: Request):
@@ -89,7 +98,7 @@ def qr_move_to(
     )
 
 
-# 3️⃣ 이동 처리 (최종)
+# 3️⃣ 이동 처리 (⭐ 여기 핵심)
 @app.post("/m/qr/move/complete", response_class=HTMLResponse)
 def qr_move_complete(
     request: Request,
@@ -102,15 +111,19 @@ def qr_move_complete(
     brand: str = Form(...),
     qty: int = Form(...),
 ):
+    from_location = from_location.strip()
+    to_location = to_location.strip()
+
     if not to_location:
         raise HTTPException(status_code=400, detail="도착 로케이션 누락")
 
     if qty <= 0:
         raise HTTPException(status_code=400, detail="수량 오류")
 
+    # ✅ 실제 이동 처리
     add_move(
-        from_location.strip(),
-        to_location.strip(),
+        from_location,
+        to_location,
         item_code,
         item_name,
         lot,
@@ -120,6 +133,7 @@ def qr_move_complete(
         "QR 이동"
     )
 
+    # ✅ 완료 화면
     return templates.TemplateResponse(
         "m/qr_move_done.html",
         {
