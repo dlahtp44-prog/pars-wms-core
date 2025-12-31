@@ -22,16 +22,24 @@
         }
         .info-label { font-weight: bold; color: #555; }
         .info-value { font-weight: bold; color: #333; }
+        
+        /* QR 입력창 스타일 수정 */
         .input-group { margin-bottom: 20px; }
         .input-group label { display: block; margin-bottom: 5px; font-weight: bold; }
         .input-group input {
             width: 100%;
             padding: 12px;
             font-size: 16px;
-            border: 1px solid #ccc;
+            border: 2px solid #007bff; /* 포커스 확인 쉽도록 색상 변경 */
             border-radius: 5px;
             box-sizing: border-box;
+            background-color: #fff;
         }
+        .input-group input:focus {
+            background-color: #e8f0fe; /* 포커스 시 배경색 변경 */
+            outline: none;
+        }
+
         .btn-submit {
             width: 100%;
             padding: 15px;
@@ -84,7 +92,12 @@
 
             <div class="input-group">
                 <label for="to_location">도착 위치 (QR 스캔)</label>
-                <input type="text" id="to_location" name="to_location" placeholder="도착 위치 바코드를 스캔하세요" required autofocus>
+                <input type="text" 
+                       id="to_location" 
+                       name="to_location" 
+                       placeholder="스캔 대기중..." 
+                       autocomplete="off" 
+                       required>
             </div>
 
             <button type="submit" class="btn-submit">이동 확정</button>
@@ -92,9 +105,29 @@
     </div>
 
     <script>
-        // 페이지 로드 시 도착 위치 입력창에 포커스 (PDA 스캐너 사용 용이성)
         document.addEventListener("DOMContentLoaded", function() {
-            document.getElementById("to_location").focus();
+            const qrInput = document.getElementById("to_location");
+
+            // 1. 페이지 로드 시 입력창에 포커스
+            qrInput.focus();
+
+            // 2. 화면의 빈 공간을 터치해도 입력창으로 포커스 복귀 (연속 스캔 편의성)
+            document.addEventListener("click", function(e) {
+                // 버튼이나 폼 내부 요소를 클릭한 경우가 아니라면 포커스 유지
+                if (e.target.tagName !== "BUTTON" && e.target.tagName !== "INPUT") {
+                    qrInput.focus();
+                }
+            });
+
+            // 3. 엔터키 입력 시 폼 제출 (대부분의 스캐너는 끝에 엔터를 입력함)
+            qrInput.addEventListener("keydown", function(e) {
+                if (e.key === "Enter") {
+                    e.preventDefault(); // 기본 동작 막고
+                    if (qrInput.value.trim() !== "") {
+                        document.getElementById("moveForm").submit(); // 폼 제출
+                    }
+                }
+            });
         });
     </script>
 </body>
