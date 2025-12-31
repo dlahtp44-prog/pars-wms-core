@@ -30,13 +30,10 @@
 
 <h3>📍 도착 로케이션 QR 스캔</h3>
 
-<!-- ✅ 사용자 제스처 (필수) -->
-<button id="startScan">📷 QR 스캔 시작</button>
+<button id="startScan" type="button">📷 QR 스캔 시작</button>
 
-<!-- ✅ 카메라 영역 -->
 <div id="reader"></div>
 
-<!-- 🔒 서버로 넘길 데이터 -->
 <form id="moveForm" method="post" action="/m/qr/move/complete">
   <input type="hidden" name="from_location" value="{{ from_location }}">
   <input type="hidden" name="item_code" value="{{ item_code }}">
@@ -48,6 +45,13 @@
 </form>
 
 <script>
+const form = document.getElementById("moveForm");
+
+/* ❗ 기본 submit 완전 차단 */
+form.addEventListener("submit", function (e) {
+  e.preventDefault();
+});
+
 const qr = new Html5Qrcode("reader");
 
 document.getElementById("startScan").addEventListener("click", () => {
@@ -57,8 +61,7 @@ document.getElementById("startScan").addEventListener("click", () => {
     (decodedText) => {
       qr.stop();
 
-      let raw = decodedText.trim();
-      let location = raw;
+      let location = decodedText.trim();
 
       if (location.includes(":")) location = location.split(":").pop();
       if (location.includes("|")) location = location.split("|").pop();
@@ -72,10 +75,12 @@ document.getElementById("startScan").addEventListener("click", () => {
       }
 
       document.getElementById("to_location").value = location;
-      document.getElementById("moveForm").submit();
+
+      /* ✅ 이 시점에서만 submit */
+      form.submit();
     }
   ).catch(err => {
-    alert("카메라 접근 실패 – 브라우저 권한을 확인하세요.");
+    alert("카메라 접근 실패 – 브라우저 권한 확인");
     console.error(err);
   });
 });
