@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <title>QR 이동 - 도착 스캔</title>
+  {% include "m/_qr_common_head.html" %}
+</head>
+<body>
+  <div class="card">
+    <h2>🚚 QR 이동 (마지막) - 도착 로케이션 스캔</h2>
+    <div class="muted">
+      출발: <b>{{ from_location }}</b><br/>
+      상품: <b>{{ item_code }} · {{ item_name }}</b><br/>
+      LOT: <b>{{ lot }}</b> | 규격: <b>{{ spec }}</b> | 이동수량: <b>{{ qty }}</b>
+    </div>
+  </div>
+
+  <div class="card">
+    <div id="reader"></div>
+
+    <form method="POST" action="/m/qr/move/complete">
+      <input type="hidden" name="from_location" value="{{ from_location }}" />
+      <input type="hidden" name="item_code" value="{{ item_code }}" />
+      <input type="hidden" name="item_name" value="{{ item_name }}" />
+      <input type="hidden" name="lot" value="{{ lot }}" />
+      <input type="hidden" name="spec" value="{{ spec }}" />
+      <input type="hidden" name="qty" value="{{ qty }}" />
+
+      <input type="text" id="to_location" name="to_location" placeholder="도착 로케이션" readonly required>
+      <button type="submit">이동 완료</button>
+    </form>
+
+    <button class="secondary" onclick="startScan()">스캔 시작</button>
+  </div>
+
+  <div class="card">
+    <button class="secondary" onclick="history.back()">← 뒤로</button>
+  </div>
+
+  <script>
+    let html5QrCode = null;
+    function extractLocation(text){
+      if(!text) return "";
+      if(text.startsWith("http")){
+        const parts = text.split("/");
+        return parts[parts.length-1];
+      }
+      return text;
+    }
+    function startScan(){
+      if(html5QrCode) return;
+      html5QrCode = new Html5Qrcode("reader");
+      Html5Qrcode.getCameras().then(devices=>{
+        if(!devices||devices.length===0){alert("카메라를 찾을 수 없습니다.");return;}
+        html5QrCode.start(devices[0].id,{fps:10,qrbox:250},(qrText)=>{
+          document.getElementById("to_location").value = extractLocation(qrText).replace(/\s/g, "");
+          html5QrCode.stop().then(()=>{html5QrCode.clear();html5QrCode=null;});
+        });
+      }).catch(err=>{console.error(err);alert("카메라 권한을 확인해 주세요.");});
+    }
+  </script>
+</body>
+</html>
