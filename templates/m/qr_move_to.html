@@ -1,62 +1,75 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <title>QR 이동 - 도착 스캔</title>
-  {% include "m/_qr_common_head.html" %}
+  <meta charset="UTF-8">
+  <title>도착 로케이션 QR 스캔</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      padding: 12px;
+      background: #f5f6f8;
+    }
+    h2 { margin-bottom: 10px; }
+    .box {
+      background:#fff;
+      border-radius:10px;
+      padding:12px;
+      margin-bottom:12px;
+    }
+    #reader {
+      width:100%;
+      max-width:360px;
+      margin:0 auto;
+    }
+    .hint {
+      color:#555;
+      font-size:14px;
+      margin-top:10px;
+      text-align:center;
+    }
+  </style>
 </head>
 <body>
-  <div class="card">
-    <h2>🚚 QR 이동 (마지막) - 도착 로케이션 스캔</h2>
-    <div class="muted">
-      출발: <b>{{ from_location }}</b><br/>
-      상품: <b>{{ item_code }} · {{ item_name }}</b><br/>
-      LOT: <b>{{ lot }}</b> | 규격: <b>{{ spec }}</b> | 이동수량: <b>{{ qty }}</b>
-    </div>
-  </div>
 
-  <div class="card">
-    <div id="reader"></div>
+<h2>📍 도착 로케이션 QR 스캔</h2>
 
-    <form method="POST" action="/m/qr/move/complete">
-      <input type="hidden" name="from_location" value="{{ from_location }}" />
-      <input type="hidden" name="item_code" value="{{ item_code }}" />
-      <input type="hidden" name="item_name" value="{{ item_name }}" />
-      <input type="hidden" name="lot" value="{{ lot }}" />
-      <input type="hidden" name="spec" value="{{ spec }}" />
-      <input type="hidden" name="qty" value="{{ qty }}" />
+<div class="box">
+  <div><b>출발 위치</b> : {{ from_location }}</div>
+  <div><b>품번</b> : {{ item_code }}</div>
+  <div><b>품명</b> : {{ item_name }}</div>
+  <div><b>LOT</b> : {{ lot }}</div>
+  <div><b>규격</b> : {{ spec }}</div>
+  <div><b>이동 수량</b> : {{ qty }}</div>
+</div>
 
-      <input type="text" id="to_location" name="to_location" placeholder="도착 로케이션" readonly required>
-      <button type="submit">이동 완료</button>
-    </form>
+<div id="reader"></div>
+<div class="hint">도착 로케이션 QR을 스캔하세요</div>
 
-    <button class="secondary" onclick="startScan()">스캔 시작</button>
-  </div>
+<form id="moveForm" method="post" action="/m/qr/move/complete">
+  <input type="hidden" name="from_location" value="{{ from_location }}">
+  <input type="hidden" name="item_code" value="{{ item_code }}">
+  <input type="hidden" name="item_name" value="{{ item_name }}">
+  <input type="hidden" name="lot" value="{{ lot }}">
+  <input type="hidden" name="spec" value="{{ spec }}">
+  <input type="hidden" name="qty" value="{{ qty }}">
+  <input type="hidden" name="to_location" id="to_location">
+</form>
 
-  <div class="card">
-    <button class="secondary" onclick="history.back()">← 뒤로</button>
-  </div>
+<script>
+const qr = new Html5Qrcode("reader");
 
-  <script>
-    let html5QrCode = null;
-    function extractLocation(text){
-      if(!text) return "";
-      if(text.startsWith("http")){
-        const parts = text.split("/");
-        return parts[parts.length-1];
-      }
-      return text;
-    }
-    function startScan(){
-      if(html5QrCode) return;
-      html5QrCode = new Html5Qrcode("reader");
-      Html5Qrcode.getCameras().then(devices=>{
-        if(!devices||devices.length===0){alert("카메라를 찾을 수 없습니다.");return;}
-        html5QrCode.start(devices[0].id,{fps:10,qrbox:250},(qrText)=>{
-          document.getElementById("to_location").value = extractLocation(qrText).replace(/\s/g, "");
-          html5QrCode.stop().then(()=>{html5QrCode.clear();html5QrCode=null;});
-        });
-      }).catch(err=>{console.error(err);alert("카메라 권한을 확인해 주세요.");});
-    }
-  </script>
+qr.start(
+  { facingMode: "environment" },
+  { fps: 10, qrbox: 250 },
+  (decodedText) => {
+    qr.stop();
+    document.getElementById("to_location").value = decodedText.trim();
+    document.getElementById("moveForm").submit();
+  }
+);
+</script>
+
 </body>
 </html>
