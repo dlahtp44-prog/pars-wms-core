@@ -1,55 +1,81 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>이동 재고 선택</title>
+  <title>QR 이동 - 상품 선택</title>
+  {% include "m/_qr_common_head.html" %}
   <style>
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;margin:0;padding:16px;background:#f5f6f8;}
-    h2{margin:8px 0 12px;font-size:20px;}
-    .wrap{max-width:520px;margin:0 auto;}
-    .loc{font-weight:800;margin-bottom:12px;}
-    .card{background:#fff;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.06);padding:14px;margin-bottom:12px;}
-    .row{margin:6px 0;font-size:15px;}
-    .qty{width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:10px;font-size:16px;margin-top:10px;}
-    .btn{width:100%;padding:12px;border:none;border-radius:12px;background:#0a7cff;color:#fff;font-size:16px;font-weight:800;margin-top:10px;}
-    .muted{color:#6b7280;font-size:13px;}
-    a{color:#0a7cff;text-decoration:none;font-weight:700;}
+    .item{border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin-top:10px;background:#fff;}
+    .item .top{display:flex;gap:10px;align-items:flex-start;}
+    .item label{font-weight:700;}
+    .kv{font-size:13px;color:#111;line-height:1.4;margin-top:6px;}
+    .kv b{color:#6b7280;font-weight:600;}
+    .qty{max-width:150px;}
   </style>
 </head>
 <body>
-<div class="wrap">
-  <h2>이동할 재고 선택</h2>
-  <div class="loc">출발: {{ from_location }}</div>
+  <div class="card">
+    <h2>🚚 QR 이동 (2/2) - 상품 선택</h2>
+    <div class="muted">출발: <b>{{ from_location }}</b></div>
+  </div>
 
-  {% if rows %}
-    {% for r in rows %}
-      <div class="card">
-        <div class="row"><b>품번</b> : {{ r.item_code }}</div>
-        <div class="row"><b>품명</b> : {{ r.item_name }}</div>
-        <div class="row"><b>LOT</b> : {{ r.lot }}</div>
-        <div class="row"><b>규격</b> : {{ r.spec }}</div>
-        <div class="row"><b>재고</b> : {{ r.qty }}</div>
-        <div class="muted">이동 수량을 입력 후 “도착 로케이션 QR 스캔”을 눌러주세요.</div>
+  <div class="card">
+    {% if rows %}
+    <form method="GET" action="/m/qr/move/to">
+      <input type="hidden" name="from_location" value="{{ from_location }}" />
+      {% for r in rows %}
+        <div class="item">
+          <div class="top">
+            <input type="radio" name="pick" value="{{ loop.index0 }}" required style="width:20px;height:20px;margin-top:4px;" />
+            <div style="flex:1;">
+              <label>{{ r.item_code }} · {{ r.item_name }}</label>
+              <div class="kv"><b>LOT</b> {{ r.lot }} | <b>규격</b> {{ r.spec }} | <b>수량</b> {{ r.qty }}</div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
 
-        <form method="get" action="/m/qr/move/to">
-          <input type="hidden" name="from_location" value="{{ from_location }}">
-          <input type="hidden" name="item_code" value="{{ r.item_code }}">
-          <input type="hidden" name="item_name" value="{{ r.item_name }}">
-          <input type="hidden" name="lot" value="{{ r.lot }}">
-          <input type="hidden" name="spec" value="{{ r.spec }}">
-
-          <input class="qty" type="number" name="qty" min="1" max="{{ r.qty }}" value="{{ r.qty if r.qty and r.qty < 999999 else 1 }}" required>
-
-          <button type="submit" class="btn">도착 로케이션 QR 스캔</button>
-        </form>
+      <div class="row">
+        <input class="qty" type="number" name="qty" value="1" min="1" required />
+        <button type="button" class="secondary" onclick="fillSelected()">선택 적용</button>
       </div>
-    {% endfor %}
-  {% else %}
-    <p class="muted">이동 가능한 재고가 없습니다.</p>
-  {% endif %}
 
-  <p><a href="/m/qr/inventory?location={{ from_location }}">← 재고 목록</a></p>
-</div>
+      <!-- 선택된 상품 정보(자동 세팅) -->
+      <input type="hidden" name="item_code" id="item_code" />
+      <input type="hidden" name="item_name" id="item_name" />
+      <input type="hidden" name="lot" id="lot" />
+      <input type="hidden" name="spec" id="spec" />
+
+      <button type="submit" onclick="return fillSelected(true)">도착 로케이션 스캔으로</button>
+    </form>
+    {% else %}
+      <div class="muted">해당 로케이션에 재고가 없습니다.</div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <button class="secondary" onclick="history.back()">← 뒤로</button>
+  </div>
+
+  <script>
+    // Jinja rows를 JS 배열로 변환
+    const rows = [
+      {% for r in rows %}
+      {item_code: "{{ r.item_code|e }}", item_name: "{{ r.item_name|e }}", lot: "{{ r.lot|e }}", spec: "{{ r.spec|e }}"},
+      {% endfor %}
+    ];
+
+    function fillSelected(noAlert){
+      const radios = document.querySelectorAll('input[name="pick"]');
+      let idx = -1;
+      radios.forEach((r,i)=>{ if(r.checked) idx = parseInt(r.value,10); });
+      if(idx < 0){ if(!noAlert) alert('이동할 상품을 선택해 주세요.'); return false; }
+      const picked = rows[idx];
+      document.getElementById('item_code').value = picked.item_code;
+      document.getElementById('item_name').value = picked.item_name;
+      document.getElementById('lot').value = picked.lot;
+      document.getElementById('spec').value = picked.spec;
+      return true;
+    }
+  </script>
 </body>
 </html>

@@ -1,34 +1,27 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>이동 완료</title>
-  <style>
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;margin:0;padding:16px;background:#f5f6f8;}
-    .wrap{max-width:520px;margin:0 auto;}
-    .card{background:#fff;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.06);padding:16px;margin-top:12px;}
-    h2{margin:8px 0 12px;font-size:20px;}
-    .row{margin:6px 0;font-size:15px;}
-    .btn{display:block;width:100%;text-align:center;padding:12px;border-radius:12px;background:#0a7cff;color:#fff;text-decoration:none;font-weight:800;margin-top:14px;}
-    .btn2{display:block;width:100%;text-align:center;padding:12px;border-radius:12px;background:#111827;color:#fff;text-decoration:none;font-weight:800;margin-top:10px;}
-  </style>
+  <title>QR 이동 완료</title>
+  {% include "m/_qr_common_head.html" %}
 </head>
 <body>
-<div class="wrap">
-  <h2>✅ 이동 완료</h2>
   <div class="card">
-    <div class="row"><b>출발</b> : {{ from_location }}</div>
-    <div class="row"><b>도착</b> : {{ to_location }}</div>
-    <div class="row"><b>품번</b> : {{ item_code }}</div>
-    <div class="row"><b>품명</b> : {{ item_name }}</div>
-    <div class="row"><b>LOT</b> : {{ lot }}</div>
-    <div class="row"><b>규격</b> : {{ spec }}</div>
-    <div class="row"><b>수량</b> : {{ qty }}</div>
+    <h2>✅ QR 이동 완료</h2>
+    <div class="muted">
+      출발: <b>{{ from_location }}</b><br/>
+      도착: <b>{{ to_location }}</b><br/>
+      상품: <b>{{ item_code }} · {{ item_name }}</b><br/>
+      LOT: <b>{{ lot }}</b> | 규격: <b>{{ spec }}</b><br/>
+      수량: <b>{{ qty }}</b>
+    </div>
   </div>
 
-  <a class="btn" href="/m/qr/move/from">다음 이동 시작</a>
-  <a class="btn2" href="/m">모바일 홈</a>
-</div>
+  <div class="card">
+    <div class="row">
+      <button class="secondary" onclick="location.href='/m/qr'">QR 재고확인</button>
+      <button onclick="location.href='/m/qr/move'">QR 이동 계속</button>
+    </div>
+    <button class="secondary" onclick="location.href='/m'" style="margin-top:10px;">모바일 홈</button>
+  </div>
 </body>
 </html>

@@ -1,60 +1,48 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>출발 로케이션 QR</title>
-  <script src="https://unpkg.com/html5-qrcode"></script>
-  <style>
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;margin:0;padding:16px;background:#f5f6f8;}
-    h2{margin:8px 0 12px;font-size:20px;}
-    #reader{width:100%;max-width:520px;margin:0 auto;border-radius:14px;overflow:hidden;background:#000;}
-    .hint{max-width:520px;margin:12px auto 0;color:#6b7280;font-size:13px;line-height:1.5;}
-    .back{max-width:520px;margin:12px auto 0;}
-    a{color:#0a7cff;text-decoration:none;font-weight:700;}
-  </style>
+  <title>QR 이동 - 출발 스캔</title>
+  {% include "m/_qr_common_head.html" %}
 </head>
 <body>
-  <h2>출발 로케이션 QR 스캔</h2>
-  <div id="reader"></div>
-  <div class="hint">출발 로케이션 QR을 스캔하면 해당 로케이션 재고 목록으로 이동합니다.</div>
-  <div class="back"><a href="/m">← 모바일 홈</a></div>
+  <div class="card">
+    <h2>🚚 QR 이동 (1/2) - 출발 로케이션 스캔</h2>
+    <div id="reader"></div>
 
-<script>
-(function(){
-  const readerId = "reader";
-  const qr = new Html5Qrcode(readerId);
+    <form method="GET" action="/m/qr/move/select">
+      <input type="text" id="from_location" name="from_location" placeholder="출발 로케이션" readonly required>
+      <button type="submit">다음 (상품 선택)</button>
+    </form>
 
-  function normalizeLocation(decodedText){
-    let raw = (decodedText || "").trim();
-    let location = raw;
+    <button class="secondary" onclick="startScan()">스캔 시작</button>
+    <div class="muted">· QR 값이 URL 형태여도 마지막 구간을 로케이션으로 인식합니다.</div>
+  </div>
 
-    if (location.includes(":")) location = location.split(":").pop();
-    if (location.includes("|")) location = location.split("|").pop();
-    if (location.startsWith("http")) location = location.split("/").pop();
+  <div class="card">
+    <button class="secondary" onclick="location.href='/m'">← 모바일 홈</button>
+  </div>
 
-    return (location || "").trim();
-  }
-
-  qr.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 250 },
-    (decodedText) => {
-      const location = normalizeLocation(decodedText);
-      if (!location) {
-        alert("로케이션 인식 실패");
-        return;
+  <script>
+    let html5QrCode = null;
+    function extractLocation(text){
+      if(!text) return "";
+      if(text.startsWith("http")){
+        const parts = text.split("/");
+        return parts[parts.length-1];
       }
-      qr.stop().catch(()=>{});
-      // ✅ 출발 로케이션 스캔 → 재고 목록(선택 화면)으로
-      window.location.href = "/m/qr/inventory?location=" + encodeURIComponent(location);
-    },
-    (err) => { /* ignore */ }
-  ).catch((e)=>{
-    alert("카메라 실행 실패: 브라우저 권한/HTTPS 여부를 확인하세요.");
-    console.error(e);
-  });
-})();
-</script>
+      return text;
+    }
+    function startScan(){
+      if(html5QrCode) return;
+      html5QrCode = new Html5Qrcode("reader");
+      Html5Qrcode.getCameras().then(devices=>{
+        if(!devices||devices.length===0){alert("카메라를 찾을 수 없습니다.");return;}
+        html5QrCode.start(devices[0].id,{fps:10,qrbox:250},(qrText)=>{
+          document.getElementById("from_location").value = extractLocation(qrText).replace(/\s/g, "");
+          html5QrCode.stop().then(()=>{html5QrCode.clear();html5QrCode=null;});
+        });
+      }).catch(err=>{console.error(err);alert("카메라 권한을 확인해 주세요.");});
+    }
+  </script>
 </body>
 </html>
