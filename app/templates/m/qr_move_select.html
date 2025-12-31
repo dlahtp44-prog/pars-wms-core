@@ -37,16 +37,15 @@
 <body>
 
 <h2>📦 이동할 재고 선택</h2>
-
 <div><b>출발 위치 :</b> {{ from_location }}</div>
 
-{% if rows %}
-  {% for r in rows %}
+{% for r in rows %}
   <div class="item">
     <div><b>품번</b> : {{ r.item_code }}</div>
     <div><b>품명</b> : {{ r.item_name }}</div>
     <div><b>LOT</b> : {{ r.lot }}</div>
     <div><b>규격</b> : {{ r.spec }}</div>
+    <div><b>브랜드</b> : {{ r.brand }}</div>
     <div><b>재고</b> : {{ r.qty }}</div>
 
     <form method="get" action="/m/qr/move/to">
@@ -55,6 +54,7 @@
       <input type="hidden" name="item_name" value="{{ r.item_name }}">
       <input type="hidden" name="lot" value="{{ r.lot }}">
       <input type="hidden" name="spec" value="{{ r.spec }}">
+      <input type="hidden" name="brand" value="{{ r.brand }}">
 
       <input
         class="qty"
@@ -67,14 +67,11 @@
       >
 
       <button type="submit" class="btn">
-        도착 로케이션 QR 스캔
+        📸 도착 로케이션 QR 스캔
       </button>
     </form>
   </div>
-  {% endfor %}
-{% else %}
-  <p>이동 가능한 재고가 없습니다.</p>
-{% endif %}
+{% endfor %}
 
 </body>
 </html>
