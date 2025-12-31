@@ -32,26 +32,25 @@ qr.start(
 
     let location = decodedText.trim();
 
-    // QR 포맷 정리
     if (location.includes(":")) location = location.split(":").pop();
     if (location.includes("|")) location = location.split("|").pop();
     if (location.startsWith("http")) location = location.split("/").pop();
 
     location = location.trim();
-
     if (!location) {
       alert("도착 로케이션 QR 인식 실패");
       return;
     }
 
-    // ✅ 핵심: 반드시 값 세팅
-    document.getElementById("to_location").value = location;
+    const input = document.getElementById("to_location");
+    input.value = location;
 
-    // 디버그용 (지워도 됨)
-    console.log("TO_LOCATION =", location);
+    console.log("TO_LOCATION SET =", input.value);
 
-    // ✅ submit
-    document.getElementById("moveForm").submit();
+    // ✅ iOS Safari 대응: 한 틱 늦게 submit
+    setTimeout(() => {
+      document.getElementById("moveForm").submit();
+    }, 100);
   }
 );
 </script>
