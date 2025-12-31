@@ -25,6 +25,7 @@
 
 <div id="reader"></div>
 
+<!-- ❗ form 단 하나만 존재 -->
 <form id="moveForm" method="post" action="/m/qr/move/complete">
   <input type="hidden" name="from_location" value="{{ from_location }}">
   <input type="hidden" name="item_code" value="{{ item_code }}">
@@ -37,8 +38,6 @@
 
 <script>
 const form = document.getElementById("moveForm");
-
-/* ❌ 기본 submit 완전 차단 */
 form.addEventListener("submit", e => e.preventDefault());
 
 const qr = new Html5Qrcode("reader");
@@ -63,13 +62,12 @@ document.getElementById("startScan").addEventListener("click", () => {
 
       document.getElementById("to_location").value = location;
 
-      /* ✅ QR 인식 성공 시에만 submit */
+      // 🔍 디버그 (확인 후 제거 가능)
+      alert("도착 로케이션 = " + location);
+
       form.submit();
     }
-  ).catch(err => {
-    alert("카메라 접근 실패 (권한/HTTPS 확인)");
-    console.error(err);
-  });
+  );
 });
 </script>
 
