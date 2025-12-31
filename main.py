@@ -1,33 +1,19 @@
 from fastapi import (
-    FastAPI, Request, Form, UploadFile, File, HTTPException, Depends
+    FastAPI, Request, Form, HTTPException, Depends
 )
-from fastapi.responses import (
-    HTMLResponse, RedirectResponse, FileResponse
-)
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session # DB 세션 타입 힌트용
 from datetime import date
 from typing import Optional
-import os, uuid
+import os
 
-# =========================
-# DB / LOGIC
-# =========================
-from app.db import (
-    init_db, get_db, # get_db 의존성 추가
-    add_inbound, add_outbound, add_move,
-    search_inventory, get_history,
-    upsert_calendar_memo, get_calendar_memos_for_month,
-    inventory_to_xlsx, history_to_xlsx,
-    parse_inbound_xlsx, parse_outbound_xlsx, parse_move_xlsx
-)
+# DB 로직 임포트 (기존 경로 유지)
+from app.db import init_db, add_move, search_inventory, get_calendar_memos_for_month, upsert_calendar_memo, get_history
 
-# =========================
-# APP INIT
-# =========================
 app = FastAPI(title="PARS WMS")
 
+# 경로 설정 최적화
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 STATIC_DIR = os.path.join(BASE_DIR, "static")
@@ -35,113 +21,22 @@ STATIC_DIR = os.path.join(BASE_DIR, "static")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
-app.state.downloads = {}
-
 @app.on_event("startup")
 def startup():
     init_db()
 
-# =========================
-# INDEX
-# =========================
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-# =========================
-# DESKTOP PAGES
-# =========================
-@app.get("/page/inbound", response_class=HTMLResponse)
-def page_inbound(request: Request):
-    return templates.TemplateResponse("inbound.html", {"request": request})
+# --- 이동 관련 로직 ---
 
-@app.get("/page/outbound", response_class=HTMLResponse)
-def page_outbound(request: Request):
-    return templates.TemplateResponse("outbound.html", {"request": request})
-
-@app.get("/page/move", response_class=HTMLResponse)
-def page_move(request: Request):
-    return templates.TemplateResponse("move.html", {"request": request})
-
-@app.get("/page/inventory", response_class=HTMLResponse)
-def page_inventory(request: Request, location: str = "", item_code: str = ""):
-    rows = search_inventory(location=location, item_code=item_code)
-    return templates.TemplateResponse(
-        "inventory.html",
-        {"request": request, "rows": rows, "location": location, "item_code": item_code}
-    )
-
-@app.get("/page/history", response_class=HTMLResponse)
-def page_history(request: Request, limit: int = 200):
-    rows = get_history(limit=limit)
-    return templates.TemplateResponse(
-        "history.html",
-        {"request": request, "rows": rows, "limit": limit}
-    )
-
-# =========================
-# CALENDAR
-# =========================
-@app.get("/page/calendar/month", response_class=HTMLResponse)
-def calendar_month(request: Request, year: int = date.today().year, month: int = date.today().month):
-    memos = get_calendar_memos_for_month(year, month)
-    return templates.TemplateResponse(
-        "calendar_month.html",
-        {
-            "request": request,
-            "year": year,
-            "month": month,
-            "memos": memos,
-            "today": date.today().isoformat(),
-        },
-    )
-
-@app.post("/page/calendar/memo")
-def calendar_add_memo(memo_date: str = Form(...), author: str = Form(""), memo: str = Form(...)):
-    upsert_calendar_memo(memo_date, author.strip(), memo.strip())
-    y, m, _ = memo_date.split("-")
-    return RedirectResponse(url=f"/page/calendar/month?year={int(y)}&month={int(m)}", status_code=303)
-
-# =========================
-# 📱 MOBILE HOME / QR
-# =========================
-@app.get("/m", response_class=HTMLResponse)
-def mobile_home(request: Request):
-    return templates.TemplateResponse("m/home.html", {"request": request})
-
-@app.get("/m/qr", response_class=HTMLResponse)
-def mobile_qr(request: Request):
-    return templates.TemplateResponse("m/qr.html", {"request": request})
-
-@app.get("/m/qr/inventory", response_class=HTMLResponse)
-def mobile_qr_inventory(request: Request, location: str):
-    location = location.strip().replace(" ", "")
-    rows = search_inventory(location=location, item_code="")
-    return templates.TemplateResponse(
-        "m/qr_inventory.html",
-        {"request": request, "location": location, "rows": rows}
-    )
-
-# =========================
-# 🚚 MOBILE QR MOVE (1~4 통합)
-# =========================
-
-# 1️⃣ 출발 로케이션 QR
-@app.get("/m/qr/move", response_class=HTMLResponse)
-def mobile_qr_move_from(request: Request):
-    return templates.TemplateResponse("m/qr_move_from.html", {"request": request})
-
-# 2️⃣ 출발 로케이션 재고 선택
 @app.get("/m/qr/move/select", response_class=HTMLResponse)
 def mobile_qr_move_select(request: Request, from_location: str):
     from_location = from_location.strip().replace(" ", "")
     rows = search_inventory(location=from_location, item_code="")
-    return templates.TemplateResponse(
-        "m/qr_move_select.html",
-        {"request": request, "from_location": from_location, "rows": rows}
-    )
+    return templates.TemplateResponse("m/qr_move_select.html", {"request": request, "from_location": from_location, "rows": rows})
 
-# 3️⃣ 도착 로케이션 QR (안전 가드 포함)
 @app.get("/m/qr/move/to", response_class=HTMLResponse)
 def mobile_qr_move_to(
     request: Request,
@@ -152,66 +47,34 @@ def mobile_qr_move_to(
     spec: Optional[str] = None,
     qty: Optional[int] = None,
 ):
-    # 🔒 안전 가드: 필수 파라미터가 없으면 처음으로 리다이렉트
-    # (spec이나 item_name은 비어있을 수도 있으므로 None인지만 체크)
-    if from_location is None or item_code is None or qty is None:
+    # 필수 데이터가 누락된 경우 안전하게 리다이렉트
+    if not from_location or not item_code:
         return RedirectResponse(url="/m/qr/move", status_code=302)
 
+    # 템플릿 파일 호출 (m/qr_move_to.html)
     return templates.TemplateResponse(
         "m/qr_move_to.html",
         {
             "request": request,
             "from_location": from_location,
             "item_code": item_code,
-            "item_name": item_name or "", # None이면 빈 문자열 처리
+            "item_name": item_name or "",
             "lot": lot or "",
             "spec": spec or "",
-            "qty": qty,
+            "qty": qty or 0,
         }
     )
 
-# 4️⃣ 이동 완료 + DB 반영
-# HTML Form의 action="/m/qr/move/execute" 와 일치시킴
 @app.post("/m/qr/move/execute", response_class=HTMLResponse)
 def mobile_qr_move_execute(
     request: Request,
     from_location: str = Form(...),
     to_location: str = Form(...),
     item_code: str = Form(...),
-    item_name: str = Form(""), # HTML 폼에서 누락될 경우 대비해 기본값 설정
+    item_name: str = Form(""),
     lot: str = Form(""),
     spec: str = Form(""),
     qty: int = Form(...),
 ):
-    from_location = from_location.strip().replace(" ", "")
-    to_location = to_location.strip().replace(" ", "")
-
-    if qty <= 0:
-        raise HTTPException(status_code=400, detail="수량은 1 이상이어야 합니다.")
-
-    # DB 이동 처리
-    add_move(
-        from_location,
-        to_location,
-        item_code,
-        item_name,
-        lot,
-        spec,
-        "", # 비고(remark)는 공란
-        qty,
-        "QR 이동"
-    )
-
-    return templates.TemplateResponse(
-        "m/qr_move_done.html",
-        {
-            "request": request,
-            "from_location": from_location,
-            "to_location": to_location,
-            "item_code": item_code,
-            "item_name": item_name,
-            "lot": lot,
-            "spec": spec,
-            "qty": qty,
-        }
-    )
+    add_move(from_location, to_location, item_code, item_name, lot, spec, "", qty, "QR 이동")
+    return templates.TemplateResponse("m/qr_move_done.html", locals())
