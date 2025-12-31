@@ -3,26 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>도착 로케이션 QR 스캔</title>
+<title>도착 로케이션 QR</title>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <style>
-  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 16px; }
+  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding:16px; }
   button {
-    width: 100%;
-    padding: 14px;
-    font-size: 16px;
-    border-radius: 8px;
-    border: none;
-    background: #0a7cff;
-    color: #fff;
-    font-weight: 600;
-    margin-bottom: 12px;
+    width:100%; padding:14px; font-size:16px;
+    border-radius:8px; border:none;
+    background:#0a7cff; color:#fff; font-weight:600;
+    margin-bottom:12px;
   }
-  #reader {
-    width: 300px;
-    height: 300px;
-    margin: 0 auto;
-  }
+  #reader { width:300px; height:300px; margin:0 auto; }
 </style>
 </head>
 
@@ -47,10 +38,8 @@
 <script>
 const form = document.getElementById("moveForm");
 
-/* ❗ 기본 submit 완전 차단 */
-form.addEventListener("submit", function (e) {
-  e.preventDefault();
-});
+/* ❌ 기본 submit 완전 차단 */
+form.addEventListener("submit", e => e.preventDefault());
 
 const qr = new Html5Qrcode("reader");
 
@@ -62,25 +51,23 @@ document.getElementById("startScan").addEventListener("click", () => {
       qr.stop();
 
       let location = decodedText.trim();
-
       if (location.includes(":")) location = location.split(":").pop();
       if (location.includes("|")) location = location.split("|").pop();
       if (location.startsWith("http")) location = location.split("/").pop();
 
       location = location.trim();
-
       if (!location) {
-        alert("도착 로케이션 QR 인식 실패");
+        alert("도착 로케이션 인식 실패");
         return;
       }
 
       document.getElementById("to_location").value = location;
 
-      /* ✅ 이 시점에서만 submit */
+      /* ✅ QR 인식 성공 시에만 submit */
       form.submit();
     }
   ).catch(err => {
-    alert("카메라 접근 실패 – 브라우저 권한 확인");
+    alert("카메라 접근 실패 (권한/HTTPS 확인)");
     console.error(err);
   });
 });
