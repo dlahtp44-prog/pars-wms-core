@@ -136,25 +136,30 @@ def calendar_add_memo(
 # =========================
 # 📱 MOBILE (QR 전용)
 # =========================
+# =========================
+# 📱 MOBILE (QR ONLY)
+# =========================
 @app.get("/m", response_class=HTMLResponse)
 def mobile_home(request: Request):
-    return templates.TemplateResponse(
-        "mobile/home.html",
-        {"request": request}
-    )
+    return templates.TemplateResponse("mobile/home.html", {"request": request})
+
 
 @app.get("/m/qr", response_class=HTMLResponse)
 def mobile_qr(request: Request):
-    return templates.TemplateResponse(
-        "mobile/qr.html",
-        {"request": request}
-    )
+    # 🔴 반드시 templates/mobile/qr.html 이 존재해야 함
+    return templates.TemplateResponse("mobile/qr.html", {"request": request})
+
 
 @app.get("/m/qr/inventory", response_class=HTMLResponse)
 def mobile_qr_inventory(request: Request, location: str):
-    # QR 보정 (모든 로케이션 대응)
+    # ✅ 모든 QR 로케이션 공통 보정
     location = location.strip().replace(" ", "")
-    rows = search_inventory(location=location, item_code="")
+
+    rows = search_inventory(
+        location=location,
+        item_code=""
+    )
+
     return templates.TemplateResponse(
         "mobile/qr_inventory.html",
         {
