@@ -50,11 +50,17 @@
         <div><b>수량</b> : {{ r.qty }}</div>
     </div>
     {% endfor %}
-{% if not location %}
-  <p style="text-align:center;margin-top:40px;">
-    로케이션 QR을 먼저 스캔하세요
-  </p>
-{% else %}
+if not location:
+    return templates.TemplateResponse(
+        "m/qr_inventory.html",
+        {
+            "request": request,
+            "location": "",
+            "rows": [],
+            "error": "로케이션 QR을 먼저 스캔하세요"
+        }
+    )
+
   <!-- 기존 재고 테이블 -->
 {% endif %}
 
