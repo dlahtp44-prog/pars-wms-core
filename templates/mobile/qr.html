@@ -5,11 +5,25 @@
     <title>QR 스캔</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 12px;
+            margin: 0;
+        }
+        h2 { text-align: center; }
+        #reader {
+            width: 100%;
+            max-width: 360px;
+            margin: auto;
+        }
+    </style>
 </head>
 <body>
 
 <h2>📷 QR 스캔</h2>
-<div id="reader" style="width:100%; max-width:360px;"></div>
+<div id="reader"></div>
 
 <script>
 let scanned = false;
@@ -17,29 +31,30 @@ let scanned = false;
 function extractLocation(text) {
     if (!text) return "";
     if (text.startsWith("http")) {
-        return text.split("/").pop();
+        return text.split("/").pop().trim();
     }
-    return text;
+    return text.trim();
 }
 
 const qr = new Html5Qrcode("reader");
 
 Html5Qrcode.getCameras().then(devices => {
     if (!devices.length) {
-        alert("카메라 없음");
+        alert("카메라를 찾을 수 없습니다.");
         return;
     }
 
     qr.start(
         devices[0].id,
         { fps: 10, qrbox: 250 },
-        text => {
+        qrText => {
             if (scanned) return;
             scanned = true;
 
-            const loc = extractLocation(text).replace(/\s/g, "");
+            const location = extractLocation(qrText);
             window.location.href =
-                "/m/qr/inventory?location=" + encodeURIComponent(loc);
+                "/m/qr/inventory?location=" +
+                encodeURIComponent(location);
         }
     );
 });
