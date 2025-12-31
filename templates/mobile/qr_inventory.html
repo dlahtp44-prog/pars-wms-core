@@ -1,42 +1,36 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>QR 재고 조회</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            padding: 12px;
-            margin: 0;
-        }
-        h2 { margin-bottom: 8px; }
-        .item {
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 10px;
-            margin-bottom: 8px;
-        }
-        .label { font-weight: bold; color: #555; }
-    </style>
+  <meta charset="UTF-8">
+  <title>QR 재고</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: sans-serif; padding: 12px; }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+  </style>
 </head>
 <body>
 
-<h2>📦 QR 재고 조회</h2>
-<p>위치: <b>{{ location }}</b></p>
+<h3>📦 재고 조회</h3>
+<p>로케이션: <b>{{ location }}</b></p>
 
 {% if rows %}
-    {% for r in rows %}
-        <div class="item">
-            <div><span class="label">품번</span> {{ r.item_code }}</div>
-            <div><span class="label">품명</span> {{ r.item_name }}</div>
-            <div><span class="label">LOT</span> {{ r.lot }}</div>
-            <div><span class="label">규격</span> {{ r.spec }}</div>
-            <div><span class="label">수량</span> {{ r.qty }}</div>
-        </div>
-    {% endfor %}
+  {% for r in rows %}
+    <div class="card">
+      <div>품번: {{ r.item_code }}</div>
+      <div>품명: {{ r.item_name }}</div>
+      <div>LOT: {{ r.lot }}</div>
+      <div>규격: {{ r.spec }}</div>
+      <div>수량: {{ r.qty }}</div>
+    </div>
+  {% endfor %}
 {% else %}
-    <p>재고가 없습니다.</p>
+  <p>재고 없음</p>
 {% endif %}
 
 <a href="/m/qr">← 다시 스캔</a>
