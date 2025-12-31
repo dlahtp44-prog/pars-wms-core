@@ -1,23 +1,28 @@
-from fastapi import FastAPI, Request, Form, UploadFile, File, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
+from fastapi import (
+    FastAPI, Request, Form, UploadFile, File, HTTPException
+)
+from fastapi.responses import (
+    HTMLResponse, RedirectResponse, FileResponse
+)
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from datetime import date
 import os, uuid
 
 # =========================
-# DB
+# DB / LOGIC
 # =========================
 from app.db import (
-    init_db, add_inbound, add_outbound, add_move,
-    search_inventory, get_history, upsert_calendar_memo,
-    get_calendar_memos_for_month,
+    init_db,
+    add_inbound, add_outbound, add_move,
+    search_inventory, get_history,
+    upsert_calendar_memo, get_calendar_memos_for_month,
     inventory_to_xlsx, history_to_xlsx,
     parse_inbound_xlsx, parse_outbound_xlsx, parse_move_xlsx
 )
 
 # =========================
-# APP INIT (중요: 단 1번)
+# APP INIT (⚠️ 단 1번만)
 # =========================
 app = FastAPI(title="PARS WMS")
 
@@ -29,63 +34,13 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 # =========================
-# QR 전용 Router / Page (추가)
-# =========================
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-
-from app.logic import search_inventory
-
-app = FastAPI()
-templates = Jinja2Templates(directory="templates")
-
-# =========================
-# 모바일 홈
-# =========================
-@app.get("/m", response_class=HTMLResponse)
-def mobile_home(request: Request):
-    return templates.TemplateResponse(
-        "mobile/home.html",
-        {"request": request}
-    )
-
-# =========================
-# 모바일 QR 스캔
-# =========================
-@app.get("/m/qr", response_class=HTMLResponse)
-def mobile_qr(request: Request):
-    return templates.TemplateResponse(
-        "mobile/qr.html",
-        {"request": request}
-    )
-
-# =========================
-# 모바일 QR 재고 조회
-# =========================
-@app.get("/m/qr/inventory", response_class=HTMLResponse)
-def mobile_qr_inventory(request: Request, location: str):
-    location = location.strip().replace(" ", "")
-
-    rows = search_inventory(
-        location=location,
-        item_code=""
-    )
-
-    return templates.TemplateResponse(
-        "mobile/qr_inventory.html",
-        {
-            "request": request,
-            "location": location,
-            "rows": rows
-        }
-    )
-
-# =========================
 # 상태 저장 (다운로드)
 # =========================
 app.state.downloads = {}
 
+# =========================
+# STARTUP
+# =========================
 @app.on_event("startup")
 def startup():
     init_db()
@@ -95,7 +50,10 @@ def startup():
 # =========================
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request}
+    )
 
 # =========================
 # PAGES
@@ -113,11 +71,20 @@ def page_move(request: Request):
     return templates.TemplateResponse("move.html", {"request": request})
 
 @app.get("/page/inventory", response_class=HTMLResponse)
-def page_inventory(request: Request, location: str = "", item_code: str = ""):
+def page_inventory(
+    request: Request,
+    location: str = "",
+    item_code: str = ""
+):
     rows = search_inventory(location=location, item_code=item_code)
     return templates.TemplateResponse(
         "inventory.html",
-        {"request": request, "rows": rows, "location": location, "item_code": item_code}
+        {
+            "request": request,
+            "rows": rows,
+            "location": location,
+            "item_code": item_code
+        }
     )
 
 @app.get("/page/history", response_class=HTMLResponse)
@@ -132,7 +99,11 @@ def page_history(request: Request, limit: int = 200):
 # CALENDAR
 # =========================
 @app.get("/page/calendar/month", response_class=HTMLResponse)
-def calendar_month(request: Request, year: int = date.today().year, month: int = date.today().month):
+def calendar_month(
+    request: Request,
+    year: int = date.today().year,
+    month: int = date.today().month
+):
     memos = get_calendar_memos_for_month(year, month)
     return templates.TemplateResponse(
         "calendar_month.html",
@@ -151,7 +122,11 @@ def calendar_add_memo(
     author: str = Form(""),
     memo: str = Form(...)
 ):
-    upsert_calendar_memo(memo_date, author.strip(), memo.strip())
+    upsert_calendar_memo(
+        memo_date,
+        author.strip(),
+        memo.strip()
+    )
     y, m, _ = memo_date.split("-")
     return RedirectResponse(
         url=f"/page/calendar/month?year={int(y)}&month={int(m)}",
@@ -159,7 +134,38 @@ def calendar_add_memo(
     )
 
 # =========================
-# API (기존 기능 그대로)
+# 📱 MOBILE (QR 전용)
+# =========================
+@app.get("/m", response_class=HTMLResponse)
+def mobile_home(request: Request):
+    return templates.TemplateResponse(
+        "mobile/home.html",
+        {"request": request}
+    )
+
+@app.get("/m/qr", response_class=HTMLResponse)
+def mobile_qr(request: Request):
+    return templates.TemplateResponse(
+        "mobile/qr.html",
+        {"request": request}
+    )
+
+@app.get("/m/qr/inventory", response_class=HTMLResponse)
+def mobile_qr_inventory(request: Request, location: str):
+    # QR 보정 (모든 로케이션 대응)
+    location = location.strip().replace(" ", "")
+    rows = search_inventory(location=location, item_code="")
+    return templates.TemplateResponse(
+        "mobile/qr_inventory.html",
+        {
+            "request": request,
+            "location": location,
+            "rows": rows
+        }
+    )
+
+# =========================
+# API (수기 저장)
 # =========================
 @app.post("/api/inbound")
 def api_inbound(
@@ -201,7 +207,11 @@ def api_move(
     qty: int = Form(...),
     note: str = Form("")
 ):
-    add_move(from_location, to_location, item_code, item_name, lot, spec, brand, qty, note)
+    add_move(
+        from_location, to_location,
+        item_code, item_name,
+        lot, spec, brand, qty, note
+    )
     return {"ok": True}
 
 # =========================
@@ -220,7 +230,10 @@ def download(token: str):
     path = app.state.downloads.get(token)
     if not path or not os.path.exists(path):
         raise HTTPException(status_code=404)
-    return FileResponse(path, filename=os.path.basename(path))
+    return FileResponse(
+        path,
+        filename=os.path.basename(path)
+    )
 
 # =========================
 # EXCEL UPLOAD
@@ -228,28 +241,55 @@ def download(token: str):
 @app.post("/page/inbound/excel", response_class=HTMLResponse)
 async def inbound_excel(request: Request, file: UploadFile = File(...)):
     report = await parse_inbound_xlsx(file)
-    token = _save_download("xlsx", report["error_xlsx_bytes"]) if report.get("error_xlsx_bytes") else None
+    token = (
+        _save_download("xlsx", report["error_xlsx_bytes"])
+        if report.get("error_xlsx_bytes") else None
+    )
     return templates.TemplateResponse(
         "excel_result.html",
-        {"request": request, "title": "입고 엑셀 업로드 결과", "report": report, "download_token": token, "back_url": "/page/inbound"}
+        {
+            "request": request,
+            "title": "입고 엑셀 업로드 결과",
+            "report": report,
+            "download_token": token,
+            "back_url": "/page/inbound"
+        }
     )
 
 @app.post("/page/outbound/excel", response_class=HTMLResponse)
 async def outbound_excel(request: Request, file: UploadFile = File(...)):
     report = await parse_outbound_xlsx(file)
-    token = _save_download("xlsx", report["error_xlsx_bytes"]) if report.get("error_xlsx_bytes") else None
+    token = (
+        _save_download("xlsx", report["error_xlsx_bytes"])
+        if report.get("error_xlsx_bytes") else None
+    )
     return templates.TemplateResponse(
         "excel_result.html",
-        {"request": request, "title": "출고 엑셀 업로드 결과", "report": report, "download_token": token, "back_url": "/page/outbound"}
+        {
+            "request": request,
+            "title": "출고 엑셀 업로드 결과",
+            "report": report,
+            "download_token": token,
+            "back_url": "/page/outbound"
+        }
     )
 
 @app.post("/page/move/excel", response_class=HTMLResponse)
 async def move_excel(request: Request, file: UploadFile = File(...)):
     report = await parse_move_xlsx(file)
-    token = _save_download("xlsx", report["error_xlsx_bytes"]) if report.get("error_xlsx_bytes") else None
+    token = (
+        _save_download("xlsx", report["error_xlsx_bytes"])
+        if report.get("error_xlsx_bytes") else None
+    )
     return templates.TemplateResponse(
         "excel_result.html",
-        {"request": request, "title": "이동 엑셀 업로드 결과", "report": report, "download_token": token, "back_url": "/page/move"}
+        {
+            "request": request,
+            "title": "이동 엑셀 업로드 결과",
+            "report": report,
+            "download_token": token,
+            "back_url": "/page/move"
+        }
     )
 
 # =========================
@@ -257,10 +297,22 @@ async def move_excel(request: Request, file: UploadFile = File(...)):
 # =========================
 @app.get("/page/inventory.xlsx")
 def inventory_xlsx(location: str = "", item_code: str = ""):
-    token = _save_download("xlsx", inventory_to_xlsx(search_inventory(location, item_code)))
-    return RedirectResponse(url=f"/download/{token}", status_code=302)
+    token = _save_download(
+        "xlsx",
+        inventory_to_xlsx(search_inventory(location, item_code))
+    )
+    return RedirectResponse(
+        url=f"/download/{token}",
+        status_code=302
+    )
 
 @app.get("/page/history.xlsx")
 def history_xlsx(limit: int = 200):
-    token = _save_download("xlsx", history_to_xlsx(get_history(limit)))
-    return RedirectResponse(url=f"/download/{token}", status_code=302)
+    token = _save_download(
+        "xlsx",
+        history_to_xlsx(get_history(limit))
+    )
+    return RedirectResponse(
+        url=f"/download/{token}",
+        status_code=302
+    )
