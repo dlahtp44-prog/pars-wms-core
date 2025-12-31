@@ -38,6 +38,14 @@ app.include_router(mobile_home.router)
 app.include_router(mobile_qr.router)
 app.include_router(qr_inventory_router)
 
+@app.get("/m/qr", response_class=HTMLResponse)
+def mobile_qr(request: Request):
+    return templates.TemplateResponse(
+        "mobile/qr.html",
+        {"request": request}
+    )
+
+
 from app.pages import mobile_qr_inventory
 app.include_router(mobile_qr_inventory.router)
 
