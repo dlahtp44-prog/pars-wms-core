@@ -9,13 +9,17 @@
 
 <h2>출발 로케이션: {{ from_location }}</h2>
 
-{% if rows %}
 <form id="selectForm">
-  <input type="hidden" name="from_location" value="{{ from_location }}">
+  <input type="hidden" id="from_location" value="{{ from_location }}">
 
   <table border="1" width="100%">
     <tr>
-      <th>선택</th><th>품번</th><th>품명</th><th>LOT</th><th>규격</th><th>재고</th>
+      <th>선택</th>
+      <th>품번</th>
+      <th>품명</th>
+      <th>LOT</th>
+      <th>규격</th>
+      <th>재고</th>
     </tr>
 
     {% for r in rows %}
@@ -36,7 +40,7 @@
 
   <p>
     이동 수량:
-    <input type="number" name="qty" min="1" required>
+    <input type="number" id="qty" min="1" required>
   </p>
 
   <button type="submit">도착 로케이션 QR 스캔</button>
@@ -47,15 +51,20 @@ document.getElementById("selectForm").addEventListener("submit", function(e){
   e.preventDefault();
 
   const selected = document.querySelector("input[name='item']:checked");
-  const qty = document.querySelector("input[name='qty']").value;
+  const qty = document.getElementById("qty").value;
+  const from_location = document.getElementById("from_location").value;
 
   if (!selected) {
-    alert("이동할 상품을 선택하세요");
+    alert("이동할 재고를 선택하세요");
+    return;
+  }
+
+  if (!qty || qty <= 0) {
+    alert("이동 수량을 입력하세요");
     return;
   }
 
   const [item_code, item_name, lot, spec] = selected.value.split("||");
-  const from_location = "{{ from_location }}";
 
   const url =
     "/m/qr/move/to" +
@@ -69,10 +78,6 @@ document.getElementById("selectForm").addEventListener("submit", function(e){
   window.location.href = url;
 });
 </script>
-
-{% else %}
-<p>이동 가능한 재고가 없습니다.</p>
-{% endif %}
 
 </body>
 </html>
