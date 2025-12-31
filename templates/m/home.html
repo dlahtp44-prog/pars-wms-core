@@ -37,6 +37,13 @@
     }
     a.item + a.item{ border-top:1px solid #eceef1; }
     .arrow{ color:#9aa3ad; font-size:18px; }
+
+    /* QR 강조 */
+    .qr-item{
+      font-weight:700;
+      color:#0a7cff;
+    }
+
     .hint{
       max-width:520px;
       margin:14px auto 0;
@@ -47,6 +54,7 @@
   </style>
 </head>
 <body>
+
   <div class="title">PARS WMS</div>
 
   <div class="card">
@@ -56,12 +64,17 @@
     <a class="item" href="/page/calendar/month">달력 <span class="arrow">›</span></a>
     <a class="item" href="/page/inventory">재고 <span class="arrow">›</span></a>
     <a class="item" href="/page/history">이력 <span class="arrow">›</span></a>
-    <a class="item" href="/m/qr">QR <span class="arrow">›</span></a>
+
+    <!-- QR 전용 -->
+    <a class="item qr-item" href="/m/qr">QR 재고 확인 <span class="arrow">›</span></a>
+    <a class="item qr-item" href="/m/qr/move">QR 이동 <span class="arrow">›</span></a>
   </div>
 
   <div class="hint">
     · 모바일 홈(/m)에서 기존 기능 페이지(/page/*)를 그대로 호출합니다.<br/>
-    · QR 전용 기능은 /m/qr 에서 카메라 스캔 → 재고조회로 연결됩니다.
+    · QR 재고: 로케이션 QR → 재고 목록<br/>
+    · QR 이동: 출발 QR → 상품 선택 → 도착 QR → 이동 완료
   </div>
+
 </body>
 </html>
