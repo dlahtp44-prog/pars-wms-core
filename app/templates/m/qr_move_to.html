@@ -3,13 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>도착 로케이션 QR</title>
+<title>도착 로케이션 QR 스캔</title>
 <script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 16px; }
+  button {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+    background: #0a7cff;
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  #reader {
+    width: 300px;
+    height: 300px;
+    margin: 0 auto;
+  }
+</style>
 </head>
+
 <body>
-<h3>도착 로케이션 QR 스캔</h3>
+
+<h3>📍 도착 로케이션 QR 스캔</h3>
+
+<!-- ✅ 사용자 제스처 (필수) -->
+<button id="startScan">📷 QR 스캔 시작</button>
+
+<!-- ✅ 카메라 영역 -->
 <div id="reader"></div>
 
+<!-- 🔒 서버로 넘길 데이터 -->
 <form id="moveForm" method="post" action="/m/qr/move/complete">
   <input type="hidden" name="from_location" value="{{ from_location }}">
   <input type="hidden" name="item_code" value="{{ item_code }}">
@@ -21,26 +48,38 @@
 </form>
 
 <script>
-<script>
 const qr = new Html5Qrcode("reader");
-qr.start({facingMode:"environment"},{fps:10,qrbox:250},(decodedText)=>{
-  qr.stop();
 
-  let raw = decodedText.trim();
-  let location = raw;
+document.getElementById("startScan").addEventListener("click", () => {
+  qr.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: 250 },
+    (decodedText) => {
+      qr.stop();
 
-  if (location.includes(":")) location = location.split(":").pop();
-  if (location.includes("|")) location = location.split("|").pop();
-  if (location.startsWith("http")) location = location.split("/").pop();
+      let raw = decodedText.trim();
+      let location = raw;
 
-  location = location.trim();
+      if (location.includes(":")) location = location.split(":").pop();
+      if (location.includes("|")) location = location.split("|").pop();
+      if (location.startsWith("http")) location = location.split("/").pop();
 
-  if (!location) {
-    alert("도착 로케이션 QR 인식 실패");
-    return;
-  }
+      location = location.trim();
 
-  document.getElementById("to_location").value = location;
-  document.getElementById("moveForm").submit();
+      if (!location) {
+        alert("도착 로케이션 QR 인식 실패");
+        return;
+      }
+
+      document.getElementById("to_location").value = location;
+      document.getElementById("moveForm").submit();
+    }
+  ).catch(err => {
+    alert("카메라 접근 실패 – 브라우저 권한을 확인하세요.");
+    console.error(err);
+  });
 });
 </script>
+
+</body>
+</html>
