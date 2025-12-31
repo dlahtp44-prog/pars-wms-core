@@ -3,132 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>재고 이동 (이동 위치 스캔)</title>
+    <title>재고 이동 스캔</title>
     <link rel="stylesheet" href="/static/app.css">
     <style>
-        .container { padding: 10px; }
-        .info-card {
-            background: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        .info-label { font-weight: bold; color: #555; }
-        .info-value { font-weight: bold; color: #333; }
-        
-        /* QR 입력창 스타일 수정 */
-        .input-group { margin-bottom: 20px; }
-        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .input-group input {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            border: 2px solid #007bff; /* 포커스 확인 쉽도록 색상 변경 */
-            border-radius: 5px;
-            box-sizing: border-box;
-            background-color: #fff;
-        }
-        .input-group input:focus {
-            background-color: #e8f0fe; /* 포커스 시 배경색 변경 */
-            outline: none;
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 15px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .btn-submit:active { background-color: #0056b3; }
+        .container { padding: 15px; }
+        .card { background: #f9f9f9; border: 1px solid #ddd; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        .row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 15px; }
+        .label { color: #666; font-weight: bold; }
+        .input-box { width: 100%; padding: 15px; font-size: 18px; border: 2px solid #007bff; border-radius: 8px; box-sizing: border-box; }
+        .btn { width: 100%; background: #007bff; color: white; padding: 15px; border: none; border-radius: 8px; font-size: 18px; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="header" style="padding: 15px; background: #333; color: white; text-align: center; font-weight: bold;">
-        재고 이동 처리
-    </div>
-
+    <div style="background:#333; color:white; padding:15px; text-align:center; font-weight:bold;">이동 위치 스캔</div>
     <div class="container">
-        <div class="info-card">
-            <div class="info-row">
-                <span class="info-label">출발 위치</span>
-                <span class="info-value">{{ from_location }}</span>
-            </div>
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
-            <div class="info-row">
-                <span class="info-label">품목 코드</span>
-                <span class="info-value">{{ item_code }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">품목명</span>
-                <span class="info-value">{{ item_name }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">LOT</span>
-                <span class="info-value">{{ lot }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">수량</span>
-                <span class="info-value">{{ qty }}</span>
-            </div>
+        <div class="card">
+            <div class="row"><span class="label">출발</span> <span>{{ from_location }}</span></div>
+            <div class="row"><span class="label">품목</span> <span>{{ item_name }} ({{ item_code }})</span></div>
+            <div class="row"><span class="label">LOT / 수량</span> <span>{{ lot }} / {{ qty }}</span></div>
         </div>
 
-        <form action="/m/qr/move/execute" method="post" id="moveForm">
+        <form action="/m/qr/move/execute" method="post">
             <input type="hidden" name="from_location" value="{{ from_location }}">
             <input type="hidden" name="item_code" value="{{ item_code }}">
+            <input type="hidden" name="item_name" value="{{ item_name }}">
             <input type="hidden" name="lot" value="{{ lot }}">
+            <input type="hidden" name="spec" value="{{ spec }}">
             <input type="hidden" name="qty" value="{{ qty }}">
 
-            <div class="input-group">
-                <label for="to_location">도착 위치 (QR 스캔)</label>
-                <input type="text" 
-                       id="to_location" 
-                       name="to_location" 
-                       placeholder="스캔 대기중..." 
-                       autocomplete="off" 
-                       required>
-            </div>
-
-            <button type="submit" class="btn-submit">이동 확정</button>
+            <label style="display:block; margin-bottom:10px; font-weight:bold;">도착 로케이션 스캔</label>
+            <input type="text" name="to_location" id="to_location" class="input-box" placeholder="도착지 QR 스캔" autofocus required>
+            <button type="submit" class="btn">이동 확정</button>
         </form>
     </div>
-
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const qrInput = document.getElementById("to_location");
-
-            // 1. 페이지 로드 시 입력창에 포커스
-            qrInput.focus();
-
-            // 2. 화면의 빈 공간을 터치해도 입력창으로 포커스 복귀 (연속 스캔 편의성)
-            document.addEventListener("click", function(e) {
-                // 버튼이나 폼 내부 요소를 클릭한 경우가 아니라면 포커스 유지
-                if (e.target.tagName !== "BUTTON" && e.target.tagName !== "INPUT") {
-                    qrInput.focus();
-                }
-            });
-
-            // 3. 엔터키 입력 시 폼 제출 (대부분의 스캐너는 끝에 엔터를 입력함)
-            qrInput.addEventListener("keydown", function(e) {
-                if (e.key === "Enter") {
-                    e.preventDefault(); // 기본 동작 막고
-                    if (qrInput.value.trim() !== "") {
-                        document.getElementById("moveForm").submit(); // 폼 제출
-                    }
-                }
-            });
-        });
+        // 스캔 편의를 위해 자동 포커스
+        window.onload = () => document.getElementById('to_location').focus();
     </script>
 </body>
 </html>
