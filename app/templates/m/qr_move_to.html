@@ -21,19 +21,26 @@
 </form>
 
 <script>
+<script>
 const qr = new Html5Qrcode("reader");
 qr.start({facingMode:"environment"},{fps:10,qrbox:250},(decodedText)=>{
   qr.stop();
-  const raw = decodedText.trim();
+
+  let raw = decodedText.trim();
   let location = raw;
+
   if (location.includes(":")) location = location.split(":").pop();
   if (location.includes("|")) location = location.split("|").pop();
   if (location.startsWith("http")) location = location.split("/").pop();
+
   location = location.trim();
-  if(!location){ alert("로케이션 인식 실패"); return; }
+
+  if (!location) {
+    alert("도착 로케이션 QR 인식 실패");
+    return;
+  }
+
   document.getElementById("to_location").value = location;
   document.getElementById("moveForm").submit();
 });
 </script>
-</body>
-</html>
