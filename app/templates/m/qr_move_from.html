@@ -1,76 +1,45 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>출발 로케이션 QR</title>
-<script src="https://unpkg.com/html5-qrcode"></script>
-<style>
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    padding: 16px;
-  }
-  button {
-    width: 100%;
-    padding: 14px;
-    font-size: 16px;
-    border-radius: 8px;
-    border: none;
-    background: #0a7cff;
-    color: #fff;
-    font-weight: 600;
-    margin-bottom: 12px;
-  }
-  #reader {
-    width: 300px;
-    height: 300px;
-    margin: 0 auto;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>출발 로케이션 QR</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
-
 <body>
 
-<h3>📍 출발 로케이션 QR 스캔</h3>
-
-<!-- ✅ 사용자 클릭 필수 -->
-<button id="startScan" type="button">📷 QR 스캔 시작</button>
-
-<div id="reader"></div>
+<h3>📦 출발 로케이션 QR 스캔</h3>
+<div id="reader" style="width:100%"></div>
 
 <script>
 const qr = new Html5Qrcode("reader");
 
-document.getElementById("startScan").addEventListener("click", () => {
-  qr.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 250 },
-    (decodedText) => {
-      qr.stop();
+qr.start(
+  { facingMode: "environment" },
+  { fps: 10, qrbox: 250 },
+  (decodedText) => {
+    qr.stop();
 
-      let location = decodedText.trim();
+    let raw = decodedText.trim();
+    let location = raw;
 
-      if (location.includes(":")) location = location.split(":").pop();
-      if (location.includes("|")) location = location.split("|").pop();
-      if (location.startsWith("http")) location = location.split("/").pop();
+    if (location.includes(":")) location = location.split(":").pop();
+    if (location.includes("|")) location = location.split("|").pop();
+    if (location.startsWith("http")) location = location.split("/").pop();
 
-      location = location.trim();
-      if (!location) {
-        alert("로케이션 QR 인식 실패");
-        return;
-      }
+    location = location.trim();
 
-      // 출발 로케이션 → 재고 선택 화면으로 이동
-      window.location.href =
-        "/m/qr/move/select?from_location=" + encodeURIComponent(location);
+    if (!location) {
+      alert("출발 로케이션 인식 실패");
+      return;
     }
-  ).catch(err => {
-    alert("카메라 접근 실패 (권한/HTTPS 확인)");
-    console.error(err);
-  });
-});
+
+    // ✅ 핵심: 반드시 이 URL
+    window.location.href =
+      "/m/qr/move/select?from_location=" + encodeURIComponent(location);
+  }
+);
 </script>
 
 </body>
 </html>
-
