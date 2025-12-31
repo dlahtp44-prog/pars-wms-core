@@ -5,7 +5,7 @@
     <title>QR 재고 조회</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: sans-serif; padding: 12px; }
+        body { font-family: sans-serif; padding: 12px; background:#f5f6f8; }
         h2 { margin-bottom: 10px; }
         .location {
             font-weight: bold;
@@ -13,17 +13,29 @@
         }
         .item {
             border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 10px;
-            margin-bottom: 8px;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            background:#fff;
         }
         .item div { margin-bottom: 4px; }
         .empty { color: #888; margin-top: 20px; }
-        button {
-            width: 100%;
-            padding: 12px;
-            margin-top: 14px;
-            font-size: 16px;
+        .move-btn {
+            width:100%;
+            margin-top:10px;
+            padding:10px;
+            border:none;
+            border-radius:8px;
+            background:#0a7cff;
+            color:#fff;
+            font-size:15px;
+            font-weight:600;
+        }
+        .back-btn {
+            width:100%;
+            padding:12px;
+            margin-top:14px;
+            font-size:16px;
         }
     </style>
 </head>
@@ -43,13 +55,21 @@
         <div><b>LOT</b> : {{ r.lot }}</div>
         <div><b>규격</b> : {{ r.spec }}</div>
         <div><b>수량</b> : {{ r.qty }}</div>
+
+        <!-- ✅ 이 재고 이동 버튼 -->
+        <form method="get" action="/m/qr/move/select">
+            <input type="hidden" name="from_location" value="{{ location }}">
+            <button type="submit" class="move-btn">
+                이 재고 이동
+            </button>
+        </form>
     </div>
     {% endfor %}
 {% else %}
     <div class="empty">재고가 없습니다.</div>
 {% endif %}
 
-<button onclick="history.back()">← 뒤로가기</button>
+<button class="back-btn" onclick="history.back()">← 뒤로가기</button>
 
 </body>
 </html>
