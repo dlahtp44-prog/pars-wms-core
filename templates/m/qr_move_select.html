@@ -9,75 +9,35 @@
 
 <h2>출발 로케이션: {{ from_location }}</h2>
 
-<form id="selectForm">
-  <input type="hidden" id="from_location" value="{{ from_location }}">
+{% if rows|length == 0 %}
+  <p>이동 가능한 재고가 없습니다.</p>
+{% endif %}
 
-  <table border="1" width="100%">
-    <tr>
-      <th>선택</th>
-      <th>품번</th>
-      <th>품명</th>
-      <th>LOT</th>
-      <th>규격</th>
-      <th>재고</th>
-    </tr>
+{% for r in rows %}
+<form method="get" action="/m/qr/move/to" style="border:1px solid #ccc; margin-bottom:10px; padding:10px;">
+  <input type="hidden" name="from_location" value="{{ from_location }}">
+  <input type="hidden" name="item_code" value="{{ r.item_code }}">
+  <input type="hidden" name="item_name" value="{{ r.item_name }}">
+  <input type="hidden" name="lot" value="{{ r.lot }}">
+  <input type="hidden" name="spec" value="{{ r.spec }}">
 
-    {% for r in rows %}
-    <tr>
-      <td>
-        <input type="radio" name="item"
-          value="{{ r.item_code }}||{{ r.item_name }}||{{ r.lot }}||{{ r.spec }}"
-          required>
-      </td>
-      <td>{{ r.item_code }}</td>
-      <td>{{ r.item_name }}</td>
-      <td>{{ r.lot }}</td>
-      <td>{{ r.spec }}</td>
-      <td>{{ r.qty }}</td>
-    </tr>
-    {% endfor %}
-  </table>
+  <p>
+    <b>{{ r.item_code }}</b><br>
+    {{ r.item_name }}<br>
+    LOT: {{ r.lot }} / {{ r.spec }}<br>
+    재고: {{ r.qty }}
+  </p>
 
   <p>
     이동 수량:
-    <input type="number" id="qty" min="1" required>
+    <input type="number" name="qty" min="1" max="{{ r.qty }}" required>
   </p>
 
-  <button type="submit">도착 로케이션 QR 스캔</button>
+  <button type="submit">
+    이 상품 이동 → 도착 로케이션 QR 스캔
+  </button>
 </form>
-
-<script>
-document.getElementById("selectForm").addEventListener("submit", function(e){
-  e.preventDefault();
-
-  const selected = document.querySelector("input[name='item']:checked");
-  const qty = document.getElementById("qty").value;
-  const from_location = document.getElementById("from_location").value;
-
-  if (!selected) {
-    alert("이동할 재고를 선택하세요");
-    return;
-  }
-
-  if (!qty || qty <= 0) {
-    alert("이동 수량을 입력하세요");
-    return;
-  }
-
-  const [item_code, item_name, lot, spec] = selected.value.split("||");
-
-  const url =
-    "/m/qr/move/to" +
-    "?from_location=" + encodeURIComponent(from_location) +
-    "&item_code=" + encodeURIComponent(item_code) +
-    "&item_name=" + encodeURIComponent(item_name) +
-    "&lot=" + encodeURIComponent(lot) +
-    "&spec=" + encodeURIComponent(spec) +
-    "&qty=" + encodeURIComponent(qty);
-
-  window.location.href = url;
-});
-</script>
+{% endfor %}
 
 </body>
 </html>
