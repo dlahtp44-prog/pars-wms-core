@@ -1,28 +1,79 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>QR 스캔</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://unpkg.com/html5-qrcode"></script>
+    <meta charset="UTF-8">
+    <title>QR 스캔</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 12px;
+            margin: 0;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        #reader {
+            width: 100%;
+            max-width: 360px;
+            margin: 0 auto;
+        }
+        .hint {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
 
-<h3>📷 QR 스캔</h3>
+<h2>📷 QR 스캔</h2>
 <div id="reader"></div>
+<div class="hint">QR을 인식하면 자동으로 재고 조회로 이동합니다.</div>
 
 <script>
-const qr = new Html5Qrcode("reader");
-Html5Qrcode.getCameras().then(devices => {
-  qr.start(
-    devices[0].id,
-    { fps: 10, qrbox: 250 },
-    text => {
-      const loc = text.split("/").pop().trim();
-      window.location.href =
-        "/m/qr/inventory?location=" + encodeURIComponent(loc);
+let scanned = false;
+
+function extractLocation(text) {
+    if (!text) return "";
+    if (text.startsWith("http")) {
+        const parts = text.split("/");
+        return parts[parts.length - 1].trim();
     }
-  );
+    return text.trim();
+}
+
+const qr = new Html5Qrcode("reader");
+
+Html5Qrcode.getCameras().then(devices => {
+    if (!devices || devices.length === 0) {
+        alert("카메라를 찾을 수 없습니다.");
+        return;
+    }
+
+    qr.start(
+        devices[0].id,
+        { fps: 10, qrbox: 250 },
+        qrText => {
+            if (scanned) return;
+            scanned = true;
+
+            const location = extractLocation(qrText);
+
+            qr.stop().then(() => {
+                window.location.href =
+                    "/m/qr/inventory?location=" +
+                    encodeURIComponent(location);
+            });
+        }
+    );
+}).catch(err => {
+    alert("카메라 접근 실패: " + err);
 });
 </script>
 
