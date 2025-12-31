@@ -38,8 +38,17 @@ def index(request: Request):
 
 
 # ===============================
-# 📦 모바일 QR 이동 로직 (최종)
+# 📦 모바일 QR 이동 로직 (최종 완성)
 # ===============================
+
+# 0️⃣ 출발 로케이션 QR 스캔 (시작 페이지) ✅ [중요]
+@app.get("/m/qr/move/from", response_class=HTMLResponse)
+def mobile_qr_move_from(request: Request):
+    return templates.TemplateResponse(
+        "m/qr_move_from.html",
+        {"request": request}
+    )
+
 
 # 1️⃣ 재고 선택
 @app.get("/m/qr/move/select", response_class=HTMLResponse)
@@ -119,7 +128,7 @@ def mobile_qr_move_complete(
         "QR 이동"
     )
 
-    # ✅ 성공 → 에러 던지지 말고 완료 화면
+    # ✅ 성공 → 완료 화면
     return templates.TemplateResponse(
         "m/qr_move_done.html",
         {
