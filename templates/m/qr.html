@@ -1,104 +1,103 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>QR 스캔</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <title>QR 스캔</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- QR 스캔 라이브러리 -->
-  <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- ✅ 배포 환경(Render/Railway/로컬) 어디서든 동작하도록 절대 base 제거 -->
 
-  <link rel="stylesheet" href="/static/app.css" />
+    <!-- QR 스캔 라이브러리 -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
 
-  <style>
-    body {
-      margin: 0;
-      padding: 16px;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #f5f6f8;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 12px;
-    }
-    #reader {
-      width: 100%;
-      max-width: 420px;
-      margin: 0 auto;
-      border-radius: 12px;
-      overflow: hidden;
-      background: #000;
-    }
-    .guide {
-      text-align: center;
-      margin-top: 16px;
-      color: #555;
-      font-size: 15px;
-    }
-    .back {
-      margin-top: 20px;
-      text-align: center;
-    }
-    .back a {
-      text-decoration: none;
-      color: #0a7cff;
-      font-weight: bold;
-    }
-  </style>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 12px;
+        }
+        h2 {
+            margin-bottom: 12px;
+        }
+        #reader {
+            width: 100%;
+            max-width: 360px;
+            margin: 0 auto;
+        }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        button {
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 
-<h1>로케이션 QR 스캔</h1>
+<h2>📷 QR 스캔</h2>
 
 <div id="reader"></div>
 
-<div class="guide">
-  로케이션 QR을 카메라에 비춰주세요
-</div>
+<!-- 🔑 핵심 2: form GET 방식 (Safari 100% 허용) -->
+<form method="GET" action="/m/qr/inventory">
+    <input
+        type="text"
+        id="location"
+        name="location"
+        placeholder="스캔 결과"
+        readonly
+        required
+    >
+    <button type="submit">재고 조회</button>
+</form>
 
-<div class="back">
-  <a href="/m">← 모바일 홈</a>
-</div>
+<button onclick="startScan()">스캔 시작</button>
 
 <script>
-  const html5QrCode = new Html5Qrcode("reader");
+let html5QrCode = null;
 
-  function onScanSuccess(decodedText, decodedResult) {
-    // 스캔 성공 시 즉시 중지
-    html5QrCode.stop().then(() => {
-      console.log("QR 스캔 성공:", decodedText);
+/**
+ * QR 값에서 로케이션 코드만 추출
+ * - 텍스트 QR : B01-01-02-A
+ * - URL QR   : https://example.com/B01-01-02-A
+ */
+function extractLocation(text) {
+    if (!text) return "";
 
-      // 공백 제거 (B01-01-02-A 같은 값 보호)
-      const location = decodedText.trim().replace(/\s+/g, "");
-
-      // 재고 페이지로 이동
-      window.location.href =
-        "/m/qr/inventory?location=" + encodeURIComponent(location);
-    });
-  }
-
-  function onScanFailure(error) {
-    // 스캔 실패는 무시 (연속 스캔 대비)
-  }
-
-  Html5Qrcode.getCameras().then(cameras => {
-    if (cameras && cameras.length) {
-      html5QrCode.start(
-        { facingMode: "environment" }, // 후면 카메라
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 }
-        },
-        onScanSuccess,
-        onScanFailure
-      );
-    } else {
-      alert("카메라를 찾을 수 없습니다.");
+    if (text.startsWith("http")) {
+        const parts = text.split("/");
+        return parts[parts.length - 1];
     }
-  }).catch(err => {
-    alert("카메라 접근 오류: " + err);
-  });
-</script>
+    return text;
+}
 
-</body>
-</html>
+function startScan() {
+    if (html5QrCode) return;
+
+    html5QrCode = new Html5Qrcode("reader");
+
+    Html5Qrcode.getCameras().then(devices => {
+        if (!devices || devices.length === 0) {
+            alert("카메라를 찾을 수 없습니다.");
+            return;
+        }
+
+        html5QrCode.start(
+            devices[0].id,
+            { fps: 10, qrbox: 250 },
+            qrText => {
+                const locationCode = extractLocation(qrText);
+
+                // 🔑 이동하지 말고 input 값만 세팅
+                document.getElementById("location").value = locationCode;
+
+                // 카메라 종료
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    html5QrCode = null;
+                });
+            }
+        );
+    }).catch(err => {

@@ -35,6 +35,11 @@
     위치 : {{ location }}
 </div>
 
+<div style="display:flex;gap:10px;margin:12px 0 4px;">
+  <button onclick="location.href='/m/qr/move/select?from_location={{ location }}'" style="flex:1;">🚚 QR 이동</button>
+  <button onclick="location.href='/m/qr/labels?location={{ location }}'" style="flex:1;">🖨️ 라벨(A4) 출력</button>
+</div>
+
 {% if rows %}
     {% for r in rows %}
     <div class="item">
@@ -45,6 +50,21 @@
         <div><b>수량</b> : {{ r.qty }}</div>
     </div>
     {% endfor %}
+if not location:
+    return templates.TemplateResponse(
+        "m/qr_inventory.html",
+        {
+            "request": request,
+            "location": "",
+            "rows": [],
+            "error": "로케이션 QR을 먼저 스캔하세요"
+        }
+    )
+
+  <!-- 기존 재고 테이블 -->
+{% endif %}
+
+    
 {% else %}
     <div class="empty">재고가 없습니다.</div>
 {% endif %}
