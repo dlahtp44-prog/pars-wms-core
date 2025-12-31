@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>출발 로케이션 QR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+
+<h2 style="text-align:center;">출발 로케이션 QR 스캔</h2>
+<div id="reader"></div>
+
+<script>
+const qr = new Html5Qrcode("reader");
+
+function onScanSuccess(text) {
+  qr.stop().then(() => {
+    const loc = text.trim().replace(/\s+/g,"");
+    location.href = "/m/qr/move/select?from_location=" + encodeURIComponent(loc);
+  });
+}
+
+Html5Qrcode.getCameras().then(() => {
+  qr.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: 250 },
+    onScanSuccess
+  );
+});
+</script>
+
+</body>
+</html>

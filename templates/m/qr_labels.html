@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR 라벨 출력</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;padding:12px;margin:0;background:#f5f6f8;}
+    .card{background:#fff;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,0.06);padding:14px;max-width:760px;margin:12px auto;}
+    h2{margin:0 0 12px;font-size:18px;}
+    input,button,select{padding:10px;border-radius:10px;border:1px solid #e5e7eb;font-size:14px;}
+    button{cursor:pointer;border:none;background:#111;color:#fff;}
+    button.secondary{background:#fff;color:#111;border:1px solid #e5e7eb;}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+    .muted{color:#6b7280;font-size:12px;line-height:1.5;margin-top:10px;}
+    .list{margin-top:10px;border-top:1px solid #eceef1;}
+    .line{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #eceef1;}
+    .line label{flex:1;}
+
+    /* ====== A4 Print ====== */
+    @page { size: A4; margin: 8mm; }
+    .print-area{display:none;}
+    .grid{display:grid;gap:3mm;}
+    .grid.product{grid-template-columns:repeat(2, 99.1mm);} /* LS-3108: 2열 */
+    .grid.location{grid-template-columns:repeat(1, 99.1mm);} /* LS-3118: 1열 */
+
+    .label{
+      border:1px dashed #cbd5e1;
+      border-radius:3mm;
+      padding:3mm;
+      display:flex;
+      gap:3mm;
+      box-sizing:border-box;
+      overflow:hidden;
+      background:#fff;
+    }
+    .label.product{width:99.1mm;height:38.1mm;}
+    .label.location{width:99.1mm;height:140mm;flex-direction:column;justify-content:center;align-items:center;}
+    .qr{width:28mm;height:28mm;flex:0 0 28mm;}
+    .text{font-size:9pt;line-height:1.25;}
+    .text b{font-size:10pt;}
+    .loc-big{font-weight:900;font-size:22pt;letter-spacing:1px;margin-bottom:8mm;}
+
+    @media print{
+      body{background:#fff;padding:0;}
+      .card{display:none;}
+      .print-area{display:block;}
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>🖨️ QR 라벨 출력 (A4)</h2>
+    <div class="row">
+      <form method="GET" action="/m/qr/labels" class="row" style="margin:0;">
+        <input name="location" value="{{ location }}" placeholder="로케이션 (예: B01-01-02-A)" required />
+        <select name="kind">
+          <option value="product" {% if kind=='product' %}selected{% endif %}>재고용 (LS-3108 99.1×38.1)</option>
+          <option value="location" {% if kind=='location' %}selected{% endif %}>로케이션용 (LS-3118 99.1×140)</option>
+        </select>
+        <button type="submit">불러오기</button>
+      </form>
+      <button class="secondary" onclick="location.href='/m/qr/inventory?location={{ location }}'">← 재고조회</button>
+    </div>
+
+    <div class="muted">
+      · QR 내용: <b>품번 / 품명 / LOT / 규격</b> (재고용), 로케이션용은 <b>로케이션</b>만 출력합니다.<br/>
+      · 출력: 선택 후 <b>인쇄</b> 버튼 → 브라우저 인쇄(PDF 저장 가능)
+    </div>
+
+    {% if rows %}
+      <div class="list">
+        {% for r in rows %}
+          <div class="line">
+            <input type="checkbox" class="pick" data-item='{{ {
+              "location": location,
+              "item_code": r.item_code,
+              "item_name": r.item_name,
+              "lot": r.lot,
+              "spec": r.spec
+            }|tojson }}' />
+            <label>
+              <b>{{ r.item_code }}</b> · {{ r.item_name }}<br/>
+              <span class="muted">LOT {{ r.lot }} | 규격 {{ r.spec }} | 수량 {{ r.qty }}</span>
+            </label>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="row" style="margin-top:12px;">
+        <button onclick="selectAll(true)">전체선택</button>
+        <button class="secondary" onclick="selectAll(false)">선택해제</button>
+        <button onclick="buildAndPrint()">인쇄 / PDF</button>
+      </div>
+    {% else %}
+      <div class="muted">로케이션을 입력하고 불러오기를 눌러주세요.</div>
+    {% endif %}
+  </div>
+
+  <!-- PRINT AREA -->
+  <div class="print-area" id="printArea">
+    <div class="grid {{ kind }}" id="grid"></div>
+  </div>
+
+  <script>
+    function selectAll(flag){
+      document.querySelectorAll('.pick').forEach(ch=>ch.checked = flag);
+    }
+
+    function buildAndPrint(){
+      const kind = "{{ kind }}";
+      const grid = document.getElementById('grid');
+      grid.className = 'grid ' + kind;
+      grid.innerHTML = '';
+
+      let picks = Array.from(document.querySelectorAll('.pick')).filter(ch=>ch.checked);
+      if(picks.length===0){ alert('출력할 항목을 선택해 주세요.'); return; }
+
+      picks.forEach((ch, idx)=>{
+        const data = JSON.parse(ch.getAttribute('data-item'));
+        const label = document.createElement('div');
+        label.className = 'label ' + kind;
+
+        if(kind === 'location'){
+          label.innerHTML = `
+            <div class="loc-big">${data.location}</div>
+            <div id="qr_${idx}" class="qr"></div>
+          `;
+          grid.appendChild(label);
+          new QRCode(document.getElementById(`qr_${idx}`), {
+            text: data.location,
+            width: 140,
+            height: 140,
+            correctLevel: QRCode.CorrectLevel.M
+          });
+          return;
+        }
+
+        // product
+        const qrText = `품번:${data.item_code}\n품명:${data.item_name}\nLOT:${data.lot}\n규격:${data.spec}`;
+        label.innerHTML = `
+          <div id="qr_${idx}" class="qr"></div>
+          <div class="text">
+            <b>${data.item_code}</b><br/>
+            ${data.item_name}<br/>
+            LOT: ${data.lot}<br/>
+            규격: ${data.spec}
+          </div>
+        `;
+        grid.appendChild(label);
+        new QRCode(document.getElementById(`qr_${idx}`), {
+          text: qrText,
+          width: 110,
+          height: 110,
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      });
+
+      // 인쇄
+      window.print();
+    }
+  </script>
+</body>
+</html>

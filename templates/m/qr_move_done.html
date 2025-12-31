@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>이동 완료</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<h2>✅ 이동 완료</h2>
+
+<ul>
+  <li>품번: {{ item_code }}</li>
+  <li>품명: {{ item_name }}</li>
+  <li>LOT: {{ lot }}</li>
+  <li>규격: {{ spec }}</li>
+  <li>수량: {{ qty }}</li>
+  <li>출발: {{ from_location }}</li>
+  <li>도착: {{ to_location }}</li>
+</ul>
+
+<p>
+  <a href="/m">모바일 홈</a> |
+  <a href="/m/qr">QR 계속</a>
+</p>
+
+</body>
+</html>

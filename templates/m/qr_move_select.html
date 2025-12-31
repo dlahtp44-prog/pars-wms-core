@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>이동 상품 선택</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<h2>출발 로케이션: {{ from_location }}</h2>
+
+{% if rows|length == 0 %}
+  <p>이동 가능한 재고가 없습니다.</p>
+{% endif %}
+
+{% for r in rows %}
+<form method="get" action="/m/qr/move/to" style="border:1px solid #ccc; margin-bottom:10px; padding:10px;">
+  <input type="hidden" name="from_location" value="{{ from_location }}">
+  <input type="hidden" name="item_code" value="{{ r.item_code }}">
+  <input type="hidden" name="item_name" value="{{ r.item_name }}">
+  <input type="hidden" name="lot" value="{{ r.lot }}">
+  <input type="hidden" name="spec" value="{{ r.spec }}">
+
+  <p>
+    <b>{{ r.item_code }}</b><br>
+    {{ r.item_name }}<br>
+    LOT: {{ r.lot }} / {{ r.spec }}<br>
+    재고: {{ r.qty }}
+  </p>
+
+  <p>
+    이동 수량:
+    <input type="number" name="qty" min="1" max="{{ r.qty }}" required>
+  </p>
+
+  <button type="submit">
+    이 상품 이동 → 도착 로케이션 QR 스캔
+  </button>
+</form>
+{% endfor %}
+
+</body>
+</html>
