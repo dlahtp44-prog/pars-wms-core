@@ -135,19 +135,17 @@ def calendar_add_memo(
 
 # =========================
 # 📱 MOBILE (QR 전용)
-# =========================
-# =========================
-# 📱 MOBILE (QR ONLY)
+# - 테플릿 경로를 app/templates/m/* 로 통일
+#   (기존 실제 폴더 구조와 일치)
 # =========================
 @app.get("/m", response_class=HTMLResponse)
 def mobile_home(request: Request):
-    return templates.TemplateResponse("mobile/home.html", {"request": request})
+    return templates.TemplateResponse("m/home.html", {"request": request})
 
 
 @app.get("/m/qr", response_class=HTMLResponse)
 def mobile_qr(request: Request):
-    # 🔴 반드시 templates/mobile/qr.html 이 존재해야 함
-    return templates.TemplateResponse("mobile/qr.html", {"request": request})
+    return templates.TemplateResponse("m/qr.html", {"request": request})
 
 
 @app.get("/m/qr/inventory", response_class=HTMLResponse)
@@ -161,12 +159,111 @@ def mobile_qr_inventory(request: Request, location: str):
     )
 
     return templates.TemplateResponse(
-        "mobile/qr_inventory.html",
+        "m/qr_inventory.html",
+        {"request": request, "location": location, "rows": rows}
+    )
+
+
+# =========================
+# 📦 MOBILE QR 이동 (2-step)
+# - Step1: 출발 로케이션 스캔
+# - Step2: 상품 선택 → 도착 로케이션 스캔 → 이동 처리
+# =========================
+@app.get("/m/qr/move", response_class=HTMLResponse)
+def mobile_qr_move_from(request: Request):
+    return templates.TemplateResponse("m/qr_move_from.html", {"request": request})
+
+
+@app.get("/m/qr/move/select", response_class=HTMLResponse)
+def mobile_qr_move_select(request: Request, from_location: str):
+    from_location = from_location.strip().replace(" ", "")
+    rows = search_inventory(location=from_location, item_code="")
+    return templates.TemplateResponse(
+        "m/qr_move_select.html",
+        {"request": request, "from_location": from_location, "rows": rows},
+    )
+
+
+@app.get("/m/qr/move/to", response_class=HTMLResponse)
+def mobile_qr_move_to(
+    request: Request,
+    from_location: str,
+    item_code: str,
+    item_name: str,
+    lot: str,
+    spec: str,
+    qty: int,
+):
+    return templates.TemplateResponse(
+        "m/qr_move_to.html",
         {
             "request": request,
-            "location": location,
-            "rows": rows
-        }
+            "from_location": from_location,
+            "item_code": item_code,
+            "item_name": item_name,
+            "lot": lot,
+            "spec": spec,
+            "qty": qty,
+        },
+    )
+
+
+@app.post("/m/qr/move/complete", response_class=HTMLResponse)
+def mobile_qr_move_complete(
+    request: Request,
+    from_location: str = Form(...),
+    to_location: str = Form(...),
+    item_code: str = Form(...),
+    item_name: str = Form(...),
+    lot: str = Form(...),
+    spec: str = Form(...),
+    qty: int = Form(...),
+):
+    # 공통 보정
+    from_location = from_location.strip().replace(" ", "")
+    to_location = to_location.strip().replace(" ", "")
+    if qty <= 0:
+        raise HTTPException(status_code=400, detail="수량은 1 이상이어야 합니다.")
+
+    # 기존 로직 그대로 사용
+    add_move(
+        from_location,
+        to_location,
+        item_code,
+        item_name,
+        lot,
+        spec,
+        "",  # brand
+        qty,
+        "QR 이동",  # note
+    )
+
+    return templates.TemplateResponse(
+        "m/qr_move_done.html",
+        {
+            "request": request,
+            "from_location": from_location,
+            "to_location": to_location,
+            "item_code": item_code,
+            "item_name": item_name,
+            "lot": lot,
+            "spec": spec,
+            "qty": qty,
+        },
+    )
+
+
+# =========================
+# 🖨️ MOBILE QR 라벨 출력 (HTML/Print)
+# - 재고조회 결과에서 다중선택 → A4 출력
+# =========================
+@app.get("/m/qr/labels", response_class=HTMLResponse)
+def mobile_qr_labels(request: Request, location: str = "", kind: str = "product"):
+    location = location.strip().replace(" ", "")
+    rows = search_inventory(location=location, item_code="") if location else []
+    return templates.TemplateResponse(
+        "m/qr_labels.html",
+        {"request": request, "location": location, "rows": rows, "kind": kind},
     )
 
 # =========================
