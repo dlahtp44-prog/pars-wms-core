@@ -64,8 +64,41 @@ qr.start(
   { facingMode: "environment" },
   { fps: 10, qrbox: 250 },
   (decodedText) => {
+
     qr.stop();
-    document.getElementById("to_location").value = decodedText.trim();
+
+    /* ===============================
+       ✅ QR 값 정제 로직 (최종본)
+       =============================== */
+    const raw = decodedText.trim();
+
+    // location:XXX / LOC|XXX / URL 등 대비
+    let location = raw;
+
+    // 콜론(:) 있으면 뒤쪽만
+    if (location.includes(":")) {
+      location = location.split(":").pop();
+    }
+
+    // 파이프(|) 있으면 뒤쪽만
+    if (location.includes("|")) {
+      location = location.split("|").pop();
+    }
+
+    // URL이면 마지막 path
+    if (location.startsWith("http")) {
+      location = location.split("/").pop();
+    }
+
+    location = location.trim();
+
+    // 안전 체크
+    if (!location) {
+      alert("로케이션 QR 인식 실패");
+      return;
+    }
+
+    document.getElementById("to_location").value = location;
     document.getElementById("moveForm").submit();
   }
 );
