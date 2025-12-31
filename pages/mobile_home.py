@@ -1,12 +1,10 @@
-
-from fastapi import APIRouter
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
-from fastapi import Request
 
-router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
+templates = Jinja2Templates(directory='app/templates')
 
-@router.get("/m", response_class=HTMLResponse)
+router = APIRouter(prefix="/m")
+
+@router.get("")
 def mobile_home(request: Request):
-    return templates.TemplateResponse("m/index.html", {"request": request})
+    return templates.TemplateResponse("mobile_home.html", {"request": request})
