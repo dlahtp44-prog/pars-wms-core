@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>QR 스캔</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
@@ -15,18 +14,11 @@
         }
         h2 {
             text-align: center;
-            margin-bottom: 12px;
         }
         #reader {
             width: 100%;
             max-width: 360px;
-            margin: auto;
-        }
-        .hint {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 14px;
-            color: #666;
+            margin: 0 auto;
         }
     </style>
 </head>
@@ -34,16 +26,13 @@
 
 <h2>📷 QR 스캔</h2>
 <div id="reader"></div>
-<div class="hint">QR 인식 시 자동으로 재고 조회로 이동합니다.</div>
 
 <script>
 let scanned = false;
 
 function extractLocation(text) {
-    if (!text) return "";
     if (text.startsWith("http")) {
-        const parts = text.split("/");
-        return parts[parts.length - 1].trim();
+        return text.split("/").pop().trim();
     }
     return text.trim();
 }
@@ -59,13 +48,12 @@ Html5Qrcode.getCameras().then(devices => {
     qr.start(
         devices[0].id,
         { fps: 10, qrbox: 250 },
-        qrText => {
+        text => {
             if (scanned) return;
             scanned = true;
 
-            const location = extractLocation(qrText);
+            const location = extractLocation(text);
 
-            // 🔥 스캔 즉시 재고 조회 이동
             window.location.href =
                 "/m/qr/inventory?location=" +
                 encodeURIComponent(location);
