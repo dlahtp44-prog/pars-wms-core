@@ -175,13 +175,14 @@ def mobile_qr_move_from(request: Request):
 
 
 @app.get("/m/qr/move/select", response_class=HTMLResponse)
-def mobile_qr_move_select(request: Request, from_location: str):
-    from_location = from_location.strip().replace(" ", "")
-    rows = search_inventory(location=from_location, item_code="")
-    return templates.TemplateResponse(
-        "m/qr_move_select.html",
-        {"request": request, "from_location": from_location, "rows": rows},
-    )
+def mobile_qr_move_select(
+    request: Request,
+    from_location: str,
+    item_code: str,
+    item_name: str,
+    lot: str,
+    spec: str,
+):
 
 
 @app.get("/m/qr/move/to", response_class=HTMLResponse)
@@ -194,8 +195,8 @@ def mobile_qr_move_to(
     spec: str,
     qty: int,
 ):
-    return templates.TemplateResponse(
-        "m/qr_move_to.html",
+   return templates.TemplateResponse(
+        "m/qr_move_select.html",
         {
             "request": request,
             "from_location": from_location,
@@ -203,8 +204,7 @@ def mobile_qr_move_to(
             "item_name": item_name,
             "lot": lot,
             "spec": spec,
-            "qty": qty,
-        },
+        }
     )
 
 
