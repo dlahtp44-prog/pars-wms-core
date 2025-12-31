@@ -1,17 +1,14 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>도착 로케이션 QR 스캔</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- ✅ 딱 한 번만 로드 -->
-  <script src="https://unpkg.com/html5-qrcode"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>도착 로케이션 QR</title>
+<script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
-
-<h3>📸 도착 로케이션 QR 스캔</h3>
-<div id="reader" style="width:100%"></div>
+<h3>도착 로케이션 QR 스캔</h3>
+<div id="reader"></div>
 
 <form id="moveForm" method="post" action="/m/qr/move/complete">
   <input type="hidden" name="from_location" value="{{ from_location }}">
@@ -19,44 +16,24 @@
   <input type="hidden" name="item_name" value="{{ item_name }}">
   <input type="hidden" name="lot" value="{{ lot }}">
   <input type="hidden" name="spec" value="{{ spec }}">
-  <input type="hidden" name="brand" value="{{ brand }}">
   <input type="hidden" name="qty" value="{{ qty }}">
   <input type="hidden" name="to_location" id="to_location">
 </form>
 
 <script>
-  const qr = new Html5Qrcode("reader");
-
-  qr.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 250 },
-    (decodedText) => {
-      qr.stop();
-
-      let location = decodedText.trim();
-
-      if (location.includes(":")) location = location.split(":").pop();
-      if (location.includes("|")) location = location.split("|").pop();
-      if (location.startsWith("http")) location = location.split("/").pop();
-
-      location = location.trim();
-
-      if (!location) {
-        alert("도착 로케이션 QR 인식 실패");
-        return;
-      }
-
-      document.getElementById("to_location").value = location;
-
-      console.log("TO_LOCATION =", location);
-
-      // ✅ iOS Safari 안정화 (중요)
-      setTimeout(() => {
-        document.getElementById("moveForm").submit();
-      }, 100);
-    }
-  );
+const qr = new Html5Qrcode("reader");
+qr.start({facingMode:"environment"},{fps:10,qrbox:250},(decodedText)=>{
+  qr.stop();
+  const raw = decodedText.trim();
+  let location = raw;
+  if (location.includes(":")) location = location.split(":").pop();
+  if (location.includes("|")) location = location.split("|").pop();
+  if (location.startsWith("http")) location = location.split("/").pop();
+  location = location.trim();
+  if(!location){ alert("로케이션 인식 실패"); return; }
+  document.getElementById("to_location").value = location;
+  document.getElementById("moveForm").submit();
+});
 </script>
-
 </body>
 </html>
