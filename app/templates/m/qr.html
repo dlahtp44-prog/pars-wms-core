@@ -1,104 +1,12 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>QR 스캔</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- QR 스캔 라이브러리 -->
-  <script src="https://unpkg.com/html5-qrcode"></script>
-
-  <link rel="stylesheet" href="/static/app.css" />
-
-  <style>
-    body {
-      margin: 0;
-      padding: 16px;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #f5f6f8;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 12px;
-    }
-    #reader {
-      width: 100%;
-      max-width: 420px;
-      margin: 0 auto;
-      border-radius: 12px;
-      overflow: hidden;
-      background: #000;
-    }
-    .guide {
-      text-align: center;
-      margin-top: 16px;
-      color: #555;
-      font-size: 15px;
-    }
-    .back {
-      margin-top: 20px;
-      text-align: center;
-    }
-    .back a {
-      text-decoration: none;
-      color: #0a7cff;
-      font-weight: bold;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR 이동</title>
 </head>
 <body>
-
-<h1>로케이션 QR 스캔</h1>
-
-<div id="reader"></div>
-
-<div class="guide">
-  로케이션 QR을 카메라에 비춰주세요
-</div>
-
-<div class="back">
-  <a href="/m">← 모바일 홈</a>
-</div>
-
-<script>
-  const html5QrCode = new Html5Qrcode("reader");
-
-  function onScanSuccess(decodedText, decodedResult) {
-    // 스캔 성공 시 즉시 중지
-    html5QrCode.stop().then(() => {
-      console.log("QR 스캔 성공:", decodedText);
-
-      // 공백 제거 (B01-01-02-A 같은 값 보호)
-      const location = decodedText.trim().replace(/\s+/g, "");
-
-      // 재고 페이지로 이동
-      window.location.href =
-        "/m/qr/inventory?location=" + encodeURIComponent(location);
-    });
-  }
-
-  function onScanFailure(error) {
-    // 스캔 실패는 무시 (연속 스캔 대비)
-  }
-
-  Html5Qrcode.getCameras().then(cameras => {
-    if (cameras && cameras.length) {
-      html5QrCode.start(
-        { facingMode: "environment" }, // 후면 카메라
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 }
-        },
-        onScanSuccess,
-        onScanFailure
-      );
-    } else {
-      alert("카메라를 찾을 수 없습니다.");
-    }
-  }).catch(err => {
-    alert("카메라 접근 오류: " + err);
-  });
-</script>
-
+<h3>출발 로케이션 QR 스캔</h3>
+<a href="/m/qr/move/from">시작</a>
 </body>
 </html>
