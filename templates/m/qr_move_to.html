@@ -1,108 +1,101 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>도착 로케이션 QR 스캔</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://unpkg.com/html5-qrcode"></script>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      padding: 12px;
-      background: #f5f6f8;
-    }
-    h2 { margin-bottom: 10px; }
-    .box {
-      background:#fff;
-      border-radius:10px;
-      padding:12px;
-      margin-bottom:12px;
-    }
-    #reader {
-      width:100%;
-      max-width:360px;
-      margin:0 auto;
-    }
-    .hint {
-      color:#555;
-      font-size:14px;
-      margin-top:10px;
-      text-align:center;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>재고 이동 (이동 위치 스캔)</title>
+    <link rel="stylesheet" href="/static/app.css">
+    <style>
+        .container { padding: 10px; }
+        .info-card {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .info-label { font-weight: bold; color: #555; }
+        .info-value { font-weight: bold; color: #333; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-submit:active { background-color: #0056b3; }
+    </style>
 </head>
 <body>
+    <div class="header" style="padding: 15px; background: #333; color: white; text-align: center; font-weight: bold;">
+        재고 이동 처리
+    </div>
 
-<h2>📍 도착 로케이션 QR 스캔</h2>
+    <div class="container">
+        <div class="info-card">
+            <div class="info-row">
+                <span class="info-label">출발 위치</span>
+                <span class="info-value">{{ from_location }}</span>
+            </div>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+            <div class="info-row">
+                <span class="info-label">품목 코드</span>
+                <span class="info-value">{{ item_code }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">품목명</span>
+                <span class="info-value">{{ item_name }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">LOT</span>
+                <span class="info-value">{{ lot }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">수량</span>
+                <span class="info-value">{{ qty }}</span>
+            </div>
+        </div>
 
-<div class="box">
-  <div><b>출발 위치</b> : {{ from_location }}</div>
-  <div><b>품번</b> : {{ item_code }}</div>
-  <div><b>품명</b> : {{ item_name }}</div>
-  <div><b>LOT</b> : {{ lot }}</div>
-  <div><b>규격</b> : {{ spec }}</div>
-  <div><b>이동 수량</b> : {{ qty }}</div>
-</div>
+        <form action="/m/qr/move/execute" method="post" id="moveForm">
+            <input type="hidden" name="from_location" value="{{ from_location }}">
+            <input type="hidden" name="item_code" value="{{ item_code }}">
+            <input type="hidden" name="lot" value="{{ lot }}">
+            <input type="hidden" name="qty" value="{{ qty }}">
 
-<div id="reader"></div>
-<div class="hint">도착 로케이션 QR을 스캔하세요</div>
+            <div class="input-group">
+                <label for="to_location">도착 위치 (QR 스캔)</label>
+                <input type="text" id="to_location" name="to_location" placeholder="도착 위치 바코드를 스캔하세요" required autofocus>
+            </div>
 
-<form id="moveForm" method="post" action="/m/qr/move/complete">
-  <input type="hidden" name="from_location" value="{{ from_location }}">
-  <input type="hidden" name="item_code" value="{{ item_code }}">
-  <input type="hidden" name="item_name" value="{{ item_name }}">
-  <input type="hidden" name="lot" value="{{ lot }}">
-  <input type="hidden" name="spec" value="{{ spec }}">
-  <input type="hidden" name="qty" value="{{ qty }}">
-  <input type="hidden" name="to_location" id="to_location">
-</form>
+            <button type="submit" class="btn-submit">이동 확정</button>
+        </form>
+    </div>
 
-<script>
-const qr = new Html5Qrcode("reader");
-
-qr.start(
-  { facingMode: "environment" },
-  { fps: 10, qrbox: 250 },
-  (decodedText) => {
-
-    qr.stop();
-
-    /* ===============================
-       ✅ QR 값 정제 로직 (최종본)
-       =============================== */
-    const raw = decodedText.trim();
-
-    // location:XXX / LOC|XXX / URL 등 대비
-    let location = raw;
-
-    // 콜론(:) 있으면 뒤쪽만
-    if (location.includes(":")) {
-      location = location.split(":").pop();
-    }
-
-    // 파이프(|) 있으면 뒤쪽만
-    if (location.includes("|")) {
-      location = location.split("|").pop();
-    }
-
-    // URL이면 마지막 path
-    if (location.startsWith("http")) {
-      location = location.split("/").pop();
-    }
-
-    location = location.trim();
-
-    // 안전 체크
-    if (!location) {
-      alert("로케이션 QR 인식 실패");
-      return;
-    }
-
-    document.getElementById("to_location").value = location;
-    document.getElementById("moveForm").submit();
-  }
-);
-</script>
-
+    <script>
+        // 페이지 로드 시 도착 위치 입력창에 포커스 (PDA 스캐너 사용 용이성)
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("to_location").focus();
+        });
+    </script>
 </body>
 </html>
