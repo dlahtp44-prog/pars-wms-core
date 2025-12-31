@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- VERSION: MOBILE-QR-FINAL -->
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -8,8 +7,16 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding:12px; }
-        #reader { max-width:360px; margin:auto; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 12px;
+            margin: 0;
+        }
+        #reader {
+            width: 100%;
+            max-width: 360px;
+            margin: auto;
+        }
     </style>
 </head>
 <body>
@@ -20,25 +27,34 @@
 <script>
 let scanned = false;
 
-function extractLocation(text){
-    if(text.startsWith("http")){
-        const p = text.split("/");
-        return p[p.length-1];
+function extractLocation(text) {
+    if (!text) return "";
+    if (text.startsWith("http")) {
+        const parts = text.split("/");
+        return parts[parts.length - 1];
     }
     return text;
 }
 
-new Html5Qrcode("reader").start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 250 },
-    text => {
-        if(scanned) return;
-        scanned = true;
-        const loc = extractLocation(text);
-        window.location.href =
-            "/m/qr/inventory?location=" + encodeURIComponent(loc);
-    }
-);
+const qr = new Html5Qrcode("reader");
+
+Html5Qrcode.getCameras().then(devices => {
+    qr.start(
+        devices[0].id,
+        { fps: 10, qrbox: 250 },
+        qrText => {
+            if (scanned) return;
+            scanned = true;
+
+            const location = extractLocation(qrText);
+
+            // 🔥 핵심: 스캔 즉시 재고 조회로 이동
+            window.location.href =
+                "/m/qr/inventory?location=" +
+                encodeURIComponent(location);
+        }
+    );
+});
 </script>
 
 </body>
