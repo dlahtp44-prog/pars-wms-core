@@ -62,11 +62,10 @@ app.include_router(calendar_page.router)
 
 # Mobile & QR
 app.include_router(mobile_home.router)
-app.include_router(qr_page.router)
 app.include_router(qr_mobile.router)
 app.include_router(qr_move.router)
 app.include_router(qr_location.router)
-app.include_router(qr_inventory.router)
+
 
 # Admin (protected)
 app.include_router(
