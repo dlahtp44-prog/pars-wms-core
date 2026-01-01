@@ -71,3 +71,48 @@ def now_kst_iso():
     kst = timezone(timedelta(hours=9))
     return datetime.now(kst).replace(microsecond=0).isoformat()
 
+def search_inventory(
+    location: str = "",
+    item_code: str = "",
+    lot: str = ""
+):
+    """
+    모바일 QR 재고 조회용
+    location / item_code / lot 조건 검색
+    """
+    conn = get_db()
+    cur = conn.cursor()
+
+    query = """
+        SELECT
+            location,
+            item_code,
+            item_name,
+            lot,
+            spec,
+            qty,
+            brand
+        FROM inventory
+        WHERE 1=1
+    """
+    params = []
+
+    if location:
+        query += " AND location = ?"
+        params.append(location)
+
+    if item_code:
+        query += " AND item_code = ?"
+        params.append(item_code)
+
+    if lot:
+        query += " AND lot = ?"
+        params.append(lot)
+
+    cur.execute(query, params)
+    rows = cur.fetchall()
+    conn.close()
+
+    return rows
+
+
