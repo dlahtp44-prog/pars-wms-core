@@ -1,91 +1,140 @@
-
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
+DB_PATH = "wms.db"
+
+
+# ---------------------------
+# DB Connection
+# ---------------------------
 def get_db():
-    return sqlite3.connect("wms.db")
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
+
+# ---------------------------
+# Init DB
+# ---------------------------
 def init_db():
-    db = get_db()
-    db.execute("""CREATE TABLE IF NOT EXISTS location_master(
-        location_code TEXT PRIMARY KEY,
-        is_active INTEGER DEFAULT 1
-    )""")
-    db.execute("""CREATE TABLE IF NOT EXISTS inventory(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        location_code TEXT,
-        qty INTEGER,
-        updated_at TEXT
-    )""")
-    db.execute("""CREATE TABLE IF NOT EXISTS history(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        action_type TEXT,
-        location_from TEXT,
-        location_to TEXT,
-        qty INTEGER,
-        created_at TEXT
-    )""")
-    db.execute("""CREATE TABLE IF NOT EXISTS location_retire_history(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        location_code TEXT,
-        reason TEXT,
-        retired_by TEXT,
-        retired_at TEXT
-    )""")
-    db.execute("""CREATE TABLE IF NOT EXISTS users(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT,
-        password TEXT,
-        role TEXT
-    )""")
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS location_master (
+            location_code TEXT PRIMARY KEY,
+            is_active INTEGER DEFAULT 1
+        )
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS inventory (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            location_code TEXT,
+            item_code TEXT,
+            item_name TEXT,
+            lot TEXT,
+            spec TEXT,
+            qty INTEGER,
+            brand TEXT,
+            updated_at TEXT
+        )
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            action_type TEXT,
+            location_from TEXT,
+            location_to TEXT,
+            item_code TEXT,
+            lot TEXT,
+            qty INTEGER,
+            created_at TEXT
+        )
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS location_retire_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            location_code TEXT,
+            reason TEXT,
+            retired_by TEXT,
+            retired_at TEXT
+        )
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT,
+            password TEXT,
+            role TEXT
+        )
+    """)
+
     # seed admin
-    row = db.execute("SELECT COUNT(*) FROM users").fetchone()
+    row = cur.execute("SELECT COUNT(*) FROM users").fetchone()
     if row[0] == 0:
-        db.execute(
-            "INSERT INTO users(username,password,role) VALUES('admin','admin123','admin')"
+        cur.execute(
+            "INSERT INTO users(username,password,role) VALUES (?,?,?)",
+            ("admin", "admin123", "admin")
         )
-    db.commit()
 
-def ensure_location_for_write(code):
-    db = get_db()
-    row = db.execute(
+    conn.commit()
+    conn.close()
+
+
+# ---------------------------
+# Location validation
+# ---------------------------
+def ensure_location_for_write(location_code: str):
+    conn = get_db()
+    cur = conn.cursor()
+
+    row = cur.execute(
         "SELECT is_active FROM location_master WHERE location_code=?",
-        (code,)
+        (location_code,)
     ).fetchone()
-    if not row:
-        db.execute(
-            "INSERT INTO location_master(location_code,is_active) VALUES(?,1)",
-            (code,)
-        )
-        db.commit()
-        return
-    if row[0] == 0:
-        raise Exception("비활성 로케이션은 조회만 가능합니다.")
-        from datetime import datetime, timezone, timedelta
 
+    if row is None:
+        cur.execute(
+            "INSERT INTO location_master(location_code,is_active) VALUES (?,1)",
+            (location_code,)
+        )
+        conn.commit()
+        conn.close()
+        return
+
+    if row["is_active"] == 0:
+        conn.close()
+        raise Exception("비활성 로케이션은 조회만 가능합니다.")
+
+    conn.close()
+
+
+# ---------------------------
+# Time util
+# ---------------------------
 def now_kst_iso():
-    """
-    현재 시간을 KST 기준 ISO 문자열로 반환
-    예: 2026-01-01T12:34:56
-    """
     kst = timezone(timedelta(hours=9))
     return datetime.now(kst).replace(microsecond=0).isoformat()
 
+
+# ---------------------------
+# Inventory search (QR)
+# ---------------------------
 def search_inventory(
-    location: str = "",
+    location_code: str = "",
     item_code: str = "",
     lot: str = ""
 ):
-    """
-    모바일 QR 재고 조회용
-    location / item_code / lot 조건 검색
-    """
     conn = get_db()
     cur = conn.cursor()
 
     query = """
         SELECT
-            location,
+            location_code,
             item_code,
             item_name,
             lot,
@@ -97,9 +146,9 @@ def search_inventory(
     """
     params = []
 
-    if location:
-        query += " AND location = ?"
-        params.append(location)
+    if location_code:
+        query += " AND location_code = ?"
+        params.append(location_code)
 
     if item_code:
         query += " AND item_code = ?"
@@ -114,5 +163,3 @@ def search_inventory(
     conn.close()
 
     return rows
-
-
