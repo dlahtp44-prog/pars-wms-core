@@ -1,0 +1,83 @@
+{% extends "_layout.html" %}
+{% block body %}
+<h1 class="h1 center">수기 등록</h1>
+<a class="back" href="/">← 홈</a>
+
+<div class="card">
+  <form method="post" action="/page/manual-entry">
+    <div class="grid">
+      <label>귀책
+        <select name="책임구분" id="blame" required></select>
+      </label>
+      <label>유형
+        <select name="유형" id="cat" required></select>
+      </label>
+      <label>상황
+        <select name="상황" id="reason" required></select>
+      </label>
+      <label id="etcWrap" style="display:none;">기타 내용
+        <input name="기타내용" id="etcText" placeholder="캡처 외 내용 입력"/>
+      </label>
+      <label>등록일자 <input name="등록일자" placeholder="YYYY-MM-DD"/></label>
+      <label>파손일자 <input name="파손일자" placeholder="YYYY-MM-DD"/></label>
+      <label>담당자 <input name="담당자" placeholder="이름"/></label>
+      <label>수량 <input name="수량" type="number" value="0" min="0"/></label>
+      <label style="grid-column: 1 / -1;">내용
+        <input name="내용" placeholder="메모/상세" />
+      </label>
+    </div>
+    <div class="row mt">
+      <button class="btn" type="submit">저장</button>
+      <a class="btn outline" href="/page/manual-entry.xlsx?year={year}&month={month}">월별 다운로드</a>
+      <a class="btn outline" href="/page/manual-entry.xlsx?year={year}">연별 다운로드</a>
+    </div>
+  </form>
+</div>
+
+<script>
+const MAP = {"물류": {"수작업": ["이동", "낙하", "충격"], "지게차": ["이동", "낙하", "충격"], "보관": ["적재 기준 미준수", "허용 하중 초과", "장기 적재"], "기타": ["원인 불명"]}, "사옥": {"수작업": ["이동", "낙하", "충격"], "보관": ["적재 기준 미준수"]}, "운송": {"운송 하차": ["적재·고정 불량", "부주의", "사고"]}, "하차지": {"수작업": ["이동", "낙하", "충격"], "지게차": ["이동", "낙하", "충격"], "보관": ["적재 기준 미준수", "허용 하중 초과", "장기 적재"], "기타": ["원인 불명"]}, "가공공장": {"삼진스톤": ["재단 불량", "제품 파손"], "제이트": ["재단 불량", "제품 파손"], "기타": ["재단 불량", "제품 파손"]}, "원산지": {"생산": ["제품 하자", "출고 보완 미흡"]}, "부산항": {"지게차": ["충격"]}};
+const blameEl = document.getElementById('blame');
+const catEl = document.getElementById('cat');
+const reasonEl = document.getElementById('reason');
+const etcWrap = document.getElementById('etcWrap');
+const etcText = document.getElementById('etcText');
+
+function setOptions(select, options) {
+  select.innerHTML = "";
+  options.forEach(v => {
+    const o = document.createElement('option');
+    o.value = v; o.textContent = v;
+    select.appendChild(o);
+  });
+}
+
+function refreshCats() {
+  const b = blameEl.value;
+  const cats = Object.keys(MAP[b] || {});
+  setOptions(catEl, cats.length?cats:["기타"]);
+  refreshReasons();
+}
+
+function refreshReasons() {
+  const b = blameEl.value;
+  const c = catEl.value;
+  const reasons = (MAP[b] && MAP[b][c]) ? MAP[b][c] : ["원인 불명"];
+  setOptions(reasonEl, reasons);
+  refreshEtc();
+}
+
+function refreshEtc() {
+  // 캡처 외는 '기타'일 때만 수기
+  const isEtc = (catEl.value === "기타") || (reasonEl.value === "기타");
+  etcWrap.style.display = isEtc ? "block" : "none";
+  if (!isEtc) etcText.value = "";
+}
+
+// init
+setOptions(blameEl, Object.keys(MAP));
+blameEl.addEventListener('change', refreshCats);
+catEl.addEventListener('change', refreshReasons);
+reasonEl.addEventListener('change', refreshEtc);
+refreshCats();
+</script>
+{% endblock %}

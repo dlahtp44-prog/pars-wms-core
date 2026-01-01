@@ -7,13 +7,15 @@
   <form method="get" action="/page/inventory">
     <div class="grid2">
       <label>로케이션 <input name="location" value="{{location}}" placeholder="필터"/></label>
+      <label>연도 <input name="year" value="{{year}}" placeholder="예: 2025"/></label>
+      <label>월 <input name="month" value="{{month}}" placeholder="예: 10"/></label>
       <label>품번 <input name="item_code" value="{{item_code}}" placeholder="필터"/></label>
     </div>
     <button class="btn" type="submit">조회</button>
   </form>
 
   <div class="mt">
-    <a class="btn outline" href="/page/inventory.xlsx?location={{location}}&item_code={{item_code}}">엑셀 다운로드</a>
+    <a class="btn outline" href="/page/inventory.xlsx?location={{location}}&item_code={{item_code}}&year={{year}}&month={{month}}">엑셀 다운로드</a>
   </div>
 </div>
 

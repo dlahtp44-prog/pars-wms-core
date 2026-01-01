@@ -7,7 +7,7 @@ from io import BytesIO
 from fastapi import UploadFile, HTTPException
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "wms.db")
+DB_PATH = os.path.join(BASE_DIR, "WMS.db")
 
 def _conn():
     conn = sqlite3.connect(DB_PATH)
@@ -54,6 +54,34 @@ def init_db():
         note TEXT DEFAULT ''
     );
     """)
+
+# rollbacks: prevent double rollback (ref_history_id unique)
+cur.execute("""
+CREATE TABLE IF NOT EXISTS rollbacks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ref_history_id INTEGER NOT NULL UNIQUE,
+    reason TEXT DEFAULT '',
+    ts TEXT NOT NULL
+);
+""")
+# manual log (파손/특이사항 등 수기입력)
+cur.execute("""
+CREATE TABLE IF NOT EXISTS manual_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts TEXT NOT NULL,
+    year INTEGER NOT NULL,
+    month INTEGER NOT NULL,
+    책임구분 TEXT NOT NULL,
+    유형 TEXT NOT NULL,
+    상황 TEXT NOT NULL,
+    기타내용 TEXT DEFAULT '',
+    등록일자 TEXT DEFAULT '',
+    파손일자 TEXT DEFAULT '',
+    담당자 TEXT DEFAULT '',
+    수량 INTEGER DEFAULT 0,
+    내용 TEXT DEFAULT ''
+);
+""")
     # calendar memo
     cur.execute("""
     CREATE TABLE IF NOT EXISTS calendar_memo (
@@ -123,7 +151,7 @@ def add_move(from_location, to_location, item_code, item_name, lot, spec, brand,
     _upsert_inventory(to_location, item_code, item_name, lot, spec, brand, int(qty), note)
     _add_history("move", "", from_location, to_location, item_code, item_name, lot, spec, brand, int(qty), note)
 
-def search_inventory(location: str = "", item_code: str = "") -> List[Dict[str, Any]]:
+def search_inventory(location: str = "", item_code: str = "", year: Optional[int]=None, month: Optional[int]=None) -> List[Dict[str, Any]]:
     conn = _conn()
     cur = conn.cursor()
     sql = "SELECT location,item_code,item_name,lot,spec,brand,qty,updated_at,note FROM inventory WHERE 1=1"
@@ -134,21 +162,38 @@ def search_inventory(location: str = "", item_code: str = "") -> List[Dict[str, 
     if item_code:
         sql += " AND item_code LIKE ?"
         params.append(f"%{item_code}%")
+    if year is not None:
+        sql += " AND substr(updated_at,1,4)=?"
+        params.append(f"{int(year):04d}")
+    if month is not None:
+        sql += " AND substr(updated_at,6,2)=?"
+        params.append(f"{int(month):02d}")
     sql += " ORDER BY updated_at DESC"
     cur.execute(sql, params)
     rows = [dict(r) for r in cur.fetchall()]
     conn.close()
     return rows
 
-def get_history(limit: int = 200) -> List[Dict[str, Any]]:
+def get_history(limit: int = 200, year: Optional[int]=None, month: Optional[int]=None, htype: str="") -> List[Dict[str, Any]]:
     conn = _conn()
     cur = conn.cursor()
-    cur.execute("""
-        SELECT ts,type,location,from_location,to_location,item_code,item_name,lot,spec,brand,qty,note
-        FROM history
-        ORDER BY id DESC
-        LIMIT ?
-    """, (int(limit),))
+    sql = """
+        SELECT id, ts,type,location,from_location,to_location,item_code,item_name,lot,spec,brand,qty,note
+        FROM history WHERE 1=1
+    """
+    params=[]
+    if htype:
+        sql += " AND type=?"
+        params.append(htype)
+    if year is not None:
+        sql += " AND substr(ts,1,4)=?"
+        params.append(f"{int(year):04d}")
+    if month is not None:
+        sql += " AND substr(ts,6,2)=?"
+        params.append(f"{int(month):02d}")
+    sql += " ORDER BY id DESC LIMIT ?"
+    params.append(int(limit))
+    cur.execute(sql, params)
     rows = [dict(r) for r in cur.fetchall()]
     conn.close()
     return rows
@@ -382,3 +427,97 @@ def history_to_xlsx(rows: List[Dict[str, Any]]) -> bytes:
     bio=BytesIO()
     wb.save(bio)
     return bio.getvalue()
+
+
+# =========================
+# MANUAL LOG (수기 입력)
+# =========================
+def add_manual_log(책임구분:str, 유형:str, 상황:str, 기타내용:str, 등록일자:str, 파손일자:str, 담당자:str, 수량:int, 내용:str):
+    ts = _now()
+    y, m = _year_month(ts)
+    conn=_conn()
+    cur=conn.cursor()
+    cur.execute("""
+        INSERT INTO manual_log(ts,year,month,책임구분,유형,상황,기타내용,등록일자,파손일자,담당자,수량,내용)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+    """, (ts,y,m,책임구분,유형,상황,기타내용 or "",등록일자 or "",파손일자 or "",담당자 or "",int(수량 or 0),내용 or ""))
+    conn.commit()
+    conn.close()
+
+def get_manual_logs(year:int|None=None, month:int|None=None):
+    conn=_conn()
+    cur=conn.cursor()
+    q="SELECT * FROM manual_log"
+    params=[]
+    cond=[]
+    if year is not None:
+        cond.append("year=?"); params.append(int(year))
+    if month is not None:
+        cond.append("month=?"); params.append(int(month))
+    if cond:
+        q += " WHERE " + " AND ".join(cond)
+    q += " ORDER BY ts DESC"
+    cur.execute(q, params)
+    rows=[dict(r) for r in cur.fetchall()]
+    conn.close()
+    return rows
+
+def manual_to_xlsx(year:int|None=None, month:int|None=None) -> bytes:
+    rows = get_manual_logs(year, month)
+    wb=Workbook()
+    ws=wb.active
+    ws.title="manual_log"
+    headers=["ts","책임구분","유형","상황","기타내용","등록일자","파손일자","담당자","수량","내용"]
+    ws.append(headers)
+    for r in rows:
+        ws.append([r.get(h,"") for h in headers])
+    _autosize(ws)
+    bio=BytesIO()
+    wb.save(bio)
+    return bio.getvalue()
+
+# =========================
+# ROLLBACK
+# =========================
+def _is_rolled_back(ref_history_id:int)->bool:
+    conn=_conn()
+    cur=conn.cursor()
+    cur.execute("SELECT 1 FROM rollbacks WHERE ref_history_id=?", (int(ref_history_id),))
+    ok = cur.fetchone() is not None
+    conn.close()
+    return ok
+
+def rollback_history(ref_history_id:int, reason:str=""):
+    if _is_rolled_back(ref_history_id):
+        raise HTTPException(status_code=400, detail="이미 롤백 처리된 건입니다.")
+    conn=_conn()
+    cur=conn.cursor()
+    cur.execute("SELECT * FROM history WHERE id=?", (int(ref_history_id),))
+    h=cur.fetchone()
+    if not h:
+        conn.close()
+        raise HTTPException(status_code=404, detail="원본 이력을 찾을 수 없습니다.")
+    h=dict(h)
+    if h["type"]=="rollback":
+        conn.close()
+        raise HTTPException(status_code=400, detail="롤백 건은 다시 롤백할 수 없습니다.")
+    # apply inverse
+    if h["type"]=="inbound":
+        _upsert_inventory(h["location"], h["item_code"], h["item_name"], h["lot"], h["spec"], h.get("brand",""), -int(h["qty"]), reason)
+        _add_history("rollback", h["location"], "", "", h["item_code"], h["item_name"], h["lot"], h["spec"], h.get("brand",""), int(h["qty"]), f"rollback_of={ref_history_id} {reason}".strip())
+    elif h["type"]=="outbound":
+        _upsert_inventory(h["location"], h["item_code"], h["item_name"], h["lot"], h["spec"], h.get("brand",""), int(h["qty"]), reason)
+        _add_history("rollback", h["location"], "", "", h["item_code"], h["item_name"], h["lot"], h["spec"], h.get("brand",""), int(h["qty"]), f"rollback_of={ref_history_id} {reason}".strip())
+    elif h["type"]=="move":
+        # move inverse: to -> from
+        _upsert_inventory(h["to_location"], h["item_code"], h["item_name"], h["lot"], h["spec"], h.get("brand",""), -int(h["qty"]), reason)
+        _upsert_inventory(h["from_location"], h["item_code"], h["item_name"], h["lot"], h["spec"], h.get("brand",""), int(h["qty"]), reason)
+        _add_history("rollback", "", h["to_location"], h["from_location"], h["item_code"], h["item_name"], h["lot"], h["spec"], h.get("brand",""), int(h["qty"]), f"rollback_of={ref_history_id} {reason}".strip())
+    else:
+        conn.close()
+        raise HTTPException(status_code=400, detail=f"롤백 지원하지 않는 유형: {h['type']}")
+    # mark rollback
+    cur.execute("INSERT INTO rollbacks(ref_history_id, reason, ts) VALUES (?,?,?)", (int(ref_history_id), reason or "", _now()))
+    conn.commit()
+    conn.close()
+    return {"result":"ok", "ref_history_id": int(ref_history_id)}
