@@ -1,15 +1,40 @@
+from fastapi import APIRouter, Request, Form
+from fastapi.responses import RedirectResponse
+from app.db import get_db
+from app.routers.inbound import inbound
 
-from fastapi import APIRouter, Request, UploadFile, File
-from fastapi.responses import HTMLResponse, RedirectResponse
-import requests
+router = APIRouter(prefix="/page/inbound", tags=["page-inbound"])
 
-router = APIRouter(prefix="/page/inbound")
+@router.get("")
+def inbound_page(request: Request):
+    return request.app.state.templates.TemplateResponse(
+        "inbound.html",
+        {"request": request}
+    )
 
-@router.get("", response_class=HTMLResponse)
-def page(request: Request):
-    return request.app.state.templates.TemplateResponse("inbound.html", {"request": request})
+@router.post("")
+def inbound_submit(
+    request: Request,
+    location: str = Form(...),
+    item_code: str = Form(...),
+    item_name: str = Form(...),
+    lot: str = Form(...),
+    spec: str = Form(...),
+    qty: int = Form(...),
+    brand: str = Form("")
+):
+    # 👉 내부 함수 직접 호출 (requests 제거)
+    inbound(
+        location=location,
+        item_code=item_code,
+        item_name=item_name,
+        lot=lot,
+        spec=spec,
+        qty=qty,
+        brand=brand
+    )
 
-@router.post("/excel")
-async def excel(file: UploadFile = File(...)):
-    requests.post("http://localhost:8080/api/inbound", files={"file": (file.filename, await file.read())})
-    return RedirectResponse("/page/inbound", status_code=303)
+    return RedirectResponse(
+        url="/page/inbound",
+        status_code=303
+    )
