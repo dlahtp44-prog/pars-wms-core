@@ -1,15 +1,41 @@
-
 from fastapi import APIRouter, Request, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
-import requests
+from app.core.paths import TEMPLATES_DIR
+from fastapi.templating import Jinja2Templates
+import tempfile, os
+
+from core.excel_import import parse_xlsx  # we will create parse_xlsx wrapper below
+from app.logic import move
+
 
 router = APIRouter(prefix="/page/move")
 
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+
 @router.get("", response_class=HTMLResponse)
 def page(request: Request):
-    return request.app.state.templates.TemplateResponse("move.html", {"request": request})
+    return templates.TemplateResponse("move.html", {"request": request})
 
 @router.post("/excel")
 async def excel(file: UploadFile = File(...)):
-    requests.post("http://localhost:8080/api/move", files={"file": (file.filename, await file.read())})
+    # save temp
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
+        tmp.write(await file.read())
+        tmp_path = tmp.name
+    try:
+        rows = parse_xlsx(tmp_path, mode="move")
+        for r in rows:
+            if "move" == "move":
+                move(
+                    r["src_location"], r["dst_location"],
+                    r["item_code"], r["item_name"], r["lot"], r["spec"],
+                    int(r["qty"]), r.get("brand",""), r.get("note","")
+                )
+            elif "move" == "inbound":
+                inbound(r["location"], r["item_code"], r["item_name"], r["lot"], r["spec"], int(r["qty"]), r.get("brand",""), r.get("note",""))
+            else:
+                outbound(r["location"], r["item_code"], r["item_name"], r["lot"], r["spec"], int(r["qty"]), r.get("brand",""), r.get("note",""))
+    finally:
+        try: os.remove(tmp_path)
+        except: pass
     return RedirectResponse("/page/move", status_code=303)
