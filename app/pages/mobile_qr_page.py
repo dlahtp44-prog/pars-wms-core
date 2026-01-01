@@ -1,16 +1,13 @@
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
-router = APIRouter(prefix="/m/qr", tags=["MOBILE-QR"])
-
-@router.get("", response_class=HTMLResponse)
-def qr_home(request: Request):
-    return request.app.state.templates.TemplateResponse(
-        "mobile/qr.html", {"request": request}
-    )
+router = APIRouter(prefix="/m/qr")
 
 @router.get("/move/from", response_class=HTMLResponse)
-def qr_move_from(request: Request):
-    return request.app.state.templates.TemplateResponse(
-        "mobile/qr_move_from.html", {"request": request}
-    )
+def move_from(request: Request):
+    return "<h1>QR 이동 FROM</h1>"
+
+@router.get("/move/to", response_class=HTMLResponse)
+def move_to(request: Request):
+    return "<h1>QR 이동 TO</h1>"
