@@ -1,0 +1,6 @@
+
+CREATE TABLE IF NOT EXISTS calendar (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  date TEXT,
+  content TEXT
+);

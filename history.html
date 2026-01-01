@@ -1,0 +1,41 @@
+
+{% extends "_base.html" %}
+{% set title = "이력 조회" %}
+{% block content %}
+<div class="card">
+  <h3>이력 조회</h3>
+  <form method="get" action="/이력">
+    <div class="row">
+      <div>
+        <label>구분(입고/출고/이동)</label>
+        <input name="구분" value="{{ filters.구분 }}">
+      </div>
+      <div>
+        <label>품번</label>
+        <input name="품번" value="{{ filters.품번 }}">
+      </div>
+    </div>
+    <button type="submit">조회</button>
+  </form>
+</div>
+
+<table>
+  <thead>
+    <tr><th>일시</th><th>구분</th><th>창고</th><th>품번</th><th>LOT</th><th>출발</th><th>도착</th><th>수량</th></tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r['created_at'] }}</td>
+      <td>{{ r['구분'] }}</td>
+      <td>{{ r['창고'] }}</td>
+      <td>{{ r['품번'] }}</td>
+      <td>{{ r['LOT'] }}</td>
+      <td>{{ r['출발로케이션'] }}</td>
+      <td>{{ r['도착로케이션'] }}</td>
+      <td>{{ r['수량'] }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

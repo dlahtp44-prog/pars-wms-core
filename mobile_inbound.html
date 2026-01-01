@@ -1,0 +1,14 @@
+
+{% extends "mobile_base.html" %}
+{% block content %}
+<form method="post" action="/api/입고">
+<input name="창고" placeholder="창고" required>
+<input name="로케이션" placeholder="로케이션(QR)" required>
+<input name="품번" placeholder="품번" required>
+<input name="품명" placeholder="품명" required>
+<input name="LOT" placeholder="LOT" required>
+<input name="규격" placeholder="규격" required>
+<input type="number" name="수량" placeholder="수량" required>
+<button type="submit">입고</button>
+</form>
+{% endblock %}

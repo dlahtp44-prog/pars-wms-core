@@ -1,0 +1,15 @@
+
+{% extends "_base.html" %}
+{% block content %}
+<div class="menu">
+  <a href="/입고">📥 입고</a>
+  <a href="/출고">📤 출고</a>
+  <a href="/이동">🔁 이동</a>
+  <a href="/m/qr">📷 QR 스캔</a>
+  <a href="/재고">📦 재고 조회</a>
+  <a href="/이력">🧾 이력 조회</a>
+  <a href="/달력">📅 달력</a>
+  <a href="/관리자">👤 관리자</a>
+</div>
+<p class="hint">※ QR은 “로케이션/제품 QR”을 스캔하면 자동으로 입고/이동 화면에 채워집니다.</p>
+{% endblock %}

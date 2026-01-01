@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>QR 스캔</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 12px;
+            margin: 0;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        #reader {
+            width: 100%;
+            max-width: 360px;
+            margin: 0 auto;
+        }
+        .hint {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        #submitBtn {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            margin-top: 16px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<h2>📷 QR 스캔</h2>
+
+<div id="reader"></div>
+<div class="hint">QR 인식 후 재고 조회 버튼이 나타납니다.</div>
+
+<form
+    id="submitForm"
+    method="POST"
+    action="https://pars-wms-core-production.up.railway.app/m/qr/submit"
+>
+    <input type="hidden" name="location" id="location">
+    <button id="submitBtn" type="submit">
+        재고 조회
+    </button>
+</form>
+
+<script>
+let qr = null;
+let scanned = false;
+
+function extractLocation(text) {
+    if (!text) return "";
+    if (text.startsWith("http")) {
+        const parts = text.split("/");
+        return parts[parts.length - 1];
+    }
+    return text;
+}
+
+function startScan() {
+    qr = new Html5Qrcode("reader");
+
+    Html5Qrcode.getCameras().then(devices => {
+        if (!devices.length) {
+            alert("카메라를 찾을 수 없습니다.");
+            return;
+        }
+
+        qr.start(
+            devices[0].id,
+            { fps: 10, qrbox: 250 },
+            qrText => {
+                if (scanned) return;
+                scanned = true;
+
+                const location = extractLocation(qrText);
+                document.getElementById("location").value = location;
+
+                qr.stop().then(() => {
+                    qr.clear();
+                    // 🔑 모바일 안정 방식: 버튼 노출
+                    document.getElementById("submitBtn").style.display = "block";
+                });
+            }
+        );
+    });
+}
+
+window.onload = startScan;
+</script>
+
+</body>
+</html>
