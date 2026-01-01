@@ -61,3 +61,13 @@ def ensure_location_for_write(code):
         return
     if row[0] == 0:
         raise Exception("비활성 로케이션은 조회만 가능합니다.")
+        from datetime import datetime, timezone, timedelta
+
+def now_kst_iso():
+    """
+    현재 시간을 KST 기준 ISO 문자열로 반환
+    예: 2026-01-01T12:34:56
+    """
+    kst = timezone(timedelta(hours=9))
+    return datetime.now(kst).replace(microsecond=0).isoformat()
+
