@@ -1,0 +1,42 @@
+PARS WMS v1.5 테스트 체크리스트 (Railway 배포 후)
+
+0) 서버 기동 확인
+- 접속: /  (PC 홈)
+- 접속: /m (모바일 홈)
+기대: 200 OK, 404 없어야 함
+
+1) PC 페이지 라우트 404 해결 확인
+- /page/inbound
+- /page/outbound
+- /page/move
+- /page/inventory
+- /page/history
+- /page/calendar/month
+기대: 전부 200 OK
+
+2) API 기본 동작 확인
+- POST /api/inbound
+- POST /api/outbound
+- POST /api/move
+기대: 200 OK 또는 정상 처리 응답
+
+3) 모바일 페이지 확인
+- /m
+- /m/inbound
+- /m/move
+- /m/outbound
+- /m/qr
+기대: 전부 200 OK
+
+4) 로케이션 활성 목록 API
+- GET /api/location/active
+기대: 활성 로케이션 목록 반환
+
+5) 관리자(보호 라우트) 접근 확인
+- /admin/location (관리자 권한 필요)
+- /admin/location/summary (관리자 권한 필요)
+기대: 권한 없으면 403, 관리자면 정상
+
+6) 엑셀 업로드/다운로드(환경에 따라)
+- /page/inbound 에서 엑셀 업로드 시 303/200 흐름
+- /page/inventory.xlsx, /page/history.xlsx 다운로드 200
