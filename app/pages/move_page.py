@@ -1,15 +1,34 @@
+from fastapi import APIRouter, Request, Form
+from fastapi.responses import RedirectResponse
+from app.routers.move import move
 
-from fastapi import APIRouter, Request, UploadFile, File
-from fastapi.responses import HTMLResponse, RedirectResponse
-import requests
+router = APIRouter(prefix="/page/move", tags=["page-move"])
 
-router = APIRouter(prefix="/page/move")
+@router.get("")
+def move_page(request: Request):
+    return request.app.state.templates.TemplateResponse(
+        "move.html",
+        {"request": request}
+    )
 
-@router.get("", response_class=HTMLResponse)
-def page(request: Request):
-    return request.app.state.templates.TemplateResponse("move.html", {"request": request})
+@router.post("")
+def move_submit(
+    request: Request,
+    from_location: str = Form(...),
+    to_location: str = Form(...),
+    item_code: str = Form(...),
+    lot: str = Form(...),
+    qty: int = Form(...)
+):
+    move(
+        frm=from_location,
+        to=to_location,
+        item_code=item_code,
+        lot=lot,
+        qty=qty
+    )
 
-@router.post("/excel")
-async def excel(file: UploadFile = File(...)):
-    requests.post("http://localhost:8080/api/move", files={"file": (file.filename, await file.read())})
-    return RedirectResponse("/page/move", status_code=303)
+    return RedirectResponse(
+        url="/page/move",
+        status_code=303
+    )
