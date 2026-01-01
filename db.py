@@ -382,3 +382,14 @@ def history_to_xlsx(rows: List[Dict[str, Any]]) -> bytes:
     bio=BytesIO()
     wb.save(bio)
     return bio.getvalue()
+
+
+from zoneinfo import ZoneInfo
+
+def get_db():
+    """Return a sqlite3 connection with Row factory."""
+    return _conn()
+
+def now_kst_iso() -> str:
+    """Current time in Asia/Seoul as 'YYYY-MM-DD HH:MM:SS'."""
+    return datetime.now(ZoneInfo("Asia/Seoul")).strftime("%Y-%m-%d %H:%M:%S")
