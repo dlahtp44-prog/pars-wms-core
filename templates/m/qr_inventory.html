@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body>
+<h3>📦 QR 재고 조회</h3>
+<p>위치: {{ location }}</p>
+
+{% for r in rows %}
+<div style="border:1px solid #ddd;border-radius:10px;padding:10px;margin-bottom:10px">
+  <p>품번: {{ r.item_code }}</p>
+  <p>품명: {{ r.item_name }}</p>
+  <p>LOT: {{ r.lot }}</p>
+  <p>규격: {{ r.spec }}</p>
+  <p>수량: {{ r.qty }}</p>
+  <form method="get" action="/m/qr/move/select">
+    <input type="hidden" name="from_location" value="{{ location }}">
+    <input type="hidden" name="item_code" value="{{ r.item_code }}">
+    <input type="hidden" name="item_name" value="{{ r.item_name }}">
+    <input type="hidden" name="lot" value="{{ r.lot }}">
+    <input type="hidden" name="spec" value="{{ r.spec }}">
+    <button>이 재고 이동</button>
+  </form>
+</div>
+{% endfor %}
+</body>
+</html>

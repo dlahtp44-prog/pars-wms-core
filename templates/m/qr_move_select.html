@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>이동 수량 입력</title>
+</head>
+<body>
+
+<h3>이동 수량 입력</h3>
+
+<form method="get" action="/m/qr/move/to">
+  <!-- 출발 위치 -->
+  <input type="hidden" name="from_location" value="{{ from_location }}">
+
+  <!-- 🔴 여기 4개가 핵심 -->
+  <input type="hidden" name="item_code" value="{{ item_code }}">
+  <input type="hidden" name="item_name" value="{{ item_name }}">
+  <input type="hidden" name="lot" value="{{ lot }}">
+  <input type="hidden" name="spec" value="{{ spec }}">
+
+  <!-- 수량 -->
+  <label>이동 수량</label><br>
+  <input type="number" name="qty" min="1" required><br><br>
+
+  <button type="submit">도착 로케이션 QR 스캔</button>
+</form>
+
+</body>
+</html>
