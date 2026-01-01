@@ -1,0 +1,27 @@
+{% extends "_layout.html" %}
+{% block body %}
+<h1>QR 재고 확인 - 로케이션 스캔</h1>
+<a class="back-link" href="/m/qr">← QR 메뉴</a>
+
+<div class="card">
+  <div id="reader" style="width:100%;max-width:520px;"></div>
+  <p style="color:#6b7280;font-size:13px;margin-top:10px;">스캔되면 자동으로 재고 목록으로 이동합니다.</p>
+</div>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+const reader = new Html5Qrcode("reader");
+Html5Qrcode.getCameras().then(cams=>{
+  const back = cams.find(c=> (c.label||"").toLowerCase().includes("back")) || cams[cams.length-1];
+  reader.start(
+    { deviceId: { exact: back.id } },
+    { fps: 10, qrbox: { width: 250, height: 250 } },
+    (text) => {
+      reader.stop().then(()=> window.location.href = "/page/qr/location?location=" + encodeURIComponent(text));
+    }
+  );
+}).catch(err=>{
+  document.getElementById("reader").innerHTML = "<p>카메라 접근 실패: " + err + "</p>";
+});
+</script>
+{% endblock %}

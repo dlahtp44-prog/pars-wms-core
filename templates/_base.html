@@ -1,0 +1,46 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ title or "PARS WMS" }}</title>
+  <style>
+    body{font-family:Arial;margin:0;background:#f5f6fa;}
+    .wrap{max-width:720px;margin:0 auto;padding:16px;}
+    .menu a{display:flex;align-items:center;gap:10px;padding:14px 12px;border-bottom:1px solid #e5e7eb;color:#111;text-decoration:none;font-size:18px;background:#fff;}
+    .menu a:hover{background:#f3f4f6;}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin:12px 0;}
+    label{display:block;margin:10px 0 6px;font-weight:600;}
+    input, select, textarea{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:8px;font-size:16px;box-sizing:border-box;}
+    button{width:100%;padding:12px;border:0;border-radius:10px;background:#2c3e50;color:#fff;font-size:16px;font-weight:700;}
+    button.secondary{background:#6b7280;}
+    .row{display:flex;gap:10px;}
+    .row > div{flex:1;}
+    .hint{color:#6b7280;font-size:13px;margin-top:6px;}
+    table{width:100%;border-collapse:collapse;background:#fff;}
+    th,td{border-bottom:1px solid #e5e7eb;padding:10px;text-align:left;font-size:14px;}
+    th{background:#f9fafb;}
+    .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+    .topbar a{color:#2563eb;text-decoration:none;}
+    .pill{display:inline-block;padding:3px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div><strong>{{ title or "PARS WMS" }}</strong></div>
+      <div>
+        <a href="/m">홈</a>
+        {% if is_admin %}
+          <span class="pill">ADMIN</span>
+          <a href="/logout">로그아웃</a>
+        {% else %}
+          <a href="/login?next=/관리자">관리자</a>
+        {% endif %}
+      </div>
+    </div>
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

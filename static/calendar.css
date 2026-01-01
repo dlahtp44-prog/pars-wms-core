@@ -1,0 +1,68 @@
+.calendar-wrap{
+  background: var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+}
+.calendar-header{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  padding:14px 12px;
+  border-bottom:1px solid var(--border);
+  font-weight:700;
+}
+.calendar-header a{
+  text-decoration:none;
+  color: var(--primary);
+  font-weight:800;
+}
+.calendar-grid{
+  display:grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-top:1px solid var(--border);
+}
+.calendar-cell{
+  min-height: 92px;
+  padding:10px 10px 8px;
+  border-right:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  background:white;
+}
+.calendar-cell:nth-child(7n){ border-right:none; }
+.calendar-weekday{
+  background:#f8fafc;
+  min-height:auto;
+  font-weight:700;
+  color:#344054;
+}
+.daynum{
+  font-weight:700;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:6px;
+}
+.tag-today{
+  font-size:12px;
+  color:white;
+  background: var(--primary);
+  padding:2px 8px;
+  border-radius:999px;
+}
+.memo{
+  font-size:12px;
+  color:#344054;
+  margin:2px 0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.memo .author{ color:#667085; }
+.memo-add{
+  margin-top:14px;
+  padding:16px;
+  border-top:1px solid var(--border);
+  background:#fbfdff;
+}

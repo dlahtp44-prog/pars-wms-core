@@ -1,0 +1,10 @@
+
+{% extends "base.html" %}
+{% block content %}
+<h2>엑셀 이동 업로드</h2>
+<form method="post" enctype="multipart/form-data">
+  <input type="file" name="file" required>
+  <button type="submit">업로드</button>
+</form>
+<p>컬럼: 창고 / 출발로케이션 / 도착로케이션 / 품번 / 품명 / LOT / 규격 / 수량</p>
+{% endblock %}

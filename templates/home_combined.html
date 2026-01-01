@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>PARS WMS</h1>
+
+<div class="card">
+  <ul class="list">
+    <li><a href="/page/calendar/month"><span class="icon">🗓️</span><span>달력</span></a></li>
+  </ul>
+</div>
+<div class="badge">※ 달력은 월간 화면으로 이동합니다.</div>
+
+<h2>PARS WMS (Mobile)</h2>
+<div class="card">
+  <ul class="list">
+    <li><a href="/page/inbound"><span class="icon">📥</span><span>입고</span></a></li>
+    <li><a href="/page/outbound"><span class="icon">📤</span><span>출고</span></a></li>
+    <li><a href="/page/move"><span class="icon">🔁</span><span>이동</span></a></li>
+    <li><a href="/m/qr"><span class="icon">📷</span><span>QR 스캔</span></a></li>
+    <li><a href="/page/inventory"><span class="icon">📦</span><span>재고 조회</span></a></li>
+    <li><a href="/page/history"><span class="icon">🧾</span><span>이력 조회</span></a></li>
+    <li><a href="/page/calendar/month"><span class="icon">🗓️</span><span>달력</span></a></li>
+    <li><a href="/page/admin"><span class="icon">👤</span><span>관리자</span></a></li>
+  </ul>
+</div>
+<div class="badge">※ 메뉴는 한글 URL로 보이지만 서버에서 영문 page로 자동 연결됩니다(404 해결).</div>
+{% endblock %}

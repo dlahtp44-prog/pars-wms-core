@@ -1,0 +1,34 @@
+:root{--bg:#f5f7fb;--card:#fff;--border:#e6eaf2;--text:#111827;--muted:#6b7280;--primary:#2563eb;}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,Arial;color:var(--text);background:var(--bg);}
+a{color:var(--primary);text-decoration:none}
+.wrap{max-width:980px;margin:0 auto;padding:24px 16px;}
+.title{font-size:28px;font-weight:800;text-align:center;margin:12px 0 18px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+.card-hd{padding:14px 16px;border-bottom:1px solid var(--border);font-weight:700}
+.card-bd{padding:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.menu-list{list-style:none;margin:0;padding:0}
+.menu-item{display:flex;align-items:center;gap:10px;padding:14px 14px;border-top:1px solid var(--border);}
+.menu-item:first-child{border-top:none}
+.badge{font-size:12px;color:var(--muted)}
+.icon{width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center}
+.muted{color:var(--muted);font-size:13px}
+.form{display:grid;gap:12px}
+.row{display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:center}
+.row label{font-weight:600}
+input,textarea,select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:14px;background:#fff}
+textarea{min-height:80px;resize:vertical}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--primary);color:#fff;border:none;border-radius:12px;padding:12px 14px;font-weight:700;cursor:pointer}
+.btn.wide{width:100%}
+.btn.ghost{background:#eef2ff;color:#1e40af}
+.hr{height:1px;background:var(--border);margin:16px 0}
+table{width:100%;border-collapse:collapse}
+th,td{border-bottom:1px solid var(--border);padding:10px 8px;font-size:13px;text-align:left;vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:800}
+.toplink{display:inline-block;margin:6px 0 12px}
+@media (max-width:860px){
+  .grid2{grid-template-columns:1fr}
+  .row{grid-template-columns:1fr}
+  .wrap{padding:14px 12px}
+}

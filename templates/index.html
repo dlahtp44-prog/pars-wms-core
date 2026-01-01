@@ -1,0 +1,27 @@
+{% extends "_layout.html" %}
+{% block body %}
+<h1 class="h1 center">PARS WMS</h1>
+
+<div class="card desktop-only">
+  <a class="menu-item" href="/page/inbound">입고</a>
+  <a class="menu-item" href="/page/outbound">출고</a>
+  <a class="menu-item" href="/page/move">이동</a>
+  <a class="menu-item" href="/page/calendar/month">달력</a>
+  <a class="menu-item" href="/page/inventory">재고</a>
+  <a class="menu-item" href="/page/history">이력</a>
+</div>
+
+<div class="mobile-only">
+  <h2 class="h2">PARS WMS (Mobile)</h2>
+  <div class="card">
+    <a class="menu-item" href="/page/inbound">📥 입고</a>
+    <a class="menu-item" href="/page/outbound">📤 출고</a>
+    <a class="menu-item" href="/page/move">🔁 이동</a>
+    <a class="menu-item" href="/page/calendar/month">🗓️ 달력</a>
+    <a class="menu-item" href="/page/inventory">📦 재고 조회</a>
+    <a class="menu-item" href="/page/history">🧾 이력 조회</a>
+    <a class="menu-item" href="#" onclick="alert('관리자 기능은 추후 연결됩니다.'); return false;">👤 관리자</a>
+  </div>
+  <p class="muted">※ 메뉴는 향후 권한/구성에 따라 변경 가능합니다.</p>
+</div>
+{% endblock %}
