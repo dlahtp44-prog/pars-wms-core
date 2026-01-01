@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Request
-from fastapi.templating import Jinja2Templates
 
-router = APIRouter(prefix="/m")
-templates = Jinja2Templates(directory="app/templates")
+router = APIRouter(prefix="/m/qr", tags=["mobile-qr"])
 
-@router.get("/qr")
-def qr(request: Request):
-    return templates.TemplateResponse("qr.html", {"request": request, "title": "QR 스캔"})
+@router.get("")
+def qr_home(request: Request):
+    return request.app.state.templates.TemplateResponse(
+        "qr_home.html",
+        {"request": request}
+    )
