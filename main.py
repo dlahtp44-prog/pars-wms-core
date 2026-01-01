@@ -1,13 +1,16 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.core.paths import STATIC_DIR, TEMPLATES_DIR
-from app.db import init_db
-from app.auth import admin_required
-
-# API
-from app.routers import inbound, outbound, move, inventory, history, location
+# API routers
+from app.routers import (
+    inbound,
+    outbound,
+    move,
+    inventory,
+    history,
+    location,
+)
 
 # PC pages
 from app.pages import (
@@ -17,11 +20,10 @@ from app.pages import (
     move_page,
     inventory_page,
     history_page,
-    calendar_month_page,
     calendar_page,
 )
 
-# Mobile (QR 포함)
+# Mobile / QR pages
 from app.pages.mobile import (
     home as mobile_home,
     qr_home,
@@ -29,16 +31,11 @@ from app.pages.mobile import (
     qr_inventory,
 )
 
-# Admin
-from app.admin import location_admin, summary_admin
+app = FastAPI(title="PARS WMS v1.6")
 
-app = FastAPI(title="PARS WMS v1.5 FINAL")
-
-init_db()
-
-templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
-app.state.templates = templates
-app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+# templates / static (상대경로 고정)
+templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # API
 app.include_router(inbound.router)
@@ -48,28 +45,17 @@ app.include_router(inventory.router)
 app.include_router(history.router)
 app.include_router(location.router)
 
-# PC
+# PC pages
 app.include_router(home.router)
 app.include_router(inbound_page.router)
 app.include_router(outbound_page.router)
 app.include_router(move_page.router)
 app.include_router(inventory_page.router)
 app.include_router(history_page.router)
-app.include_router(calendar_month_page.router)
 app.include_router(calendar_page.router)
 
-# Mobile
+# Mobile pages
 app.include_router(mobile_home.router)
 app.include_router(qr_home.router)
 app.include_router(qr_move.router)
 app.include_router(qr_inventory.router)
-
-# Admin
-app.include_router(
-    location_admin.router,
-    dependencies=[Depends(admin_required)]
-)
-app.include_router(
-    summary_admin.router,
-    dependencies=[Depends(admin_required)]
-)
