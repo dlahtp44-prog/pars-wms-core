@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>로케이션 라벨 - LS-3108 (4칸)</title>
+<style>
+  @page { size: A4; margin: 6mm; }
+  body { font-family: Arial, 'Apple SD Gothic Neo', sans-serif; margin:0; }
+  .sheet { display: grid; grid-template-columns: repeat(2, 99.1mm); grid-auto-rows: 140mm; gap: 2mm 2mm; }
+  .label { border: 1px dashed #ddd; padding: 6mm; box-sizing: border-box; display:flex; flex-direction:column; justify-content:center; align-items:center; }
+  .loc { font-size: 34px; font-weight: 800; letter-spacing: 1px; }
+  .qr { margin-top: 10mm; width:60mm; height:60mm; border:1px solid #eee; display:flex; align-items:center; justify-content:center; color:#777; }
+  .no-print { padding: 10px; }
+  textarea { width: 100%; height: 140px; }
+  @media print { .no-print { display:none; } .label { border: none; } }
+</style>
+</head>
+<body>
+<div class="no-print">
+  <button onclick="window.print()">인쇄</button>
+  <span style="margin-left:10px;">Formtec LS-3108 (4칸 99.1×140) — 로케이션 라벨</span>
+  <form method="get" action="/admin/labels/location" style="margin-top:8px;">
+    <div>로케이션 목록(쉼표/줄바꿈/공백 구분)</div>
+    <textarea name="locations" placeholder="예) B01-01-02-A, B01-01-02-B"></textarea>
+    <button type="submit">미리보기</button>
+  </form>
+</div>
+
+<div class="sheet">
+{% for loc in locations %}
+  <div class="label">
+    <div class="loc">{{ loc }}</div>
+    <div class="qr" data-qr="{{ loc }}"></div>
+  </div>
+{% endfor %}
+</div>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+  document.querySelectorAll('.qr[data-qr]').forEach((el)=>{
+    const txt = el.getAttribute('data-qr');
+    el.innerHTML='';
+    new QRCode(el,{text:txt,width:220,height:220,correctLevel:QRCode.CorrectLevel.M});
+  });
+</script>
+</body>
+</html>

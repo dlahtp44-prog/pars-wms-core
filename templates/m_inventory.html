@@ -1,4 +1,4 @@
-<!doctype html><html lang='ko'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width,initial-scale=1'/><title>QR 이동 - 품목 선택</title>
+<!doctype html><html lang='ko'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width,initial-scale=1'/><title>모바일 재고</title>
 <style>
   body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;background:#fff;margin:0;}
   .wrap{max-width:520px;margin:32px auto;padding:0 16px;}
@@ -14,4 +14,4 @@
   .row{display:grid;grid-template-columns:1fr;gap:10px;margin:14px 0;}
   .help{color:#666;font-size:13px;}
 </style>
-</head><body><div class='topbar'><a class='back' href='/m/qr/move'>← 뒤로</a><b>QR 이동 (품목 선택)</b></div><div class='wrap'><div class='help'>출발 로케이션: <b>{{ from_location }}</b></div><div class='card'>{% for r in rows %}<a class='item' href='/m/qr/move/to?from_location={{ from_location|urlencode }}&item_code={{ r.item_code|urlencode }}&item_name={{ r.item_name|urlencode }}&lot={{ r.lot|urlencode }}&spec={{ r.spec|urlencode }}&brand={{ r.brand|urlencode }}'>{{ r.item_code }} | {{ r.lot }}<div class='sub'>{{ r.item_name }} / {{ r.spec }} / 재고: {{ r.qty }}</div></a>{% else %}<div class='item'>해당 로케이션 재고가 없습니다.</div>{% endfor %}</div></div></body></html>
+</head><body><div class='topbar'><a class='back' href='/m'>← 메뉴</a><b>재고</b></div><div class='wrap'><form method='get' action='/m/inventory' class='row'><input class='input' name='location' placeholder='로케이션' value='{{ location }}'/><input class='input' name='item_code' placeholder='품번' value='{{ item_code }}'/><button class='btn' type='submit'>조회</button></form><div class='card'>{% for r in rows %}<div class='item'><div><b>{{ r.location }}</b> | {{ r.item_code }} | {{ r.lot }}</div><div class='sub'>{{ r.item_name }} / {{ r.spec }} / 수량: {{ r.qty }}</div></div>{% else %}<div class='item'>조회 결과가 없습니다.</div>{% endfor %}</div></div></body></html>
