@@ -6,7 +6,7 @@ from app.core.paths import STATIC_DIR, TEMPLATES_DIR
 from app.db import init_db
 from app.auth import admin_required
 
-# API routers (통일)
+# API
 from app.routers import inbound, outbound, move, inventory, history, location
 
 # PC pages
@@ -21,13 +21,11 @@ from app.pages import (
     calendar_page,
 )
 
-# Mobile / QR pages
-from app.pages import (
-    mobile_home,
-    qr_page,
-    qr_mobile,
+# Mobile / QR pages (정리된 구조)
+from app.pages.mobile import (
+    home as mobile_home,
+    qr_home,
     qr_move,
-    qr_location,
     qr_inventory,
 )
 
@@ -50,24 +48,25 @@ app.include_router(inventory.router)
 app.include_router(history.router)
 app.include_router(location.router)
 
-# PC pages
+# PC
 app.include_router(home.router)
 app.include_router(inbound_page.router)
 app.include_router(outbound_page.router)
 app.include_router(move_page.router)
 app.include_router(inventory_page.router)
 app.include_router(history_page.router)
-app.include_router(calendar_month_page.router)  # 먼저
+app.include_router(calendar_month_page.router)
 app.include_router(calendar_page.router)
 
-# Mobile & QR
+# Mobile
 app.include_router(mobile_home.router)
-app.include_router(qr_mobile.router)
+
+# Mobile QR
+app.include_router(qr_home.router)
 app.include_router(qr_move.router)
-app.include_router(qr_location.router)
+app.include_router(qr_inventory.router)
 
-
-# Admin (protected)
+# Admin
 app.include_router(
     location_admin.router,
     dependencies=[Depends(admin_required)]
