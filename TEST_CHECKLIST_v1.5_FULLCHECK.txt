@@ -1,0 +1,64 @@
+PARS WMS v1.5 FULLCHECK 테스트 체크리스트 (Railway 배포 후)
+
+A. 404 해결(필수)
+1) PC 홈: /
+2) 모바일 홈: /m
+3) PC 페이지:
+   /page/inbound
+   /page/outbound
+   /page/move
+   /page/inventory
+   /page/history
+   /page/calendar/month
+   기대: 전부 200 OK (404 없어야 함)
+
+B. 수기 입력 → 재고/이력 반영(필수)
+1) /page/inbound 에서 수기 저장
+   - location / item_code / item_name / lot / spec / qty / brand 입력
+   기대:
+   - /page/inventory 에서 해당 row qty 증가
+   - /page/history 에 inbound 이력 생성
+
+2) /page/move 에서 수기 이동
+   - src_location/dst_location 동일 품목 선택
+   기대:
+   - 출발지 qty 감소, 도착지 qty 증가 (inventory 반영)
+   - history kind=move, location=도착, src_location=출발 기록
+
+3) /page/outbound 에서 수기 출고
+   기대:
+   - inventory qty 감소
+   - history kind=outbound 기록
+
+C. 엑셀 업로드 → 재고/이력 반영(필수)
+1) /page/inbound 에서 엑셀 업로드
+   - 헤더 한글/영문 혼용 가능 (로케이션/품번/품명/LOT/규격/수량/브랜드/비고)
+2) /page/move 엑셀 업로드
+   - 출발로케이션/도착로케이션 필수
+3) /page/outbound 엑셀 업로드
+   기대:
+   - inventory 및 history에 동일 반영
+
+D. 재고/이력 엑셀 다운로드(필수)
+1) /page/inventory.xlsx?location=&item_code=
+2) /page/history.xlsx?limit=200
+3) 월별/년별(필터)
+   - /page/inventory.xlsx?year=2026&month=1
+   - /page/history.xlsx?year=2026&month=1
+
+E. 달력 UI 고정(필수)
+1) /page/calendar/month
+2) 메모 입력 후 저장
+   기대:
+   - 달력 칸 높이 고정(글자 길어도 칸이 늘어나지 않음)
+   - 칸 내부는 ... 형태로 잘림(overflow)
+
+F. 로케이션 활성 통제(필수)
+1) 신규 로케이션으로 입고 → 자동 활성 생성
+2) 관리자에서 비활성 처리 후(관리자 라우트)
+3) 해당 로케이션으로 입고/이동/출고 시도
+   기대: '비활성 로케이션은 조회만 가능합니다' 오류
+
+G. QR 동작(점검)
+1) /m/qr 로 진입
+2) 로케이션 QR 재고 조회, 이동 QR 흐름이 404 없이 화면 표시되는지 확인
