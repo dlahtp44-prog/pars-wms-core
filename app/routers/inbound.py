@@ -1,10 +1,13 @@
 
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, HTTPException
+from app.db import get_db, ensure_location_active
 
 router = APIRouter(prefix="/api/inbound")
 
 @router.post("")
-async def inbound_api(file: UploadFile = File(...)):
-    if not file.filename.endswith(".xlsx"):
-        raise HTTPException(400, "엑셀(xlsx)만 가능")
-    return {"result": "ok", "type": "inbound"}
+def inbound(location: str, qty: int):
+    ensure_location_active(location)
+    db = get_db()
+    db.execute("insert into inventory(location,qty) values(?,?)", (location, qty))
+    db.commit()
+    return {"result":"ok"}

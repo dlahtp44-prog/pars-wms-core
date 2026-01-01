@@ -1,10 +1,11 @@
 
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter
+from app.db import ensure_location_active
 
 router = APIRouter(prefix="/api/move")
 
 @router.post("")
-async def move_api(file: UploadFile = File(...)):
-    if not file.filename.endswith(".xlsx"):
-        raise HTTPException(400, "엑셀(xlsx)만 가능")
-    return {"result": "ok", "type": "move"}
+def move(frm: str, to: str):
+    ensure_location_active(frm)
+    ensure_location_active(to)
+    return {"result":"ok"}
