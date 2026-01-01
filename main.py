@@ -21,7 +21,7 @@ from app.pages import (
     calendar_page,
 )
 
-# Mobile / QR pages (정리된 구조)
+# Mobile / QR pages (모바일 전용)
 from app.pages.mobile import (
     home as mobile_home,
     qr_home,
