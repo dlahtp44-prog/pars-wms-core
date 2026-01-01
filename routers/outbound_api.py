@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Form, HTTPException
-from app.db import get_db, now_ts
+from app.logic import outbound
 
 router = APIRouter(prefix="/api/outbound", tags=["outbound"])
 
 @router.post("")
-def outbound(
+def outbound_api(
     location: str = Form(...),
     item_code: str = Form(...),
     item_name: str = Form(...),
@@ -14,17 +14,8 @@ def outbound(
     qty: int = Form(...),
     note: str = Form(""),
 ):
-    if qty <= 0:
-        raise HTTPException(status_code=400, detail="수량은 1 이상이어야 합니다.")
-    ts = now_ts()
-    with get_db() as conn:
-        cur = conn.cursor()
-        cur.execute(
-            "INSERT INTO outbound(ts,location,item_code,item_name,lot,spec,brand,qty,note) VALUES(?,?,?,?,?,?,?,?,?)",
-            (ts, location, item_code, item_name, lot, spec, brand, qty, note),
-        )
-        cur.execute(
-            "INSERT INTO history(ts,kind,location,src_location,item_code,item_name,lot,spec,brand,qty,note) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
-            (ts, "outbound", location, "", item_code, item_name, lot, spec, brand, qty, note),
-        )
+    try:
+        outbound(location, item_code, item_name, lot, spec, int(qty), brand, note)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     return {"ok": True}
