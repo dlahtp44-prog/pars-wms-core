@@ -1,108 +1,83 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>도착 로케이션 QR 스캔</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>도착 로케이션 QR</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      padding: 12px;
-      background: #f5f6f8;
-    }
-    h2 { margin-bottom: 10px; }
-    .box {
-      background:#fff;
-      border-radius:10px;
-      padding:12px;
-      margin-bottom:12px;
-    }
-    #reader {
-      width:100%;
-      max-width:360px;
-      margin:0 auto;
-    }
-    .hint {
-      color:#555;
-      font-size:14px;
-      margin-top:10px;
-      text-align:center;
-    }
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;margin:0;padding:16px;background:#f5f6f8;}
+    h2{margin:8px 0 12px;font-size:20px;}
+    .wrap{max-width:520px;margin:0 auto;}
+    #reader{width:100%;border-radius:14px;overflow:hidden;background:#000;}
+    .card{background:#fff;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.06);padding:14px;margin-top:12px;}
+    .row{margin:6px 0;font-size:15px;}
+    .muted{color:#6b7280;font-size:13px;line-height:1.5;}
+    a{color:#0a7cff;text-decoration:none;font-weight:700;}
   </style>
 </head>
 <body>
+<div class="wrap">
+  <h2>도착 로케이션 QR 스캔</h2>
+  <div id="reader"></div>
 
-<h2>📍 도착 로케이션 QR 스캔</h2>
+  <div class="card">
+    <div class="row"><b>출발</b> : {{ from_location }}</div>
+    <div class="row"><b>품번</b> : {{ item_code }}</div>
+    <div class="row"><b>품명</b> : {{ item_name }}</div>
+    <div class="row"><b>LOT</b> : {{ lot }}</div>
+    <div class="row"><b>규격</b> : {{ spec }}</div>
+    <div class="row"><b>이동수량</b> : {{ qty }}</div>
+    <div class="muted">도착 로케이션 QR을 스캔하면 자동으로 이동 처리됩니다.</div>
+  </div>
 
-<div class="box">
-  <div><b>출발 위치</b> : {{ from_location }}</div>
-  <div><b>품번</b> : {{ item_code }}</div>
-  <div><b>품명</b> : {{ item_name }}</div>
-  <div><b>LOT</b> : {{ lot }}</div>
-  <div><b>규격</b> : {{ spec }}</div>
-  <div><b>이동 수량</b> : {{ qty }}</div>
+  <form id="moveForm" method="post" action="/m/qr/move/complete">
+    <input type="hidden" name="from_location" value="{{ from_location }}">
+    <input type="hidden" name="item_code" value="{{ item_code }}">
+    <input type="hidden" name="item_name" value="{{ item_name }}">
+    <input type="hidden" name="lot" value="{{ lot }}">
+    <input type="hidden" name="spec" value="{{ spec }}">
+    <input type="hidden" name="qty" value="{{ qty }}">
+    <input type="hidden" name="to_location" id="to_location" value="">
+  </form>
+
+  <p style="margin-top:12px;"><a href="/m/qr/move/select?from_location={{ from_location }}">← 재고 다시 선택</a></p>
 </div>
 
-<div id="reader"></div>
-<div class="hint">도착 로케이션 QR을 스캔하세요</div>
-
-<form id="moveForm" method="post" action="/m/qr/move/complete">
-  <input type="hidden" name="from_location" value="{{ from_location }}">
-  <input type="hidden" name="item_code" value="{{ item_code }}">
-  <input type="hidden" name="item_name" value="{{ item_name }}">
-  <input type="hidden" name="lot" value="{{ lot }}">
-  <input type="hidden" name="spec" value="{{ spec }}">
-  <input type="hidden" name="qty" value="{{ qty }}">
-  <input type="hidden" name="to_location" id="to_location">
-</form>
-
 <script>
-const qr = new Html5Qrcode("reader");
+(function(){
+  const qr = new Html5Qrcode("reader");
 
-qr.start(
-  { facingMode: "environment" },
-  { fps: 10, qrbox: 250 },
-  (decodedText) => {
-
-    qr.stop();
-
-    /* ===============================
-       ✅ QR 값 정제 로직 (최종본)
-       =============================== */
-    const raw = decodedText.trim();
-
-    // location:XXX / LOC|XXX / URL 등 대비
+  function normalizeLocation(decodedText){
+    const raw = (decodedText || "").trim();
     let location = raw;
 
-    // 콜론(:) 있으면 뒤쪽만
-    if (location.includes(":")) {
-      location = location.split(":").pop();
-    }
+    if (location.includes(":")) location = location.split(":").pop();
+    if (location.includes("|")) location = location.split("|").pop();
+    if (location.startsWith("http")) location = location.split("/").pop();
 
-    // 파이프(|) 있으면 뒤쪽만
-    if (location.includes("|")) {
-      location = location.split("|").pop();
-    }
-
-    // URL이면 마지막 path
-    if (location.startsWith("http")) {
-      location = location.split("/").pop();
-    }
-
-    location = location.trim();
-
-    // 안전 체크
-    if (!location) {
-      alert("로케이션 QR 인식 실패");
-      return;
-    }
-
-    document.getElementById("to_location").value = location;
-    document.getElementById("moveForm").submit();
+    return (location || "").trim();
   }
-);
-</script>
 
+  qr.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: 250 },
+    (decodedText) => {
+      const location = normalizeLocation(decodedText);
+      if (!location) {
+        alert("도착 로케이션 인식 실패");
+        return;
+      }
+      document.getElementById("to_location").value = location;
+      qr.stop().catch(()=>{});
+      document.getElementById("moveForm").submit();
+    },
+    (err) => { /* ignore */ }
+  ).catch((e)=>{
+    alert("카메라 실행 실패: 브라우저 권한/HTTPS 여부를 확인하세요.");
+    console.error(e);
+  });
+})();
+</script>
 </body>
 </html>
