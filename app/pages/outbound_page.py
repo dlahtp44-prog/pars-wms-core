@@ -1,15 +1,32 @@
+from fastapi import APIRouter, Request, Form
+from fastapi.responses import RedirectResponse
+from app.routers.outbound import outbound
 
-from fastapi import APIRouter, Request, UploadFile, File
-from fastapi.responses import HTMLResponse, RedirectResponse
-import requests
+router = APIRouter(prefix="/page/outbound", tags=["page-outbound"])
 
-router = APIRouter(prefix="/page/outbound")
+@router.get("")
+def outbound_page(request: Request):
+    return request.app.state.templates.TemplateResponse(
+        "outbound.html",
+        {"request": request}
+    )
 
-@router.get("", response_class=HTMLResponse)
-def page(request: Request):
-    return request.app.state.templates.TemplateResponse("outbound.html", {"request": request})
+@router.post("")
+def outbound_submit(
+    request: Request,
+    location: str = Form(...),
+    item_code: str = Form(...),
+    lot: str = Form(...),
+    qty: int = Form(...)
+):
+    outbound(
+        location=location,
+        item_code=item_code,
+        lot=lot,
+        qty=qty
+    )
 
-@router.post("/excel")
-async def excel(file: UploadFile = File(...)):
-    requests.post("http://localhost:8080/api/outbound", files={"file": (file.filename, await file.read())})
-    return RedirectResponse("/page/outbound", status_code=303)
+    return RedirectResponse(
+        url="/page/outbound",
+        status_code=303
+    )
