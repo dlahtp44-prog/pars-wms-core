@@ -3,8 +3,8 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 
 router = APIRouter(prefix="/api/move")
 
-@router.post("/excel")
-async def move_excel(file: UploadFile = File(...)):
+@router.post("")
+async def move_api(file: UploadFile = File(...)):
     if not file.filename.endswith(".xlsx"):
-        raise HTTPException(status_code=400, detail="엑셀(xlsx) 파일만 가능합니다")
-    return {"result": "ok", "message": "이동 엑셀 처리 완료"}
+        raise HTTPException(400, "엑셀(xlsx)만 가능")
+    return {"result": "ok", "type": "move"}

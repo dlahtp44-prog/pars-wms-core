@@ -3,8 +3,8 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 
 router = APIRouter(prefix="/api/inbound")
 
-@router.post("/excel")
-async def inbound_excel(file: UploadFile = File(...)):
+@router.post("")
+async def inbound_api(file: UploadFile = File(...)):
     if not file.filename.endswith(".xlsx"):
-        raise HTTPException(status_code=400, detail="엑셀(xlsx) 파일만 가능합니다")
-    return {"result": "ok", "message": "입고 엑셀 처리 완료"}
+        raise HTTPException(400, "엑셀(xlsx)만 가능")
+    return {"result": "ok", "type": "inbound"}
