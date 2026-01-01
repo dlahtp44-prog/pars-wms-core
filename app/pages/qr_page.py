@@ -5,6 +5,6 @@ router = APIRouter(prefix="/m/qr", tags=["mobile-qr"])
 @router.get("")
 def qr_home(request: Request):
     return request.app.state.templates.TemplateResponse(
-        "qr_home.html",
+        "mobile/qr_home.html",
         {"request": request}
     )
