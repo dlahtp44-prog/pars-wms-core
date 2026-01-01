@@ -37,6 +37,8 @@ body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; background:#f6f7
 .cal-nav{text-decoration:none; font-weight:800; color:#2563eb; padding:6px 10px; border-radius:10px;}
 .cal-nav:hover{background:#eef2ff;}
 .cal{width:100%; border-collapse:collapse;}
-.cal th,.cal td{border:1px solid #e5e7eb; height:64px; vertical-align:top; padding:6px;}
+.cal th,.cal td{border:1px solid #e5e7eb; height:64px; max-height:64px; vertical-align:top; padding:6px; overflow:hidden;}
 .cal-day{font-weight:800;}
 .chip{display:inline-block; margin-top:6px; padding:2px 8px; border-radius:999px; background:#2563eb; color:white; font-size:12px;}
+
+.cal td .chip{max-width:100%; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
