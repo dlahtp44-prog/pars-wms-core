@@ -1,0 +1,183 @@
+
+{% extends "_base.html" %}
+{% set title = "QR 스캔" %}
+{% block content %}
+<div class="card">
+  <h3>QR 스캔</h3>
+  <p class="hint">카메라 권한을 허용하세요. 스캔 후 자동으로 파싱됩니다.</p>
+
+  <div class="row">
+    <div>
+      <label>스캔 결과</label>
+      <input id="qrText" placeholder="스캔 결과가 여기에 표시됩니다" readonly>
+    </div>
+  </div>
+
+  <div class="row">
+    <div>
+      <button type="button" onclick="startScan()">스캔 시작</button>
+    </div>
+    <div>
+      <button type="button" class="secondary" onclick="stopScan()">중지</button>
+    </div>
+  </div>
+
+  <div style="margin-top:10px;">
+    <video id="video" style="width:100%;border-radius:10px;border:1px solid #e5e7eb;"></video>
+  </div>
+
+  <hr style="margin:14px 0;">
+
+  <div class="card" style="border:none;padding:0;margin:0;">
+    <h4>파싱된 값</h4>
+    <div class="row">
+      <div>
+        <label>창고</label>
+        <input id="f_창고" placeholder="예: A" value="A">
+      </div>
+      <div>
+        <label>로케이션(위치)</label>
+        <input id="f_로케이션" placeholder="예: B01-01-02-A">
+      </div>
+    </div>
+
+    <label>품번</label>
+    <input id="f_품번">
+
+    <label>품명</label>
+    <input id="f_품명">
+
+    <div class="row">
+      <div>
+        <label>LOT</label>
+        <input id="f_LOT">
+      </div>
+      <div>
+        <label>규격</label>
+        <input id="f_규격">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <button type="button" onclick="goInbound()">📥 입고로</button>
+      </div>
+      <div>
+        <button type="button" onclick="goMove()">🔁 이동으로</button>
+      </div>
+    </div>
+
+    <p class="hint">※ “해당 로케이션 재고”가 아래에 자동 표시됩니다.</p>
+    <div id="invBox"></div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/@zxing/library@latest"></script>
+<script>
+let codeReader;
+
+function parsePairs(text){
+  // supports "키:값/키:값" or JSON
+  try{
+    const obj = JSON.parse(text);
+    if(obj && typeof obj === 'object') return obj;
+  }catch(e){}
+  const out = {};
+  text.split(/[\/\n]+/).forEach(part=>{
+    const idx = part.indexOf(":");
+    if(idx>0){
+      const k = part.slice(0, idx).trim();
+      const v = part.slice(idx+1).trim();
+      if(k) out[k]=v;
+    }
+  });
+  return out;
+}
+
+async function loadInventory(){
+  const wh = document.getElementById('f_창고').value.trim();
+  const loc = document.getElementById('f_로케이션').value.trim();
+  const box = document.getElementById('invBox');
+  box.innerHTML = "";
+  if(!wh || !loc) return;
+  try{
+    const res = await fetch(`/api/재고/로케이션?창고=${encodeURIComponent(wh)}&로케이션=${encodeURIComponent(loc)}`);
+    const rows = await res.json();
+    if(!Array.isArray(rows) || rows.length===0){
+      box.innerHTML = "<div class='hint'>재고 없음</div>";
+      return;
+    }
+    let html = "<table><thead><tr><th>품번</th><th>LOT</th><th>수량</th></tr></thead><tbody>";
+    for(const r of rows){
+      html += `<tr><td>${r.품번}</td><td>${r.LOT}</td><td>${r.수량}</td></tr>`;
+    }
+    html += "</tbody></table>";
+    box.innerHTML = html;
+  }catch(e){
+    box.innerHTML = "<div class='hint'>재고 조회 오류</div>";
+  }
+}
+
+function applyParsed(text){
+  document.getElementById('qrText').value = text;
+  const obj = parsePairs(text);
+
+  // map keys (Korean variants)
+  const loc = obj['위치'] || obj['로케이션'] || obj['LOCATION'] || obj['location'] || "";
+  const code = obj['품번'] || obj['item_code'] || obj['code'] || "";
+  const name = obj['품명'] || obj['item_name'] || obj['name'] || "";
+  const lot  = obj['LOT'] || obj['lot'] || "";
+  const spec = obj['규격'] || obj['spec'] || "";
+
+  if(loc) document.getElementById('f_로케이션').value = loc;
+  if(code) document.getElementById('f_품번').value = code;
+  if(name) document.getElementById('f_품명').value = name;
+  if(lot) document.getElementById('f_LOT').value = lot;
+  if(spec) document.getElementById('f_규격').value = spec;
+
+  loadInventory();
+}
+
+function startScan(){
+  codeReader = new ZXing.BrowserQRCodeReader();
+  codeReader.decodeFromVideoDevice(null, 'video', (result, err) => {
+    if (result) {
+      applyParsed(result.text);
+      // keep camera on for multiple scans (optional)
+    }
+  });
+}
+
+function stopScan(){
+  if(codeReader) codeReader.reset();
+}
+
+function goInbound(){
+  const q = new URLSearchParams({
+    '창고': document.getElementById('f_창고').value,
+    '로케이션': document.getElementById('f_로케이션').value,
+    '품번': document.getElementById('f_품번').value,
+    '품명': document.getElementById('f_품명').value,
+    'LOT': document.getElementById('f_LOT').value,
+    '규격': document.getElementById('f_규격').value,
+    '수량': '1'
+  });
+  window.location.href = '/입고?' + q.toString();
+}
+
+function goMove(){
+  const q = new URLSearchParams({
+    '창고': document.getElementById('f_창고').value,
+    '출발로케이션': document.getElementById('f_로케이션').value,
+    '도착로케이션': '',
+    '품번': document.getElementById('f_품번').value,
+    'LOT': document.getElementById('f_LOT').value,
+    '수량': '1'
+  });
+  window.location.href = '/이동?' + q.toString();
+}
+
+document.getElementById('f_창고').addEventListener('change', loadInventory);
+document.getElementById('f_로케이션').addEventListener('change', loadInventory);
+</script>
+{% endblock %}
