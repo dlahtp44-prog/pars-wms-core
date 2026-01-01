@@ -14,12 +14,13 @@ def get_db():
 
 
 # ---------------------------
-# Init DB
+# Init DB (단일 정의, 중요)
 # ---------------------------
 def init_db():
     conn = get_db()
     cur = conn.cursor()
 
+    # 로케이션 마스터
     cur.execute("""
         CREATE TABLE IF NOT EXISTS location_master (
             location_code TEXT PRIMARY KEY,
@@ -27,6 +28,7 @@ def init_db():
         )
     """)
 
+    # 재고
     cur.execute("""
         CREATE TABLE IF NOT EXISTS inventory (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,6 +43,7 @@ def init_db():
         )
     """)
 
+    # 이력
     cur.execute("""
         CREATE TABLE IF NOT EXISTS history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -54,6 +57,7 @@ def init_db():
         )
     """)
 
+    # 로케이션 정리 이력
     cur.execute("""
         CREATE TABLE IF NOT EXISTS location_retire_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,6 +68,7 @@ def init_db():
         )
     """)
 
+    # 사용자
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -73,7 +78,18 @@ def init_db():
         )
     """)
 
-    # seed admin
+    # 달력 메모
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS calendar_memo (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ymd TEXT,
+            author TEXT,
+            memo TEXT,
+            created_at TEXT
+        )
+    """)
+
+    # 관리자 계정 seed
     row = cur.execute("SELECT COUNT(*) FROM users").fetchone()
     if row[0] == 0:
         cur.execute(
