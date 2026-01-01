@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>QR 재고 조회</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: sans-serif; padding: 12px; }
+        h2 { margin-bottom: 10px; }
+        .location {
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+        .item {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+        .item div { margin-bottom: 4px; }
+        .empty { color: #888; margin-top: 20px; }
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 14px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>📦 QR 재고 조회</h2>
+
+<div class="location">
+    위치 : {{ location }}
+</div>
+
+<div style="display:flex;gap:10px;margin:12px 0 4px;">
+  <button onclick="location.href='/m/qr/move/select?from_location={{ location }}'" style="flex:1;">🚚 QR 이동</button>
+  <button onclick="location.href='/m/qr/labels?location={{ location }}'" style="flex:1;">🖨️ 라벨(A4) 출력</button>
+</div>
+
+{% if rows %}
+    {% for r in rows %}
+    <div class="item">
+        <div><b>품번</b> : {{ r.item_code }}</div>
+        <div><b>품명</b> : {{ r.item_name }}</div>
+        <div><b>LOT</b> : {{ r.lot }}</div>
+        <div><b>규격</b> : {{ r.spec }}</div>
+        <div><b>수량</b> : {{ r.qty }}</div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="empty">재고가 없습니다.</div>
+{% endif %}
+
+<button onclick="history.back()">← 뒤로가기</button>
+
+</body>
+</html>

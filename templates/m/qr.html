@@ -5,16 +5,17 @@
     <title>QR 스캔</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- ✅ 배포 환경(Render/Railway/로컬) 어디서든 동작하도록 절대 base 제거 -->
+
+    <!-- QR 스캔 라이브러리 -->
     <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             padding: 12px;
-            margin: 0;
         }
         h2 {
-            text-align: center;
             margin-bottom: 12px;
         }
         #reader {
@@ -22,18 +23,14 @@
             max-width: 360px;
             margin: 0 auto;
         }
-        .hint {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 14px;
-            color: #666;
-        }
-        #submitBtn {
+        input, button {
             width: 100%;
-            padding: 14px;
+            padding: 12px;
+            margin-top: 10px;
             font-size: 16px;
-            margin-top: 16px;
-            display: none;
+        }
+        button {
+            cursor: pointer;
         }
     </style>
 </head>
@@ -42,21 +39,33 @@
 <h2>📷 QR 스캔</h2>
 
 <div id="reader"></div>
-<div class="hint">QR 인식 후 자동으로 재고 화면으로 이동합니다.</div>
 
+<!-- 🔑 핵심 2: form GET 방식 (Safari 100% 허용) -->
 <form method="GET" action="/m/qr/inventory">
-    <input type="hidden" name="location" id="location">
-    <button id="submitBtn" type="submit">
-        재고 조회
-    </button>
+    <input
+        type="text"
+        id="location"
+        name="location"
+        placeholder="스캔 결과"
+        readonly
+        required
+    >
+    <button type="submit">재고 조회</button>
 </form>
 
-<script>
-let qr = null;
-let scanned = false;
+<button onclick="startScan()">스캔 시작</button>
 
+<script>
+let html5QrCode = null;
+
+/**
+ * QR 값에서 로케이션 코드만 추출
+ * - 텍스트 QR : B01-01-02-A
+ * - URL QR   : https://example.com/B01-01-02-A
+ */
 function extractLocation(text) {
     if (!text) return "";
+
     if (text.startsWith("http")) {
         const parts = text.split("/");
         return parts[parts.length - 1];
@@ -65,15 +74,30 @@ function extractLocation(text) {
 }
 
 function startScan() {
-    qr = new Html5Qrcode("reader");
+    if (html5QrCode) return;
+
+    html5QrCode = new Html5Qrcode("reader");
 
     Html5Qrcode.getCameras().then(devices => {
-        if (!devices.length) {
+        if (!devices || devices.length === 0) {
             alert("카메라를 찾을 수 없습니다.");
             return;
         }
 
-        qr.start(
+        html5QrCode.start(
             devices[0].id,
             { fps: 10, qrbox: 250 },
             qrText => {
+                const locationCode = extractLocation(qrText);
+
+                // 🔑 이동하지 말고 input 값만 세팅
+                document.getElementById("location").value = locationCode;
+
+                // 카메라 종료
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    html5QrCode = null;
+                });
+            }
+        );
+    }).catch(err => {
