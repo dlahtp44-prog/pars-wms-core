@@ -86,3 +86,32 @@ def get_int(row: List[Any], colmap: Dict[str,int], key: str) -> int:
         return int(float(s))
     except Exception:
         raise ValueError(f"{key} 값이 숫자가 아닙니다: {s}")
+
+
+
+def parse_xlsx(path: str, mode: str = "inbound"):
+    """Return list[dict] normalized rows. mode: inbound/outbound/move"""
+    headers, data_rows = read_xlsx_rows(path)
+    mapped = map_headers(headers)
+    out = []
+    for row in data_rows:
+        item = {}
+        for idx, key in mapped.items():
+            item[key] = _norm(row[idx]) if idx < len(row) else ""
+        # normalize qty
+        if "qty" in item:
+            try:
+                item["qty"] = int(float(item["qty"])) if str(item["qty"]).strip() != "" else 0
+            except Exception:
+                item["qty"] = 0
+
+        if mode == "move":
+            req = ["src_location","dst_location","item_code","item_name","lot","spec","qty"]
+        else:
+            req = ["location","item_code","item_name","lot","spec","qty"]
+
+        for k in req:
+            if k not in item or str(item.get(k,"")).strip() == "" or (k=="qty" and int(item.get("qty",0))<=0):
+                raise ValueError(f"엑셀 필수값 누락: {k}")
+        out.append(item)
+    return out
