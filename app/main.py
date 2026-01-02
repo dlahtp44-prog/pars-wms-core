@@ -1,11 +1,12 @@
 import os
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 from app.db import init_db
 
 # =========================
-# pages (HTML)
+# Pages (HTML)
 # =========================
 from app.pages.index import router as index_router
 from app.pages.inbound import router as inbound_page_router
@@ -15,7 +16,7 @@ from app.pages.inventory import router as inventory_page_router
 from app.pages.history import router as history_page_router
 from app.pages.excel_outbound import router as excel_outbound_page_router
 
-# mobile pages
+# Mobile pages
 from app.pages.mobile_home import router as mobile_home_router
 from app.pages.mobile_qr import router as mobile_qr_router
 from app.pages.mobile_qr_inventory import router as mobile_qr_inventory_router
@@ -45,21 +46,29 @@ app = FastAPI(
 # =========================
 @app.on_event("startup")
 def on_startup():
-    # DB 자동 초기화
     init_db()
 
 
 # =========================
-# Static files (Railway-safe)
+# Base Dir
 # =========================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# =========================
+# Static files
+# =========================
 app.mount(
     "/static",
     StaticFiles(directory=os.path.join(BASE_DIR, "static")),
     name="static"
 )
 
+# =========================
+# Templates (🔥 핵심)
+# =========================
+templates = Jinja2Templates(
+    directory=os.path.join(BASE_DIR, "templates")
+)
 
 # =========================
 # Include Routers
