@@ -9,6 +9,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-Application startup complete.
-Uvicorn running on http://0.0.0.0:8000
-
+# Railway/Render often provide PORT env. Use 8080 if not set.
+CMD ["bash","-lc","uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
