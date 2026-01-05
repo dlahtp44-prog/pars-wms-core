@@ -35,8 +35,8 @@
         <button class="btn" type="submit">검색</button>
 
         <a class="btn"
-           href="/page/history/excel?year={{year}}&month={{month}}&day={{day}}">
-          엑셀 다운로드
+           href="/page/history/excel?year={{year}}&month={{month}}&day={{day}}&limit={{limit}}">
+          📥 이력 엑셀 다운로드
         </a>
 
         <a class="btn secondary" href="/">메인</a>
@@ -50,17 +50,14 @@
             <th class="small">시간</th>
             <th>유형</th>
             <th>창고</th>
-            <th>로케이션</th>
             <th>출발</th>
             <th>도착</th>
-            <th>브랜드</th>
             <th>품번</th>
             <th>품명</th>
             <th>LOT</th>
             <th>규격</th>
             <th>수량</th>
             <th>비고</th>
-            <th>작업자</th>
           </tr>
         </thead>
         <tbody>
@@ -69,26 +66,19 @@
             <td class="small">{{r.created_at}}</td>
             <td>{{r.type}}</td>
             <td>{{r.warehouse}}</td>
-            <td>{{r.location}}</td>
             <td>{{r.from_location}}</td>
             <td>{{r.to_location}}</td>
-            <td>{{r.brand}}</td>
             <td>{{r.item_code}}</td>
             <td>{{r.item_name}}</td>
             <td>{{r.lot}}</td>
             <td>{{r.spec}}</td>
             <td style="text-align:right;">{{r.qty}}</td>
             <td>{{r.note}}</td>
-            <td>{{r.operator}}</td>
           </tr>
         {% endfor %}
         </tbody>
       </table>
     </div>
-
-    <p class="small" style="margin-top:10px;">
-      검색조건: 년/월/일 (운영매뉴얼 기준)
-    </p>
   </div>
 </div>
 </body>
