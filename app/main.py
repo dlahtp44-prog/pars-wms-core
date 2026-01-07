@@ -1,68 +1,90 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
 from app.core.paths import STATIC_DIR
 from app.db import init_db
 
-# pages (PC)
-from app.pages.index import router as index_router
-from app.pages.inbound import router as inbound_page_router
-from app.pages.outbound import router as outbound_page_router
-from app.pages.move import router as move_page_router
-from app.pages.inventory import router as inventory_page_router
-from app.pages.history import router as history_page_router
-from app.pages.excel_center import router as excel_center_page_router
-from app.pages.excel_inbound import router as excel_inbound_page_router
-from app.pages.excel_outbound import router as excel_outbound_page_router
+# API routers
+from app.routers import (
+    api_inbound,
+    api_outbound,
+    api_move,
+    api_inventory,
+    api_history,
+    excel_inbound,
+    excel_outbound,
+    api_calendar,
+)
 
-# mobile pages
-from app.pages.mobile_home import router as mobile_home_router
-from app.pages.mobile_qr import router as mobile_qr_router
-from app.pages.mobile_qr_inventory import router as mobile_qr_inventory_router
-from app.pages.mobile_inventory_detail import router as mobile_inventory_detail_router
-from app.pages.mobile_move import router as mobile_move_router
+# Page routers (PC)
+from app.pages import (
+    index,
+    inbound,
+    outbound,
+    move,
+    inventory,
+    history,
+    excel_center,
+    excel_inbound as page_excel_inbound,
+    excel_outbound as page_excel_outbound,
+    calendar,
+)
 
-# api
-from app.routers.api_inbound import router as api_inbound_router
-from app.routers.api_outbound import router as api_outbound_router
-from app.routers.api_move import router as api_move_router
-from app.routers.api_inventory import router as api_inventory_router
-from app.routers.api_history import router as api_history_router
-from app.routers.excel_inbound import router as api_excel_inbound_router
-from app.routers.excel_outbound import router as api_excel_outbound_router
+# Mobile routers
+from app.pages import (
+    mobile_home,
+    mobile_qr,
+    mobile_qr_inventory,
+    mobile_inventory_detail,
+)
+from app.routers import mobile_move
 
-app = FastAPI(title="PARS WMS", version="1.6.6-qr")
+app = FastAPI(title="PARS WMS", version="1.7.x-stable")
 
-@app.on_event("startup")
-def _startup():
-    init_db()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# static
-app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+# ✅ static 폴더가 있을 때만 mount
+if Path(STATIC_DIR).exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+else:
+    print("⚠️ static directory not found - static mount skipped")
 
-# include routers (PC pages)
-app.include_router(index_router)
-app.include_router(inbound_page_router)
-app.include_router(outbound_page_router)
-app.include_router(move_page_router)
-app.include_router(inventory_page_router)
-app.include_router(history_page_router)
-app.include_router(excel_center_page_router)
-app.include_router(excel_inbound_page_router)
-app.include_router(excel_outbound_page_router)
+# DB init
+init_db()
 
-# include routers (mobile pages)
-app.include_router(mobile_home_router)
-app.include_router(mobile_qr_router)
-app.include_router(mobile_qr_inventory_router)
-app.include_router(mobile_inventory_detail_router)
-app.include_router(mobile_move_router)
+# API routers
+app.include_router(api_inbound.router)
+app.include_router(api_outbound.router)
+app.include_router(api_move.router)
+app.include_router(api_inventory.router)
+app.include_router(api_history.router)
+app.include_router(excel_inbound.router)
+app.include_router(excel_outbound.router)
+app.include_router(api_calendar.router)
 
-# include routers (api)
-app.include_router(api_inbound_router)
-app.include_router(api_outbound_router)
-app.include_router(api_move_router)
-app.include_router(api_inventory_router)
-app.include_router(api_history_router)
-app.include_router(api_excel_inbound_router)
-app.include_router(api_excel_outbound_router)
+# PC pages
+app.include_router(index.router)
+app.include_router(inbound.router)
+app.include_router(outbound.router)
+app.include_router(move.router)
+app.include_router(inventory.router)
+app.include_router(history.router)
+app.include_router(excel_center.router)
+app.include_router(page_excel_inbound.router)
+app.include_router(page_excel_outbound.router)
+app.include_router(calendar.router)
+
+# Mobile
+app.include_router(mobile_home.router)
+app.include_router(mobile_qr.router)
+app.include_router(mobile_qr_inventory.router)
+app.include_router(mobile_inventory_detail.router)
+app.include_router(mobile_move.router)
